@@ -1,0 +1,51 @@
+# bean-counter — starter category tree
+#
+# The GENERIC half of seeding. Contains category paths only, never merchant names:
+# a merchant -> category mapping is personal data and is loaded from a local file
+# outside version control, or built through the triage UI. See ARCHITECTURE.md 5.3.1.
+#
+# Two levels only (macro -> sub), per PRD assumption 7. A macro with no subs is a
+# leaf and transactions may post directly to it.
+#
+# Edit freely: this is a starting point, not a fixed schema. Categories are ordinary
+# rows in `account`, so adding one later is a UI action, not a migration.
+
+expenses:
+  Housing:
+    - Rent
+    - Utilities
+  Groceries: []
+  Eating Out:
+    - Restaurants
+    - Fast Food
+    - Coffee
+    - Delivery
+    - Bars
+  Transport:
+    - Public
+    - Rideshare
+    - Rail
+    - Car
+  Shopping:
+    - Online
+    - Electronics
+    - Clothing
+  Subscriptions:
+    - Media
+    - Mobile
+    - Software
+  Travel: []
+  Health: []
+  Cash: []          # opaque outflows, categorized at point of exit (PRD 4.4)
+  Fees: []          # bank charges; own posting, never folded into the amount
+  Uncategorized: [] # explicit destination, so "unknown" is visible rather than missing
+
+income:
+  Salary: []
+  Interest: []
+  Other: []
+
+# Asset accounts that exist for structural reasons rather than as categories.
+assets:
+  - Deposits Held        # rental and similar deposits: an asset moved, not money spent
+  - Transfers:Clearing   # both legs of an inter-account transfer post here; nets to zero
