@@ -1,1 +1,17 @@
+# Statements and anything derived from them. Never committed.
 data
+backups
+
+# The ledger itself
+bean.db
+bean.db-wal
+bean.db-shm
+
+# Runtime configuration — holds the app password hash and own-name list
+.env
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
