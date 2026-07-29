@@ -1,0 +1,25 @@
+[project]
+name = "bean-counter"
+version = "0.1.0"
+description = "Self-hosted personal wallet: consolidates accounts, imports statements, categorizes spending"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3"]
+
+[tool.uv]
+# An application, run in place and never installed into anything else. With no
+# wheel to build there is no build backend to pick, and uv resolves and locks
+# the dependencies just the same.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# This directory is the import root, so `from db.conn import connect`. Nothing
+# installs the code onto sys.path, and pytest would otherwise add only tests/.
+pythonpath = ["."]
+filterwarnings = ["error"]

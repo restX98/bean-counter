@@ -27,8 +27,13 @@ at any layer, including JSON — amounts cross the API as integers plus a curren
 
 ## 2. Layout
 
+Two self-contained projects, `backend/` and `frontend/`, each owning its manifest, lockfile and
+installed dependencies. Neither builds an artifact for the other to consume: they meet over HTTP.
+
 ```
-backend/
+backend/                Python project root — commands run from here
+  pyproject.toml      dependencies, pytest config; builds no wheel
+  uv.lock  .venv/
   main.py             FastAPI app; mounts /api, serves the built SPA
   config.py           base currency, timezone, era cutover, own-name list — all env
   db/
@@ -50,13 +55,25 @@ backend/
     eras.py  gaps.py  recurring.py
   api/                routers, one per resource
   backup.py
-frontend/
+  seeds/              categories.yaml — the starting category tree
+  tests/
+frontend/               Node project root
+  package.json  pnpm-lock.yaml  node_modules/
   src/                pages, components, api client
   vite.config.ts
+docs/
 data/                 statements — gitignored
 backups/              snapshots — gitignored
 bean.db
 ```
+
+`backend/` is the import root, so modules address each other directly: `from db.conn import connect`,
+not `from backend.db.conn import ...`. Nothing installs the code — it is an application, run in
+place — so `pyproject.toml` declares no build backend and points pytest at the same root.
+
+The ledger, the statements and the backups stay outside both projects. They are the user's data
+rather than either project's output, and keeping them clear of `backend/` means the commands that
+wipe a project directory to rebuild it cannot reach them.
 
 ## 3. Schema
 

@@ -5,7 +5,7 @@ break here is an import error or a renamed path, and catching those needs no
 client library and so no dependency beyond pytest.
 """
 
-from backend.main import app, health
+from main import app, health
 
 
 def test_health_route_is_registered():
