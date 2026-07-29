@@ -20,7 +20,7 @@ reason is stated inline and the PRD is the thing that should be updated.
 | Migrations | Numbered forward-only `.sql` files | No dependency, readable diffs, trivial to reason about |
 | Frontend | React + Vite + TypeScript | SPA over a JSON API |
 | Server state | TanStack Query | Caching and invalidation for triage screens that mutate constantly |
-| Packaging | `uv` | Single lockfile, fast, no virtualenv ceremony |
+| Packaging | `uv` (Python), `pnpm` (frontend) | One lockfile each. `pnpm` for its content-addressed store, which is what keeps installs cheap |
 
 Money is `Decimal` at the boundary and **signed integer minor units** in the database. Never float,
 at any layer, including JSON — amounts cross the API as integers plus a currency code.
