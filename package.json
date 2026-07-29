@@ -1,0 +1,19 @@
+{
+  "name": "bean-counter",
+  "private": true,
+  "description": "Command index. Every command runs from the repository root; this file knows which project each one belongs to. It has no dependencies and nothing is installed here — the two projects underneath own their own toolchains.",
+  "scripts": {
+    "bootstrap": "cd frontend && pnpm install && cd ../backend && uv sync",
+    "dev": "trap 'kill 0' EXIT; pnpm run dev:backend & pnpm run dev:frontend & wait",
+    "dev:backend": "cd backend && uv run uvicorn main:app --reload --port 8000",
+    "dev:frontend": "cd frontend && pnpm run dev",
+    "test": "pnpm run test:backend && pnpm run test:frontend",
+    "test:backend": "cd backend && uv run pytest -q",
+    "test:frontend": "cd frontend && pnpm run test:run",
+    "lint": "cd frontend && pnpm run lint",
+    "typecheck": "cd frontend && pnpm run typecheck",
+    "build": "cd frontend && pnpm run build",
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build"
+  },
+  "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72"
+}

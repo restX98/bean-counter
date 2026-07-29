@@ -1,0 +1,5 @@
+# Virtualenv, bytecode and test caches. Rebuildable from uv.lock, all of it.
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/

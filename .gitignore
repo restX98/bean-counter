@@ -7,11 +7,14 @@ bean.db
 bean.db-wal
 bean.db-shm
 
-# Runtime configuration — holds the app password hash and own-name list
+# Runtime configuration — holds the app password hash and own-name list.
+# Unanchored on purpose: the app reads it from its own working directory, so
+# this has to match backend/.env as well as one here.
 .env
 
-# Python
-.venv/
-__pycache__/
-*.py[cod]
-.pytest_cache/
+# The root package.json is a command index with no dependencies, but pnpm still
+# writes bookkeeping here on any `pnpm run`. Anchored: frontend/ ignores its own.
+/node_modules/
+
+# Each project ignores its own build artefacts — see backend/.gitignore and
+# frontend/.gitignore.
