@@ -9,8 +9,11 @@ bean.db-shm
 
 # Runtime configuration — holds the app password hash and own-name list.
 # Unanchored on purpose: the app reads it from its own working directory, so
-# this has to match backend/.env as well as one here.
+# this has to match backend/.env as well as one here. The second line covers
+# the .env.local and .env.<mode>.local files Vite loads by convention; it
+# requires the dot, so it does not swallow unrelated names like .envrc.
 .env
+.env.*
 
 # The root package.json is a command index with no dependencies, but pnpm still
 # writes bookkeeping here on any `pnpm run`. Anchored: frontend/ ignores its own.
