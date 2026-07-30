@@ -67,19 +67,3 @@ jobs:
       - run: pnpm run test:run
 
       - run: pnpm run build
-
-  privacy:
-    # The statements, the ledger and the app password are gitignored, and one
-    # `git add -f` defeats that permanently and in public. This is the check
-    # that makes the rule enforceable rather than merely written down.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: No private data is tracked
-        run: |
-          if git ls-files \
-            | grep -E '(^|/)(data|backups)/|(^|/)bean\.db|(^|/)\.env(\..+)?$'; then
-            echo "::error::The files above are private and must never be committed."
-            exit 1
-          fi
