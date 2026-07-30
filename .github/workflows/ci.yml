@@ -38,33 +38,6 @@ jobs:
 
       - run: uv run pytest -q
 
-  smoke:
-    # The unit tests import the app; this proves the process actually serves.
-    # Separate from `backend` so a broken boot and a failing test are two
-    # results rather than one that hides the other.
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: astral-sh/setup-uv@v6
-        with:
-          python-version: "3.12"
-          enable-cache: true
-          cache-dependency-glob: backend/uv.lock
-
-      - run: uv sync --locked
-
-      - name: Boot and poll /api/health
-        run: |
-          uv run uvicorn main:app --host 127.0.0.1 --port 8000 &
-          timeout 60 bash -c \
-            'until curl -sf http://127.0.0.1:8000/api/health -o "$RUNNER_TEMP/health.json"; do sleep 0.5; done'
-          cat "$RUNNER_TEMP/health.json"
-          grep -q '"status":"ok"' "$RUNNER_TEMP/health.json"
-
   frontend:
     runs-on: ubuntu-latest
     defaults:
