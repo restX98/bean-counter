@@ -43,10 +43,10 @@ Every command runs from the repository root — you never need to change directo
 Use `pnpm run <name>` rather than the `pnpm <name>` shorthand: the shorthand silently defers to
 pnpm's own commands when a name collides with one.
 
-`pnpm run check` is what CI runs on your code, but it is not everything CI runs: two jobs need a
-clean checkout rather than your working tree, and have no local equivalent. One boots the backend
-and polls `/api/health`; the other fails if any private file is tracked. A green `check` is the
-right thing to require before pushing — just not a guarantee the run will pass.
+`pnpm run check` runs the same lint, typecheck, tests and build that CI does. CI installs
+differently, though: `uv sync --locked` and `pnpm install --frozen-lockfile` fail outright if a
+lockfile has drifted from its manifest, where installing locally would simply resolve the
+difference. That is the one way a green `check` can still meet a red run.
 
 ## Layout
 
@@ -60,9 +60,9 @@ See [ARCHITECTURE §2](docs/ARCHITECTURE.md) for the full tree.
 ## Your data stays on your machine
 
 Statements (`data/`), the ledger itself (`bean.db`), snapshots (`backups/`) and your configuration
-(`.env`) are gitignored and must never be committed. CI enforces this with a job that fails if any
-of them is ever tracked, because a `.gitignore` is one `git add -f` away from being bypassed —
-permanently and in public.
+(`.env`, and the `.env.*` variants) are gitignored and must never be committed. The `.gitignore` is
+the only thing standing in the way, so check `git status` before you stage: a file that is already
+tracked stays tracked whatever the ignore rules later say.
 
 The documents in `docs/` are written to the same rule: they describe formats and behaviour, never
 real amounts, balances, account identifiers or payee names.
