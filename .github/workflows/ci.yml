@@ -1,0 +1,69 @@
+name: CI
+
+# Every push, on every branch. A branch is where the work happens, so that is
+# where a broken commit needs to show up — waiting for master means the rule
+# "master is always green" is enforced after the fact rather than before.
+# '**' matches branches only: a tag push is the same commit, already checked.
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+# A branch only needs its newest commit checked. Supersede rather than queue.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      # --locked resolves nothing: it fails if uv.lock disagrees with
+      # pyproject.toml, which is the only way that drift ever gets noticed.
+      - run: uv sync --locked
+
+      - run: uv run pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      # Before setup-node: its pnpm cache needs pnpm on PATH to locate the
+      # store. Version comes from packageManager in package.json.
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run lint
+
+      - run: pnpm run typecheck
+
+      - run: pnpm run test:run
+
+      - run: pnpm run build
