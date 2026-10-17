@@ -275,7 +275,7 @@ All three reports share a currency switcher (EUR first) and a period control.
 #### S18 Settings
 
 - **Transfers**: transfer window in days (default 3).
-- **Import presets**: the saved bank formats. Edit one (S8) or delete it.
+- **Import presets**: the saved export formats, one per format (a bank can have several). Edit one (S8) or delete it.
 - **Backup & restore**: download a backup file, or restore from one (D8).
 
 ## 5. Dialogs & panels
@@ -289,7 +289,7 @@ On mobile, every dialog opens as a full-screen sheet.
 - **D5 Category form**: name, income / expense, and what uses the category (transactions, budget, rules). Delete variant: move the category's transactions to another category, or leave them uncategorized.
 - **D6 Rule form**: description match (contains / regex), optional amount and account, category. Prefilled when opened from S6 or S2. An "Also apply to N uncategorized transactions that match" option is ticked by default. Transactions that already have a category are never changed. When an edit removes an overlap, D6 offers to re-check the rule conflicts in Review.
 - **D7 Budget form**: category, currency, monthly limit, start month. Edit variant: the new limit and the month it applies from. Start-over variant: the month the running balance counts from.
-- **D8 Restore backup**: warns that all current data will be replaced, then asks to confirm.
+- **D8 Restore backup**: warns that all current data will be replaced, offers to download the current data first, then asks to confirm.
 
 ## 6. User flows
 

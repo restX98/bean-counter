@@ -18,21 +18,8 @@
     border: 1px dashed var(--wf-border);
     background: #f7f7f7;
   }
-  .file-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: var(--wf-fill);
-    border: 1px solid var(--wf-line);
-  }
   .settings { display: flex; gap: 24px; }
 
-  .mapping { table-layout: fixed; }
-  .mapping th + th, .mapping td + td { border-left: 1px solid var(--wf-rule); }
-  .mapping td .dropdown { width: 100%; }
-  .mapping tr.sample td { color: var(--wf-ink-2); border-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
 
   .chips { display: flex; gap: 8px; }
   .balance {
@@ -64,7 +51,6 @@
     border: 1px dashed var(--wf-border);
     background: #f7f7f7;
   }
-  .col-card { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--wf-line); }
   .m-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
   .m-count {
     display: flex;
@@ -156,7 +142,7 @@
           </div>
           <div class="card">
             <span class="strong">New format</span>
-            <p class="muted" style="font-size:13px">No saved preset matches this file. You'll map its columns in the next step, once for Bank A.</p>
+            <p class="muted" style="font-size:13px">No saved preset matches this file. You'll map its columns in the next step, once for this format.</p>
           </div>
         </div>
 
@@ -214,7 +200,7 @@
           </div>
         </header>
 
-        <p class="muted">Bank A · new format. Tell the app what each column holds. The mapping is saved as Bank A's preset, so the next import from Bank A skips this step.</p>
+        <p class="muted">Bank A · new format. Tell the app what each column holds. The mapping is saved as a preset, so the next file with these columns skips this step.</p>
 
         <div class="settings">
           <div class="field"><span class="label">Date format</span><div class="dropdown">DD/MM/YYYY</div></div>
@@ -252,7 +238,7 @@
           </tbody>
         </table>
 
-        <span class="checkbox checked">Save as the preset for Bank A</span>
+        <span class="checkbox checked">Save as preset “Bank A · checking”</span>
         <p class="muted" style="font-size:13px">This file has no balance column, so you'll enter the current balance in the next step.</p>
 
         <footer class="page-foot">
@@ -412,7 +398,7 @@
           <a href="budgets.html#desktop-s14">Budgets</a>
           <a href="organize.html#desktop-s16">Categories</a>
           <a href="organize.html#desktop-s17">Rules</a>
-          <a title="Not wireframed yet">Settings</a>
+          <a href="settings.html#desktop-s18">Settings</a>
         </nav>
       </aside>
       <main class="content">
@@ -495,7 +481,7 @@
         </div>
         <div class="card">
           <span class="strong">New format</span>
-          <p class="muted" style="font-size:13px">No saved preset matches this file. You'll map its columns in the next step, once for Bank A.</p>
+          <p class="muted" style="font-size:13px">No saved preset matches this file. You'll map its columns in the next step, once for this format.</p>
         </div>
       </div>
       <div class="action-bar">
@@ -531,7 +517,7 @@
         <span class="progress"><span class="on"></span><span class="on"></span><span></span><span></span></span>
       </div>
       <div class="m-content">
-        <p class="muted" style="font-size:13px">Bank A · new format. Tell the app what each column holds. It's saved as Bank A's preset, so next time this step is skipped.</p>
+        <p class="muted" style="font-size:13px">Bank A · new format. Tell the app what each column holds. It's saved as a preset, so the next file with these columns skips this step.</p>
         <div class="field"><span class="label">Date format</span><div class="dropdown fill">DD/MM/YYYY</div></div>
         <div class="field"><span class="label">Decimal separator</span><div class="dropdown fill">Comma · 1.234,56</div></div>
         <div class="field"><span class="label">Amounts</span><div class="dropdown fill">One column (+ / −)</div></div>
@@ -565,7 +551,7 @@
           <div class="item"><span class="stack" style="gap:2px"><span class="strong">TRANSFER TO SAVINGS</span><span class="small muted">05/10/2026</span></span><span>−500.00 €</span></div>
         </div>
 
-        <span class="checkbox checked">Save as the preset for Bank A</span>
+        <span class="checkbox checked">Save as preset “Bank A · checking”</span>
         <p class="muted" style="font-size:13px">This file has no balance column, so you'll enter the current balance in the next step.</p>
       </div>
       <div class="action-bar">

@@ -428,3 +428,20 @@ body:not(:has(.wf-screen:target)) .wf-screen:first-of-type { display: block; }
 
 .m-banner { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--wf-fill); border: 1px solid var(--wf-border); }
 .m-list .item .right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+
+/* ---------- Import pieces (also used by Settings → Edit preset) ---------- */
+
+.file-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--wf-fill);
+  border: 1px solid var(--wf-line);
+}
+.mapping { table-layout: fixed; }
+.mapping th + th, .mapping td + td { border-left: 1px solid var(--wf-rule); }
+.mapping td .dropdown { width: 100%; }
+.mapping tr.sample td { color: var(--wf-ink-2); border-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
+.col-card { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--wf-line); }

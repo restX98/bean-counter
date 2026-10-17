@@ -8,6 +8,7 @@
 <style>
   /* Categories & rules flow only. Shared pieces live in components.css. */
   .table td a, .m-list a.item { text-decoration: none; }
+  .table td a.used-by { text-decoration: underline; }
 </style>
 </head>
 <body class="wf">
@@ -53,41 +54,39 @@
           <a href="budgets.html#desktop-s14">Budgets</a>
           <a href="#desktop-s16">Categories</a>
           <a href="#desktop-s17">Rules</a>
-          <a title="Not wireframed yet">Settings</a>
+          <a href="settings.html#desktop-s18">Settings</a>
         </nav>
       </aside>
       <main class="content">
         <div class="title-row"><h1 class="h1">Categories</h1><a class="btn btn-primary" title="Same form as D5 edit">+ Add category</a></div>
-        <div class="row" style="gap:24px; align-items:flex-start">
-          <div class="stack" style="flex:1; gap:8px">
+        <div class="stack" style="gap:8px">
             <span class="h2">Income</span>
             <table class="table">
-              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <colgroup><col style="width:260px"><col style="width:140px"><col><col style="width:140px"></colgroup>
               <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
               <tbody>
-              <tr><td>Salary</td><td>13</td><td>1 rule</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Salary</td><td>13</td><td><a class="used-by" href="#desktop-s17">rule: ^SALARY</a></td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
               <tr><td>Interest</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
               <tr><td>Refunds</td><td>2</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
               </tbody>
             </table>
-          </div>
-          <div class="stack" style="flex:1.4; gap:8px">
+        </div>
+        <div class="stack" style="gap:8px">
             <span class="h2">Expenses</span>
             <table class="table">
-              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <colgroup><col style="width:260px"><col style="width:140px"><col><col style="width:140px"></colgroup>
               <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
               <tbody>
               <tr><td>Rent</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
-              <tr><td>Groceries</td><td>156</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
-              <tr><td>Eating out</td><td>48</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><a class="muted" href="#desktop-d5-edit">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
-              <tr><td>Transport</td><td>30</td><td>Budget</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
-              <tr><td>Shopping</td><td>23</td><td>1 rule</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
-              <tr><td>Digital subscriptions</td><td>12</td><td>1 rule</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Groceries</td><td>156</td><td><a class="used-by" href="budgets.html#desktop-s15">300 €/month budget</a> · <a class="used-by" href="#desktop-s17">rule: ESSELUNGA</a></td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Eating out</td><td>48</td><td><a class="used-by" href="budgets.html#desktop-s14">150 €/month budget</a> · <a class="used-by" href="#desktop-s17">rule: SATISPAY under 10 €</a></td><td><span class="row" style="gap:16px"><a class="muted" href="#desktop-d5-edit">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Transport</td><td>30</td><td><a class="used-by" href="budgets.html#desktop-s14">100 €/month budget</a></td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Shopping</td><td>23</td><td><a class="used-by" href="#desktop-s17">rule: AMAZON</a></td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Digital subscriptions</td><td>12</td><td><a class="used-by" href="#desktop-s17">rule: AMAZON under 15 €</a></td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
               <tr><td>Health</td><td>9</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
               <tr><td>Gifts</td><td>4</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" href="#desktop-d5-delete">Delete</a></span></td></tr>
               </tbody>
             </table>
-          </div>
         </div>
         <span class="small muted">7 transactions have no category yet. They're waiting in <a href="review.html#desktop-s2">Review</a>.</span>
       </main>
@@ -124,36 +123,34 @@
       </aside>
       <main class="content">
         <div class="title-row"><h1 class="h1">Categories</h1><a class="btn btn-primary" title="Same form as D5 edit">+ Add category</a></div>
-        <div class="row" style="gap:24px; align-items:flex-start">
-          <div class="stack" style="flex:1; gap:8px">
+        <div class="stack" style="gap:8px">
             <span class="h2">Income</span>
             <table class="table">
-              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <colgroup><col style="width:260px"><col style="width:140px"><col><col style="width:140px"></colgroup>
               <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
               <tbody>
-              <tr><td>Salary</td><td>13</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Salary</td><td>13</td><td>rule: ^SALARY</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               <tr><td>Interest</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               <tr><td>Refunds</td><td>2</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               </tbody>
             </table>
-          </div>
-          <div class="stack" style="flex:1.4; gap:8px">
+        </div>
+        <div class="stack" style="gap:8px">
             <span class="h2">Expenses</span>
             <table class="table">
-              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <colgroup><col style="width:260px"><col style="width:140px"><col><col style="width:140px"></colgroup>
               <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
               <tbody>
               <tr><td>Rent</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Groceries</td><td>156</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Eating out</td><td>48</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Transport</td><td>30</td><td>Budget</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Shopping</td><td>23</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Digital subscriptions</td><td>12</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Groceries</td><td>156</td><td>300 €/month budget · rule: ESSELUNGA</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Eating out</td><td>48</td><td>150 €/month budget · rule: SATISPAY under 10 €</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Transport</td><td>30</td><td>100 €/month budget</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Shopping</td><td>23</td><td>rule: AMAZON</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Digital subscriptions</td><td>12</td><td>rule: AMAZON under 15 €</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               <tr><td>Health</td><td>9</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               <tr><td>Gifts</td><td>4</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               </tbody>
             </table>
-          </div>
         </div>
         <span class="small muted">7 transactions have no category yet. They're waiting in <a>Review</a>.</span>
       </main>
@@ -210,36 +207,34 @@
       </aside>
       <main class="content">
         <div class="title-row"><h1 class="h1">Categories</h1><a class="btn btn-primary" title="Same form as D5 edit">+ Add category</a></div>
-        <div class="row" style="gap:24px; align-items:flex-start">
-          <div class="stack" style="flex:1; gap:8px">
+        <div class="stack" style="gap:8px">
             <span class="h2">Income</span>
             <table class="table">
-              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <colgroup><col style="width:260px"><col style="width:140px"><col><col style="width:140px"></colgroup>
               <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
               <tbody>
-              <tr><td>Salary</td><td>13</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Salary</td><td>13</td><td>rule: ^SALARY</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               <tr><td>Interest</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               <tr><td>Refunds</td><td>2</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               </tbody>
             </table>
-          </div>
-          <div class="stack" style="flex:1.4; gap:8px">
+        </div>
+        <div class="stack" style="gap:8px">
             <span class="h2">Expenses</span>
             <table class="table">
-              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <colgroup><col style="width:260px"><col style="width:140px"><col><col style="width:140px"></colgroup>
               <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
               <tbody>
               <tr><td>Rent</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Groceries</td><td>156</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Eating out</td><td>48</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Transport</td><td>30</td><td>Budget</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Shopping</td><td>23</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
-              <tr><td>Digital subscriptions</td><td>12</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Groceries</td><td>156</td><td>300 €/month budget · rule: ESSELUNGA</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Eating out</td><td>48</td><td>150 €/month budget · rule: SATISPAY under 10 €</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Transport</td><td>30</td><td>100 €/month budget</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Shopping</td><td>23</td><td>rule: AMAZON</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Digital subscriptions</td><td>12</td><td>rule: AMAZON under 15 €</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               <tr><td>Health</td><td>9</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               <tr><td>Gifts</td><td>4</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
               </tbody>
             </table>
-          </div>
         </div>
         <span class="small muted">7 transactions have no category yet. They're waiting in <a>Review</a>.</span>
       </main>
@@ -293,7 +288,7 @@
           <a href="budgets.html#desktop-s14">Budgets</a>
           <a href="#desktop-s16">Categories</a>
           <a href="#desktop-s17">Rules</a>
-          <a title="Not wireframed yet">Settings</a>
+          <a href="settings.html#desktop-s18">Settings</a>
         </nav>
       </aside>
       <main class="content">
@@ -416,18 +411,18 @@
       <div class="m-content">
         <span class="h2">Income</span>
         <div class="m-list">
-          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Salary</span><span class="small muted">1 rule</span></span><span class="muted">13 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Salary</span><span class="small muted">rule: ^SALARY</span></span><span class="muted">13 ›</span></div>
           <div class="item"><span class="stack" style="gap:2px"><span class="strong">Interest</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">13 ›</span></div>
           <div class="item"><span class="stack" style="gap:2px"><span class="strong">Refunds</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">2 ›</span></div>
         </div>
         <span class="h2">Expenses</span>
         <div class="m-list">
           <div class="item"><span class="stack" style="gap:2px"><span class="strong">Rent</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">13 ›</span></div>
-          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Groceries</span><span class="small muted">Budget · 1 rule</span></span><span class="muted">156 ›</span></div>
-          <a class="item" href="#mobile-d5-edit"><span class="stack" style="gap:2px"><span class="strong">Eating out</span><span class="small muted">Budget · 1 rule</span></span><span class="muted">48 ›</span></a>
-          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Transport</span><span class="small muted">Budget</span></span><span class="muted">30 ›</span></div>
-          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Shopping</span><span class="small muted">1 rule</span></span><span class="muted">23 ›</span></div>
-          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Digital subscriptions</span><span class="small muted">1 rule</span></span><span class="muted">12 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Groceries</span><span class="small muted">300 €/month budget · rule: ESSELUNGA</span></span><span class="muted">156 ›</span></div>
+          <a class="item" href="#mobile-d5-edit"><span class="stack" style="gap:2px"><span class="strong">Eating out</span><span class="small muted">150 €/month budget · rule: SATISPAY under 10 €</span></span><span class="muted">48 ›</span></a>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Transport</span><span class="small muted">100 €/month budget</span></span><span class="muted">30 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Shopping</span><span class="small muted">rule: AMAZON</span></span><span class="muted">23 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Digital subscriptions</span><span class="small muted">rule: AMAZON under 15 €</span></span><span class="muted">12 ›</span></div>
           <div class="item"><span class="stack" style="gap:2px"><span class="strong">Health</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">9 ›</span></div>
           <a class="item" href="#mobile-d5-delete"><span class="stack" style="gap:2px"><span class="strong">Gifts</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">4 ›</span></a>
         </div>

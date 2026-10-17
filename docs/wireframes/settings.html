@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings &amp; backup · Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  /* Settings flow only. Shared pieces live in components.css. */
+  .table td a, .m-list a.item { text-decoration: none; }
+</style>
+</head>
+<body class="wf">
+
+<!-- =====================================================================
+     Flow 10 in docs/plan.md §6: S18 → download a backup; restore: S18 → choose
+     a file → D8 → S1. Also S8 opened from S18 to edit a saved preset.
+     Presets are per export format: Bank A has two (checking export without a
+     balance column, savings export with one), Bank C has one (US account).
+     ===================================================================== -->
+
+<!-- ======================= DESKTOP · S18 Settings ======================= -->
+<section class="wf-screen" id="desktop-s18">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Settings &amp; backup</span>
+    <span class="wf-group">
+      <a href="#desktop-s18" aria-current="page">S18 Settings</a>
+      <a href="#desktop-s8-edit">S8 Edit preset</a>
+      <a href="#desktop-d8">D8 Restore backup</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s18" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s18">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: three sections. Presets are per export format, so Bank A has two (its checking export has no balance column, its savings export has one). Edit is wired on Bank A · checking; Restore opens D8.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="review.html#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="review.html#desktop-s5">Transactions</a>
+          <a href="reports.html#desktop-s11">Reports</a>
+          <a href="budgets.html#desktop-s14">Budgets</a>
+          <a href="organize.html#desktop-s16">Categories</a>
+          <a href="organize.html#desktop-s17">Rules</a>
+          <a href="#desktop-s18">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Settings</h1></div>
+        <div class="card roomy" style="width:880px">
+          <span class="card-title">Transfers</span>
+          <div class="row"><span>Transfer window</span><div class="input" style="width:80px">3</div><span class="muted">days</span></div>
+          <span class="small muted">How many days apart the two sides of a transfer can be. Default 3, which covers a weekend.</span>
+        </div>
+        <div class="card roomy" style="width:880px">
+          <span class="card-title">Import presets</span>
+          <span class="small muted">One preset per export format. When you import a file, the app uses the preset whose columns match it.</span>
+          <table class="table">
+            <colgroup><col style="width:200px"><col><col style="width:150px"><col style="width:120px"><col style="width:120px"></colgroup>
+            <thead><tr><th>Preset</th><th>Format</th><th>Used for</th><th>Last used</th><th></th></tr></thead>
+            <tbody>
+                <tr><td class="strong">Bank A · checking</td><td>5 columns, no balance</td><td>Main checking</td><td>16/10/2026</td><td><span class="row" style="gap:16px"><a class="muted" href="#desktop-s8-edit">Edit</a> <a class="muted" title="Deletes the preset; the next file in this format asks for the mapping again">Delete</a></span></td></tr>
+                <tr><td class="strong">Bank A · savings</td><td>6 columns, with balance</td><td>Savings</td><td>12/10/2026</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as S8 for Bank A · checking">Edit</a> <a class="muted" title="Deletes the preset">Delete</a></span></td></tr>
+                <tr><td class="strong">Bank C</td><td>4 columns, no balance</td><td>US account</td><td>12/10/2026</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as S8 for Bank A · checking">Edit</a> <a class="muted" title="Deletes the preset">Delete</a></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card roomy" style="width:880px">
+          <span class="card-title">Backup &amp; restore</span>
+          <span class="small muted">A backup is one file with all your data: accounts, transactions, categories, rules, budgets, presets and settings.</span>
+          <div class="row"><a class="btn btn-secondary" title="Downloads bean-counter-backup-2026-10-17">Download backup</a><a class="btn btn-secondary" href="#desktop-d8">Restore from file…</a></div>
+          <span class="small muted">Last backup downloaded: 16/10/2026. Restoring replaces all current data.</span>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S8 Edit preset ======================= -->
+<section class="wf-screen" id="desktop-s8-edit">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Settings &amp; backup</span>
+    <span class="wf-group">
+      <a href="#desktop-s18">S18 Settings</a>
+      <a href="#desktop-s8-edit" aria-current="page">S8 Edit preset</a>
+      <a href="#desktop-d8">D8 Restore backup</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s8-edit" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s8-edit">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S8 opened from Settings to edit a saved preset: the same mapping as the import step, without the wizard. Samples come from the last file imported with it.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="review.html#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="review.html#desktop-s5">Transactions</a>
+          <a href="reports.html#desktop-s11">Reports</a>
+          <a href="budgets.html#desktop-s14">Budgets</a>
+          <a href="organize.html#desktop-s16">Categories</a>
+          <a href="organize.html#desktop-s17">Rules</a>
+          <a href="#desktop-s18">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb"><a href="#desktop-s18">Settings</a> / Import presets / Bank A · checking</span>
+        <div class="title-row">
+          <div class="stack"><h1 class="h1">Edit preset</h1><span class="muted">Last used 16/10/2026 with statement_2026-10.csv (Main checking)</span></div>
+        </div>
+        <div class="row" style="gap:24px; align-items:flex-end">
+          <div class="field"><span class="label">Preset name</span><div class="input" style="width:280px">Bank A · checking</div></div>
+          <div class="field"><span class="label">Date format</span><div class="dropdown">DD/MM/YYYY</div></div>
+          <div class="field"><span class="label">Decimal separator</span><div class="dropdown">Comma · 1.234,56</div></div>
+          <div class="field"><span class="label">Amounts</span><div class="dropdown">One column (+ / −)</div></div>
+        </div>
+        <span class="h2">Columns</span>
+        <table class="table mapping">
+          <thead><tr><th>Booking date</th><th>Value date</th><th>Description</th><th>Amount</th><th>Reference</th></tr></thead>
+          <tbody>
+              <tr><td><div class="dropdown" style="width:100%">Date</div></td><td><div class="dropdown" style="width:100%">Ignore</div></td><td><div class="dropdown" style="width:100%">Description</div></td><td><div class="dropdown" style="width:100%">Amount</div></td><td><div class="dropdown" style="width:100%">Bank reference</div></td></tr>
+              <tr class="sample"><td>01/10/2026</td><td>01/10/2026</td><td>SALARY ACME SPA</td><td>2.000,00</td><td>TX88213</td></tr>
+              <tr class="sample"><td>02/10/2026</td><td>03/10/2026</td><td>ESSELUNGA MILANO</td><td>-56,30</td><td>TX88240</td></tr>
+              <tr class="sample"><td>05/10/2026</td><td>05/10/2026</td><td>TRANSFER TO SAVINGS</td><td>-500,00</td><td>TX88302</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Samples come from the last file imported with this preset. Changes apply to future imports only; transactions already imported don't change.</span>
+        <footer class="page-foot">
+          <a class="btn btn-secondary" title="Deletes the preset; the next file in this format asks for the mapping again">Delete preset</a>
+          <span class="row"><a class="btn btn-secondary" href="#desktop-s18">Cancel</a><a class="btn btn-primary" href="#desktop-s18">Save preset</a></span>
+        </footer>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D8 Restore backup ======================= -->
+<section class="wf-screen" id="desktop-d8">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Settings &amp; backup</span>
+    <span class="wf-group">
+      <a href="#desktop-s18">S18 Settings</a>
+      <a href="#desktop-s8-edit">S8 Edit preset</a>
+      <a href="#desktop-d8" aria-current="page">D8 Restore backup</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d8" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d8">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D8 over S18: a restore replaces all current data, so it warns first and offers to download the current data before replacing it. Afterwards you land on the dashboard.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Settings</h1></div>
+        <div class="card roomy" style="width:880px">
+          <span class="card-title">Transfers</span>
+          <div class="row"><span>Transfer window</span><div class="input" style="width:80px">3</div><span class="muted">days</span></div>
+          <span class="small muted">How many days apart the two sides of a transfer can be. Default 3, which covers a weekend.</span>
+        </div>
+        <div class="card roomy" style="width:880px">
+          <span class="card-title">Import presets</span>
+          <span class="small muted">One preset per export format. When you import a file, the app uses the preset whose columns match it.</span>
+          <table class="table">
+            <colgroup><col style="width:200px"><col><col style="width:150px"><col style="width:120px"><col style="width:120px"></colgroup>
+            <thead><tr><th>Preset</th><th>Format</th><th>Used for</th><th>Last used</th><th></th></tr></thead>
+            <tbody>
+                <tr><td class="strong">Bank A · checking</td><td>5 columns, no balance</td><td>Main checking</td><td>16/10/2026</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+                <tr><td class="strong">Bank A · savings</td><td>6 columns, with balance</td><td>Savings</td><td>12/10/2026</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+                <tr><td class="strong">Bank C</td><td>4 columns, no balance</td><td>US account</td><td>12/10/2026</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card roomy" style="width:880px">
+          <span class="card-title">Backup &amp; restore</span>
+          <span class="small muted">A backup is one file with all your data: accounts, transactions, categories, rules, budgets, presets and settings.</span>
+          <div class="row"><a class="btn btn-secondary" title="Downloads bean-counter-backup-2026-10-17">Download backup</a><a class="btn btn-secondary">Restore from file…</a></div>
+          <span class="small muted">Last backup downloaded: 16/10/2026. Restoring replaces all current data.</span>
+        </div>
+      </main>
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Restore from backup?</span><a href="#desktop-s18">✕</a></div>
+          <div class="dialog-body">
+            <p style="color:var(--wf-ink-2)">This replaces all current data (accounts, transactions, categories, rules, budgets, presets and settings) with the contents of the backup file. It can't be undone.</p>
+            <div class="file-row">
+              <span class="stack" style="gap:2px"><span class="strong">bean-counter-backup-2026-10-16</span><span class="small muted">Made 16/10/2026 · 2.4 MB</span></span>
+              <a class="muted" title="Pick another file">Change</a>
+            </div>
+            <span class="checkbox checked">Download a backup of the current data first</span>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s18">Cancel</a>
+            <a class="btn btn-primary" href="first-run.html#desktop-s1">Replace all data</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= MOBILE · S18 Settings ======================= -->
+<section class="wf-screen" id="mobile-s18">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Settings &amp; backup</span>
+    <span class="wf-group">
+      <a href="#mobile-s18" aria-current="page">S18 Settings</a>
+      <a href="#mobile-s8-edit">S8 Edit preset</a>
+      <a href="#mobile-d8">D8 Restore backup</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s18">Desktop 1440</a>
+      <a href="#mobile-s18" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: settings under More, one card per section.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a title="Back to More (not wireframed yet)">←</a>Settings</span></header>
+      <div class="m-content">
+        <div class="card roomy">
+          <span class="card-title">Transfers</span>
+          <div class="kv"><span>Transfer window</span><span class="row" style="gap:8px"><span class="input" style="width:64px">3</span><span class="muted">days</span></span></div>
+          <span class="small muted">How many days apart the two sides of a transfer can be.</span>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Import presets</span>
+          <span class="small muted">One per export format; the app picks the one whose columns match the file.</span>
+          <div class="m-list">
+            <a class="item" href="#mobile-s8-edit"><span class="stack" style="gap:2px"><span class="strong">Bank A · checking</span><span class="small muted">5 columns, no balance · Main checking</span></span><span class="muted">›</span></a>
+            <a class="item" title="Same as S8 for Bank A · checking"><span class="stack" style="gap:2px"><span class="strong">Bank A · savings</span><span class="small muted">6 columns, with balance · Savings</span></span><span class="muted">›</span></a>
+            <a class="item" title="Same as S8 for Bank A · checking"><span class="stack" style="gap:2px"><span class="strong">Bank C</span><span class="small muted">4 columns, no balance · US account</span></span><span class="muted">›</span></a>
+          </div>
+        </div>
+        <div class="card roomy">
+          <span class="card-title">Backup &amp; restore</span>
+          <span class="small muted">One file with all your data. Last downloaded: 16/10/2026.</span>
+          <a class="btn btn-secondary">Download backup</a>
+          <a class="btn btn-secondary" href="#mobile-d8">Restore from file…</a>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="review.html#mobile-s5">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= MOBILE · S8 Edit preset ======================= -->
+<section class="wf-screen" id="mobile-s8-edit">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Settings &amp; backup</span>
+    <span class="wf-group">
+      <a href="#mobile-s18">S18 Settings</a>
+      <a href="#mobile-s8-edit" aria-current="page">S8 Edit preset</a>
+      <a href="#mobile-d8">D8 Restore backup</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s8-edit">Desktop 1440</a>
+      <a href="#mobile-s8-edit" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S8 edit-preset form as a full-screen sheet, one card per column.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s18">✕</a><span class="title">Edit preset</span><span class="spacer"></span></header>
+      <div class="m-content">
+        <span class="small muted">Last used 16/10/2026 with statement_2026-10.csv (Main checking)</span>
+        <div class="field"><span class="label">Preset name</span><div class="input fill">Bank A · checking</div></div>
+        <div class="field"><span class="label">Date format</span><div class="dropdown fill">DD/MM/YYYY</div></div>
+        <div class="field"><span class="label">Decimal separator</span><div class="dropdown fill">Comma · 1.234,56</div></div>
+        <div class="field"><span class="label">Amounts</span><div class="dropdown fill">One column (+ / −)</div></div>
+        <span class="h2">Columns</span>
+        <div class="col-card">
+          <span class="strong">Booking date</span><span class="label">Maps to</span><div class="dropdown fill">Date</div>
+          <span class="small muted">Samples: 01/10/2026 · 02/10/2026 · 05/10/2026</span>
+        </div>
+        <div class="col-card">
+          <span class="strong">Value date</span><span class="label">Maps to</span><div class="dropdown fill">Ignore</div>
+          <span class="small muted">Samples: 01/10/2026 · 03/10/2026 · 05/10/2026</span>
+        </div>
+        <div class="col-card">
+          <span class="strong">Description</span><span class="label">Maps to</span><div class="dropdown fill">Description</div>
+          <span class="small muted">Samples: SALARY ACME SPA · ESSELUNGA MILANO · TRANSFER TO SAVINGS</span>
+        </div>
+        <div class="col-card">
+          <span class="strong">Amount</span><span class="label">Maps to</span><div class="dropdown fill">Amount</div>
+          <span class="small muted">Samples: 2.000,00 · -56,30 · -500,00</span>
+        </div>
+        <div class="col-card">
+          <span class="strong">Reference</span><span class="label">Maps to</span><div class="dropdown fill">Bank reference</div>
+          <span class="small muted">Samples: TX88213 · TX88240 · TX88302</span>
+        </div>
+        <span class="small muted">Changes apply to future imports only; transactions already imported don't change.</span>
+        <a class="btn btn-secondary" title="Deletes the preset">Delete preset</a>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s18">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s18">Save preset</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= MOBILE · D8 Restore backup ======================= -->
+<section class="wf-screen" id="mobile-d8">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Settings &amp; backup</span>
+    <span class="wf-group">
+      <a href="#mobile-s18">S18 Settings</a>
+      <a href="#mobile-s8-edit">S8 Edit preset</a>
+      <a href="#mobile-d8" aria-current="page">D8 Restore backup</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d8">Desktop 1440</a>
+      <a href="#mobile-d8" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D8 as a full-screen sheet.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s18">✕</a><span class="title">Restore backup</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <span class="h2">Restore from backup?</span>
+            <p style="color:var(--wf-ink-2)">This replaces all current data (accounts, transactions, categories, rules, budgets, presets and settings) with the contents of the backup file. It can't be undone.</p>
+            <div class="file-row">
+              <span class="stack" style="gap:2px"><span class="strong">bean-counter-backup-2026-10-16</span><span class="small muted">Made 16/10/2026 · 2.4 MB</span></span>
+              <a class="muted" title="Pick another file">Change</a>
+            </div>
+            <span class="checkbox checked">Download a backup of the current data first</span>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s18">Cancel</a>
+        <a class="btn btn-primary" href="first-run.html#mobile-s1">Replace all data</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

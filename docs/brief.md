@@ -64,7 +64,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 ### 5.2 Import
 
 - Upload a CSV or Excel export into a chosen account.
-- The first import from a bank asks me to map its format: date, amount (or separate debit/credit columns), description, optional balance column, date format, decimal separator. The mapping is saved as that bank's preset and reused automatically next time.
+- The first import from a bank asks me to map its format: date, amount (or separate debit/credit columns), description, optional balance column, date format, decimal separator. The mapping is saved as a preset (e.g. "Bank A · checking") and reused automatically for any file with the same columns. A bank can have more than one preset, for example one for its checking export and one for its savings export.
 - Show a preview before saving anything.
 - Duplicate handling:
   - each transaction gets a fingerprint made from date + amount + description, or from the bank reference when the export has one;
@@ -127,7 +127,7 @@ Amounts in different currencies are never added together. Every report is shown 
 ### 5.8 Backup & restore
 
 - Download a full backup of all data as one file from the UI.
-- Restore from a backup file. A restore replaces all current data, so the app asks me to confirm first.
+- Restore from a backup file. A restore replaces all current data, so the app asks me to confirm first and offers to download a backup of the current data before replacing it.
 
 ### 5.9 Dashboard & Review
 
@@ -197,4 +197,5 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Reports: uncategorized transactions count under Uncategorized; possible transfers are left out until linked or dismissed |
 | 2026-10-17 | Budgets: the first month counts in full; the running balance never resets on its own but can be started over from a chosen month |
 | 2026-10-17 | Categories and rules: categories show what uses them; overlapping rules are flagged with a link to their conflicts in Review |
+| 2026-10-17 | Settings: import presets are per export format (a bank can have several); restore offers to back up the current data first |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |
