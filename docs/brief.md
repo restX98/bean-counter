@@ -188,3 +188,4 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Resolved open questions: no currency conversion (per-currency reports), balance anchor instead of opening balance, duplicate fingerprinting, transfer window adjustable (default 3 days), budget view toggle, no login (localhost only), backup/restore in UI |
 | 2026-10-17 | Screens and flows plan ([plan.md](plan.md)): dashboard as home, Review inbox, empty states instead of a setup wizard, desktop and mobile layouts |
 | 2026-10-17 | Resolved the plan's open questions: exclude instead of delete (no manual entry), new rules offered on existing uncategorized transactions, rule conflicts go to Review |
+| 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |

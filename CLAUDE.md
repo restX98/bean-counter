@@ -27,6 +27,16 @@ These are easy to get wrong. The brief has the details.
 - An excluded transaction is ignored by balances, reports and budgets, but it still counts for duplicate detection, so a re-import doesn't bring it back.
 - When more than one rule matches a transaction, never pick one: send the transaction to Review.
 
+## Wireframes
+
+Design work happens here, not in Figma.
+
+- Wireframes live in `docs/wireframes/`: one self-contained HTML file per flow, plus `index.html` linking them all.
+- Each file uses inline CSS plus the shared `components.css`. No frameworks, no build step, nothing loaded from the internet.
+- Shared UI pieces (sidebar, step indicator, buttons, dropdowns, tags) are defined once in `docs/wireframes/components.css` and reused.
+- Low-fidelity gray style, system font, realistic fake data.
+- Wireframes are for design only and are never reused as app code.
+
 ## Workflow
 
 - When a feature or decision changes, update the relevant section of docs/brief.md and add a dated row to its Feature log, in the same commit as the code.

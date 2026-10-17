@@ -2,14 +2,14 @@
 
 _Status: draft · Last updated: 2026-10-17 · Source: [brief.md](brief.md)_
 
-These are the screens to design in Figma and the flows that connect them. Each entry covers what a screen shows and lets me do, not how it's built.
+These are the screens to design and the flows that connect them. Each entry covers what a screen shows and lets me do, not how it's built. The design work happens in HTML, in [wireframes/](wireframes/) (see §8).
 
 ## 1. Scope & assumptions
 
 - **Home** is a Dashboard.
 - **First run** has no setup wizard. Empty screens explain the next step instead.
 - **Review inbox**: one screen gathers everything waiting for my decision. During an import, the same items can be settled right away for that file.
-- **Frames**: every screen and dialog gets a desktop frame (1440 px wide) and a mobile frame (390 px wide).
+- **Layouts**: every screen and dialog gets a desktop layout (1440 px wide) and a mobile layout (390 px wide, at least 844 px tall, growing with the content).
 - **Language**: English.
 - **Money**: amounts are always shown in their own currency and never converted. Screens that show totals have a currency switcher, with EUR first.
 
@@ -340,7 +340,7 @@ On mobile, every dialog opens as a full-screen sheet.
 
 ## 7. Shared components
 
-Design these first. Every screen is built from them.
+Each one is defined once in [wireframes/components.css](wireframes/components.css) and reused by every wireframe.
 
 - **App shell**: desktop sidebar and mobile bottom tabs.
 - **Amount**: sign, currency symbol, colour for income / expense / transfer.
@@ -355,11 +355,14 @@ Design these first. Every screen is built from them.
 - **Review count badge**.
 - **Data row**: a desktop table row and its mobile list-row counterpart, each with an excluded (greyed) variant.
 
-## 8. Design order
+## 8. Design steps
 
-1. **Batch 1, core loop**: shell and components, S1, S3, S4, D1, D2, S7–S10, S5, S6, S2.
-2. **Batch 2, insight**: S11–S15, D7, S16, S17, D5, D6, D4.
-3. **Batch 3, admin and edge cases**: S18, D3, D8, then the remaining empty and error states.
+1. **HTML wireframes** for every flow, with desktop and mobile layouts, in [wireframes/](wireframes/). Build them in this order:
+   - **Batch 1, core loop**: shared components, S1, S3, S4, D1, D2, S7–S10, S5, S6, S2.
+   - **Batch 2, insight**: S11–S15, D7, S16, S17, D5, D6, D4.
+   - **Batch 3, admin and edge cases**: S18, D3, D8, then the remaining empty and error states.
+2. **Design tokens** as CSS variables, such as colours, type scale and spacing.
+3. **High-fidelity HTML screens** built with those tokens.
 
 ## 9. Open design questions
 
