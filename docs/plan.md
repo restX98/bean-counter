@@ -258,7 +258,7 @@ All three reports share a currency switcher (EUR first) and a period control.
 
 #### S16 Categories
 
-- **Shows**: income and expense categories, each with its number of transactions.
+- **Shows**: income and expense categories, each with its number of transactions and what uses it (budgets, rules).
 - **Actions**: add or edit a category (D5), or delete one (D5 asks where its transactions go).
 - **States**: no categories.
 
@@ -266,6 +266,7 @@ All three reports share a currency switcher (EUR first) and a period control.
 
 - **Shows**: each rule as "description contains / matches regex X [+ amount, account] → category".
 - Rules have no order. When more than one rule matches a transaction, the app doesn't choose: the transaction goes to Review (S2).
+- Rules that overlap are tagged, with a banner linking to the rule conflicts they caused in Review.
 - **Actions**: add or edit a rule (D6), or delete one.
 - **States**: no rules.
 
@@ -285,8 +286,8 @@ On mobile, every dialog opens as a full-screen sheet.
 - **D2 Set balance**: current balance and its date (the anchor). Opened from S4. The same fields appear inline in S9. If the balance differs from the app's, D2 shows the difference first and offers "Use my balance" (new anchor) or "Look for what's missing" (keeps the anchor; the difference shows as a mismatch).
 - **D3 Archive account**: asks to confirm archiving.
 - **D4 Link transfer**: pick the counterpart from the candidates (opposite direction, within the transfer window), including accounts in other currencies. Each candidate shows its account, date and amount.
-- **D5 Category form**: name, income / expense. Delete variant: move the category's transactions to another category, or leave them uncategorized.
-- **D6 Rule form**: description match (contains / regex), optional amount and account, category. Prefilled when opened from S6 or S2. An "Also apply to N uncategorized transactions that match" option is ticked by default. Transactions that already have a category are never changed.
+- **D5 Category form**: name, income / expense, and what uses the category (transactions, budget, rules). Delete variant: move the category's transactions to another category, or leave them uncategorized.
+- **D6 Rule form**: description match (contains / regex), optional amount and account, category. Prefilled when opened from S6 or S2. An "Also apply to N uncategorized transactions that match" option is ticked by default. Transactions that already have a category are never changed. When an edit removes an overlap, D6 offers to re-check the rule conflicts in Review.
 - **D7 Budget form**: category, currency, monthly limit, start month. Edit variant: the new limit and the month it applies from. Start-over variant: the month the running balance counts from.
 - **D8 Restore backup**: warns that all current data will be replaced, then asks to confirm.
 
@@ -367,4 +368,5 @@ Each one is defined once in [wireframes/components.css](wireframes/components.cs
 
 ## 9. Open design questions
 
-None right now.
+1. Deleting a category that a budget or a rule uses: what happens to the budget and the rule? Move them along with the transactions, or delete them? (D5 currently shows only the simple case: Gifts, used by neither.)
+2. "Not a transfer" on a suggested pair: should the app remember the dismissal, so the same pair isn't suggested again on the next import?

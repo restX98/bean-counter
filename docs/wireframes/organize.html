@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Categories &amp; rules · Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  /* Categories & rules flow only. Shared pieces live in components.css. */
+  .table td a, .m-list a.item { text-decoration: none; }
+</style>
+</head>
+<body class="wf">
+
+<!-- =====================================================================
+     Flow 11 in docs/plan.md §6: S16 → D5 to add, rename or delete (reassigning
+     transactions); S17 → D6 to edit or delete a rule.
+     Same data as the other files: the categories used by the reports and budgets,
+     plus Gifts (4 transactions, no rules or budgets) to show deletion.
+     The two AMAZON rules overlap under 15 €: that's why AMAZON DIGITAL (−9.99 €) and
+     AMAZON PRIME (−4.99 €) are rule conflicts in Review. D6 fixes the overlap.
+     ===================================================================== -->
+
+<!-- ======================= DESKTOP · S16 Categories ======================= -->
+<section class="wf-screen" id="desktop-s16">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#desktop-s16" aria-current="page">S16 Categories</a>
+      <a href="#desktop-d5-edit">D5 Edit category</a>
+      <a href="#desktop-d5-delete">D5 Delete category</a>
+      <a href="#desktop-s17">S17 Rules</a>
+      <a href="#desktop-d6-edit">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s16" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s16">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: income and expense categories with how many transactions use them, and what else uses them (budgets, rules). Edit is wired on Eating out, Delete on Gifts.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="review.html#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="review.html#desktop-s5">Transactions</a>
+          <a href="reports.html#desktop-s11">Reports</a>
+          <a href="budgets.html#desktop-s14">Budgets</a>
+          <a href="#desktop-s16">Categories</a>
+          <a href="#desktop-s17">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Categories</h1><a class="btn btn-primary" title="Same form as D5 edit">+ Add category</a></div>
+        <div class="row" style="gap:24px; align-items:flex-start">
+          <div class="stack" style="flex:1; gap:8px">
+            <span class="h2">Income</span>
+            <table class="table">
+              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
+              <tbody>
+              <tr><td>Salary</td><td>13</td><td>1 rule</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Interest</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Refunds</td><td>2</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="stack" style="flex:1.4; gap:8px">
+            <span class="h2">Expenses</span>
+            <table class="table">
+              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
+              <tbody>
+              <tr><td>Rent</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Groceries</td><td>156</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Eating out</td><td>48</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><a class="muted" href="#desktop-d5-edit">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Transport</td><td>30</td><td>Budget</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Shopping</td><td>23</td><td>1 rule</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Digital subscriptions</td><td>12</td><td>1 rule</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Health</td><td>9</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" title="Same as D5 delete for Gifts">Delete</a></span></td></tr>
+              <tr><td>Gifts</td><td>4</td><td>—</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D5 for Eating out">Edit</a> <a class="muted" href="#desktop-d5-delete">Delete</a></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <span class="small muted">7 transactions have no category yet. They're waiting in <a href="review.html#desktop-s2">Review</a>.</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D5 Edit category ======================= -->
+<section class="wf-screen" id="desktop-d5-edit">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#desktop-s16">S16 Categories</a>
+      <a href="#desktop-d5-edit" aria-current="page">D5 Edit category</a>
+      <a href="#desktop-d5-delete">D5 Delete category</a>
+      <a href="#desktop-s17">S17 Rules</a>
+      <a href="#desktop-d6-edit">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d5-edit" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d5-edit">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D5 over S16, editing Eating out. It shows what uses the category; renaming keeps all of it.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Categories</h1><a class="btn btn-primary" title="Same form as D5 edit">+ Add category</a></div>
+        <div class="row" style="gap:24px; align-items:flex-start">
+          <div class="stack" style="flex:1; gap:8px">
+            <span class="h2">Income</span>
+            <table class="table">
+              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
+              <tbody>
+              <tr><td>Salary</td><td>13</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Interest</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Refunds</td><td>2</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="stack" style="flex:1.4; gap:8px">
+            <span class="h2">Expenses</span>
+            <table class="table">
+              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
+              <tbody>
+              <tr><td>Rent</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Groceries</td><td>156</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Eating out</td><td>48</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Transport</td><td>30</td><td>Budget</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Shopping</td><td>23</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Digital subscriptions</td><td>12</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Health</td><td>9</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Gifts</td><td>4</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <span class="small muted">7 transactions have no category yet. They're waiting in <a>Review</a>.</span>
+      </main>
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Edit category</span><a href="#desktop-s16">✕</a></div>
+          <div class="dialog-body">
+            <div class="field"><span class="label">Name</span><div class="input fill">Eating out</div></div>
+            <div class="field">
+              <span class="label">Type</span>
+              <div class="row" style="gap:24px"><span class="radio">Income</span><span class="radio selected">Expense</span></div>
+            </div>
+            <div class="card tinted">
+              <span class="strong">Used by</span>
+              <span class="small muted">48 transactions · the Eating out budget (150.00 € / month) · 1 rule (SATISPAY, amount under 10.00 €). Renaming keeps all of them.</span>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s16">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s16">Save category</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D5 Delete category ======================= -->
+<section class="wf-screen" id="desktop-d5-delete">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#desktop-s16">S16 Categories</a>
+      <a href="#desktop-d5-edit">D5 Edit category</a>
+      <a href="#desktop-d5-delete" aria-current="page">D5 Delete category</a>
+      <a href="#desktop-s17">S17 Rules</a>
+      <a href="#desktop-d6-edit">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d5-delete" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d5-delete">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D5 delete variant over S16. Gifts has no rules or budgets, so only its 4 transactions need a new home.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Categories</h1><a class="btn btn-primary" title="Same form as D5 edit">+ Add category</a></div>
+        <div class="row" style="gap:24px; align-items:flex-start">
+          <div class="stack" style="flex:1; gap:8px">
+            <span class="h2">Income</span>
+            <table class="table">
+              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
+              <tbody>
+              <tr><td>Salary</td><td>13</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Interest</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Refunds</td><td>2</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="stack" style="flex:1.4; gap:8px">
+            <span class="h2">Expenses</span>
+            <table class="table">
+              <colgroup><col><col style="width:120px"><col style="width:150px"><col style="width:120px"></colgroup>
+              <thead><tr><th>Category</th><th>Transactions</th><th>Used by</th><th></th></tr></thead>
+              <tbody>
+              <tr><td>Rent</td><td>13</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Groceries</td><td>156</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Eating out</td><td>48</td><td>Budget · 1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Transport</td><td>30</td><td>Budget</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Shopping</td><td>23</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Digital subscriptions</td><td>12</td><td>1 rule</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Health</td><td>9</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              <tr><td>Gifts</td><td>4</td><td>—</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <span class="small muted">7 transactions have no category yet. They're waiting in <a>Review</a>.</span>
+      </main>
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Delete “Gifts”?</span><a href="#desktop-s16">✕</a></div>
+          <div class="dialog-body">
+            <p style="color:var(--wf-ink-2)">4 transactions use this category. No rules or budgets use it. What should happen to the transactions?</p>
+            <div class="row" style="gap:12px"><span class="radio selected">Move them to</span><div class="dropdown" style="width:200px">Shopping</div></div>
+            <span class="radio">Leave them uncategorized (they'll appear in Review)</span>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s16">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s16">Delete category</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S17 Rules ======================= -->
+<section class="wf-screen" id="desktop-s17">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#desktop-s16">S16 Categories</a>
+      <a href="#desktop-d5-edit">D5 Edit category</a>
+      <a href="#desktop-d5-delete">D5 Delete category</a>
+      <a href="#desktop-s17" aria-current="page">S17 Rules</a>
+      <a href="#desktop-d6-edit">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s17" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s17">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: rules have no order. The two AMAZON rules overlap for amounts under 15 €, which is why 2 transactions sit in Review as rule conflicts. Edit is wired on AMAZON → Shopping.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="review.html#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="review.html#desktop-s5">Transactions</a>
+          <a href="reports.html#desktop-s11">Reports</a>
+          <a href="budgets.html#desktop-s14">Budgets</a>
+          <a href="#desktop-s16">Categories</a>
+          <a href="#desktop-s17">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Rules</h1><a class="btn btn-primary" title="Same form as D6 in review.html">+ Add rule</a></div>
+        <p class="muted">Rules run on every import. They have no order: if more than one rule matches a transaction, it goes to Review.</p>
+        <div class="banner">
+          <span>⚠ The two AMAZON rules overlap for amounts under 15.00 €, so 2 transactions are waiting in Review as rule conflicts. Narrow one of the rules to stop new conflicts.</span>
+          <a class="btn btn-secondary" href="review.html#desktop-s2">Open Review</a>
+        </div>
+        <table class="table">
+          <colgroup><col><col style="width:240px"><col style="width:220px"><col style="width:110px"><col style="width:120px"></colgroup>
+          <thead><tr><th>Description</th><th>Also requires</th><th>Category</th><th>Matches</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>contains “ESSELUNGA”</td><td>—</td><td>Groceries</td><td>41</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D6 for AMAZON → Shopping">Edit</a> <a class="muted" title="Deletes the rule; categories already set stay">Delete</a></span></td></tr>
+            <tr><td>contains “AMAZON” <span class="tag">Overlaps</span></td><td>—</td><td>Shopping</td><td>23</td><td><span class="row" style="gap:16px"><a class="muted" href="#desktop-d6-edit">Edit</a> <a class="muted" title="Deletes the rule; categories already set stay">Delete</a></span></td></tr>
+            <tr><td>contains “AMAZON” <span class="tag">Overlaps</span></td><td>amount under 15.00 €</td><td>Digital subscriptions</td><td>12</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D6 for AMAZON → Shopping">Edit</a> <a class="muted" title="Deletes the rule; categories already set stay">Delete</a></span></td></tr>
+            <tr><td>matches regex ^SALARY</td><td>account: Main checking</td><td>Salary</td><td>13</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D6 for AMAZON → Shopping">Edit</a> <a class="muted" title="Deletes the rule; categories already set stay">Delete</a></span></td></tr>
+            <tr><td>contains “SATISPAY”</td><td>amount under 10.00 €</td><td>Eating out</td><td>30</td><td><span class="row" style="gap:16px"><a class="muted" title="Same as D6 for AMAZON → Shopping">Edit</a> <a class="muted" title="Deletes the rule; categories already set stay">Delete</a></span></td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Matches = transactions this rule categorized. Deleting a rule doesn't change categories already set.</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D6 Edit rule ======================= -->
+<section class="wf-screen" id="desktop-d6-edit">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#desktop-s16">S16 Categories</a>
+      <a href="#desktop-d5-edit">D5 Edit category</a>
+      <a href="#desktop-d5-delete">D5 Delete category</a>
+      <a href="#desktop-s17">S17 Rules</a>
+      <a href="#desktop-d6-edit" aria-current="page">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d6-edit" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d6-edit">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D6 editing AMAZON → Shopping: adding "15.00 € or more" removes the overlap, and the 2 rule conflicts in Review get re-checked.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Rules</h1><a class="btn btn-primary" title="Same form as D6 in review.html">+ Add rule</a></div>
+        <p class="muted">Rules run on every import. They have no order: if more than one rule matches a transaction, it goes to Review.</p>
+        <div class="banner">
+          <span>⚠ The two AMAZON rules overlap for amounts under 15.00 €, so 2 transactions are waiting in Review as rule conflicts. Narrow one of the rules to stop new conflicts.</span>
+          <a class="btn btn-secondary">Open Review</a>
+        </div>
+        <table class="table">
+          <colgroup><col><col style="width:240px"><col style="width:220px"><col style="width:110px"><col style="width:120px"></colgroup>
+          <thead><tr><th>Description</th><th>Also requires</th><th>Category</th><th>Matches</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>contains “ESSELUNGA”</td><td>—</td><td>Groceries</td><td>41</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+            <tr><td>contains “AMAZON” <span class="tag">Overlaps</span></td><td>—</td><td>Shopping</td><td>23</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+            <tr><td>contains “AMAZON” <span class="tag">Overlaps</span></td><td>amount under 15.00 €</td><td>Digital subscriptions</td><td>12</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+            <tr><td>matches regex ^SALARY</td><td>account: Main checking</td><td>Salary</td><td>13</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+            <tr><td>contains “SATISPAY”</td><td>amount under 10.00 €</td><td>Eating out</td><td>30</td><td><span class="row" style="gap:16px"><span class="muted">Edit</span> <span class="muted">Delete</span></span></td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Matches = transactions this rule categorized. Deleting a rule doesn't change categories already set.</span>
+      </main>
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Edit rule</span><a href="#desktop-s17">✕</a></div>
+          <div class="dialog-body">
+            <div class="field"><span class="label">Description</span><div class="row"><div class="dropdown" style="width:160px">contains</div><div class="input" style="flex:1; width:auto">AMAZON</div></div></div>
+            <div class="field"><span class="label">Amount (optional)</span><div class="dropdown fill">15.00 € or more</div></div>
+            <div class="field"><span class="label">Account (optional)</span><div class="dropdown fill">Any account</div></div>
+            <div class="field"><span class="label">Category</span><div class="dropdown fill">Shopping</div></div>
+            <div class="card tinted">
+              <span class="strong">No more overlap</span>
+              <span class="small muted">With "15.00 € or more", this rule and "AMAZON, amount under 15.00 € → Digital subscriptions" can't both match the same transaction.</span>
+            </div>
+            <span class="checkbox checked">Re-check the 2 rule conflicts in Review (they'll get Digital subscriptions)</span>
+            <span class="small muted">Transactions that already have a category are never changed.</span>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s17">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s17">Save rule</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S16 Categories ======================== -->
+<section class="wf-screen" id="mobile-s16">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#mobile-s16" aria-current="page">S16 Categories</a>
+      <a href="#mobile-d5-edit">D5 Edit category</a>
+      <a href="#mobile-d5-delete">D5 Delete category</a>
+      <a href="#mobile-s17">S17 Rules</a>
+      <a href="#mobile-d6-edit">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s16">Desktop 1440</a>
+      <a href="#mobile-s16" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: categories under More. Tap Eating out to edit; Gifts shows the delete path.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a title="Back to More (not wireframed yet)">←</a>Categories</span><a class="action" title="Same form as D5 edit">+ Add</a></header>
+      <div class="m-content">
+        <span class="h2">Income</span>
+        <div class="m-list">
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Salary</span><span class="small muted">1 rule</span></span><span class="muted">13 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Interest</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">13 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Refunds</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">2 ›</span></div>
+        </div>
+        <span class="h2">Expenses</span>
+        <div class="m-list">
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Rent</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">13 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Groceries</span><span class="small muted">Budget · 1 rule</span></span><span class="muted">156 ›</span></div>
+          <a class="item" href="#mobile-d5-edit"><span class="stack" style="gap:2px"><span class="strong">Eating out</span><span class="small muted">Budget · 1 rule</span></span><span class="muted">48 ›</span></a>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Transport</span><span class="small muted">Budget</span></span><span class="muted">30 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Shopping</span><span class="small muted">1 rule</span></span><span class="muted">23 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Digital subscriptions</span><span class="small muted">1 rule</span></span><span class="muted">12 ›</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Health</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">9 ›</span></div>
+          <a class="item" href="#mobile-d5-delete"><span class="stack" style="gap:2px"><span class="strong">Gifts</span><span class="small muted">Not used by budgets or rules</span></span><span class="muted">4 ›</span></a>
+        </div>
+        <span class="small muted">Tap Eating out to edit it, or Gifts to see the delete path. 7 transactions have no category yet: they're in <a href="review.html#mobile-s2">Review</a>.</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="review.html#mobile-s5">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D5 Edit category ======================== -->
+<section class="wf-screen" id="mobile-d5-edit">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#mobile-s16">S16 Categories</a>
+      <a href="#mobile-d5-edit" aria-current="page">D5 Edit category</a>
+      <a href="#mobile-d5-delete">D5 Delete category</a>
+      <a href="#mobile-s17">S17 Rules</a>
+      <a href="#mobile-d6-edit">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d5-edit">Desktop 1440</a>
+      <a href="#mobile-d5-edit" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D5 as a full-screen sheet.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s16">✕</a><span class="title">Edit category</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <div class="field"><span class="label">Name</span><div class="input fill">Eating out</div></div>
+            <div class="field">
+              <span class="label">Type</span>
+              <div class="row" style="gap:24px"><span class="radio">Income</span><span class="radio selected">Expense</span></div>
+            </div>
+            <div class="card tinted">
+              <span class="strong">Used by</span>
+              <span class="small muted">48 transactions · the Eating out budget (150.00 € / month) · 1 rule (SATISPAY, amount under 10.00 €). Renaming keeps all of them.</span>
+            </div>
+      </div>
+      <div class="action-bar">
+            <a class="btn btn-secondary" href="#mobile-s16">Cancel</a>
+            <a class="btn btn-primary" href="#mobile-s16">Save category</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D5 Delete category ======================== -->
+<section class="wf-screen" id="mobile-d5-delete">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#mobile-s16">S16 Categories</a>
+      <a href="#mobile-d5-edit">D5 Edit category</a>
+      <a href="#mobile-d5-delete" aria-current="page">D5 Delete category</a>
+      <a href="#mobile-s17">S17 Rules</a>
+      <a href="#mobile-d6-edit">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d5-delete">Desktop 1440</a>
+      <a href="#mobile-d5-delete" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D5 delete variant as a full-screen sheet.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s16">✕</a><span class="title">Delete category</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <span class="h2">Delete “Gifts”?</span>
+            <p style="color:var(--wf-ink-2)">4 transactions use this category. No rules or budgets use it. What should happen to the transactions?</p>
+            <div class="row" style="gap:12px"><span class="radio selected">Move them to</span><div class="dropdown" style="flex:1; width:auto">Shopping</div></div>
+            <span class="radio">Leave them uncategorized (they'll appear in Review)</span>
+      </div>
+      <div class="action-bar">
+            <a class="btn btn-secondary" href="#mobile-s16">Cancel</a>
+            <a class="btn btn-primary" href="#mobile-s16">Delete category</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S17 Rules ======================== -->
+<section class="wf-screen" id="mobile-s17">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#mobile-s16">S16 Categories</a>
+      <a href="#mobile-d5-edit">D5 Edit category</a>
+      <a href="#mobile-d5-delete">D5 Delete category</a>
+      <a href="#mobile-s17" aria-current="page">S17 Rules</a>
+      <a href="#mobile-d6-edit">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s17">Desktop 1440</a>
+      <a href="#mobile-s17" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: one card per rule; the overlapping AMAZON rules are tagged.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a title="Back to More (not wireframed yet)">←</a>Rules</span><a class="action" title="Same form as D6 in review.html">+ Add</a></header>
+      <div class="m-content">
+        <span class="muted" style="font-size:13px">Rules have no order: if more than one matches, the transaction goes to Review.</span>
+        <div class="m-banner">
+          <span style="font-size:13px">⚠ The two AMAZON rules overlap for amounts under 15.00 €: 2 transactions are waiting in Review.</span>
+          <a class="btn btn-secondary" href="review.html#mobile-s2">Open Review</a>
+        </div>
+        <div class="row-card">
+          <div class="top"><span><span class="strong">contains “ESSELUNGA”</span></span></div>
+          <span class="small muted">No other conditions</span>
+          <div class="kv"><span>→ Groceries</span><span class="small muted">41 matches</span></div>
+        </div>
+        <div class="row-card">
+          <div class="top"><span><a class="strong" href="#mobile-d6-edit">contains “AMAZON”</a></span><span class="tag">Overlaps</span></div>
+          <span class="small muted">No other conditions</span>
+          <div class="kv"><span>→ Shopping</span><span class="small muted">23 matches</span></div>
+        </div>
+        <div class="row-card">
+          <div class="top"><span><span class="strong">contains “AMAZON”</span></span><span class="tag">Overlaps</span></div>
+          <span class="small muted">amount under 15.00 €</span>
+          <div class="kv"><span>→ Digital subscriptions</span><span class="small muted">12 matches</span></div>
+        </div>
+        <div class="row-card">
+          <div class="top"><span><span class="strong">matches regex ^SALARY</span></span></div>
+          <span class="small muted">account: Main checking</span>
+          <div class="kv"><span>→ Salary</span><span class="small muted">13 matches</span></div>
+        </div>
+        <div class="row-card">
+          <div class="top"><span><span class="strong">contains “SATISPAY”</span></span></div>
+          <span class="small muted">amount under 10.00 €</span>
+          <div class="kv"><span>→ Eating out</span><span class="small muted">30 matches</span></div>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="review.html#mobile-s5">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D6 Edit rule ======================== -->
+<section class="wf-screen" id="mobile-d6-edit">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Categories &amp; rules</span>
+    <span class="wf-group">
+      <a href="#mobile-s16">S16 Categories</a>
+      <a href="#mobile-d5-edit">D5 Edit category</a>
+      <a href="#mobile-d5-delete">D5 Delete category</a>
+      <a href="#mobile-s17">S17 Rules</a>
+      <a href="#mobile-d6-edit" aria-current="page">D6 Edit rule</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d6-edit">Desktop 1440</a>
+      <a href="#mobile-d6-edit" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D6 editing AMAZON → Shopping as a full-screen sheet.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s17">✕</a><span class="title">Edit rule</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <div class="field"><span class="label">Description</span><div class="dropdown fill">contains</div><div class="input fill">AMAZON</div></div>
+            <div class="field"><span class="label">Amount (optional)</span><div class="dropdown fill">15.00 € or more</div></div>
+            <div class="field"><span class="label">Account (optional)</span><div class="dropdown fill">Any account</div></div>
+            <div class="field"><span class="label">Category</span><div class="dropdown fill">Shopping</div></div>
+            <div class="card tinted">
+              <span class="strong">No more overlap</span>
+              <span class="small muted">With "15.00 € or more", this rule and "AMAZON, amount under 15.00 € → Digital subscriptions" can't both match the same transaction.</span>
+            </div>
+            <span class="checkbox checked">Re-check the 2 rule conflicts in Review (they'll get Digital subscriptions)</span>
+            <span class="small muted">Transactions that already have a category are never changed.</span>
+      </div>
+      <div class="action-bar">
+            <a class="btn btn-secondary" href="#mobile-s17">Cancel</a>
+            <a class="btn btn-primary" href="#mobile-s17">Save rule</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

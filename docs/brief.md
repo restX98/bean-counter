@@ -81,6 +81,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 - Uncategorized transactions are listed for manual review. When I categorize one by hand, I can turn that choice into a new rule.
 - When I save a rule, the app offers to apply it to the existing uncategorized transactions that match. Transactions that already have a category are never changed.
 - Rules have no order. If more than one rule matches a transaction, the app doesn't choose: the transaction goes to Review and I pick the category.
+- Rules that overlap (both could match the same transaction) are flagged on the rules page, with a link to the conflicts they caused.
 
 ### 5.4 Transfer detection
 
@@ -195,4 +196,5 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Balance check: compares end-of-day balances, reports the window where they split, points to skipped or excluded rows; a hand-entered balance that differs is shown before it's used |
 | 2026-10-17 | Reports: uncategorized transactions count under Uncategorized; possible transfers are left out until linked or dismissed |
 | 2026-10-17 | Budgets: the first month counts in full; the running balance never resets on its own but can be started over from a chosen month |
+| 2026-10-17 | Categories and rules: categories show what uses them; overlapping rules are flagged with a link to their conflicts in Review |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |
