@@ -33,6 +33,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 | Account types | Checking, savings |
 | Currency | EUR is the main currency. Other currencies live in their own accounts and are never converted. |
 | UI language | English |
+| Layouts | Desktop and mobile |
 | Tech stack | Not decided. This brief describes behaviour only. |
 
 ## 4. Core concepts
@@ -119,6 +120,14 @@ Amounts in different currencies are never added together. Every report is shown 
 - Download a full backup of all data as one file from the UI.
 - Restore from a backup file. A restore replaces all current data, so the app asks me to confirm first.
 
+### 5.9 Dashboard & Review
+
+- The app opens on a dashboard showing balances, this month's income and expenses, budgets at a glance, and how many items are waiting for review.
+- A Review inbox gathers everything waiting for my decision: uncategorized transactions, transfers to confirm and balance mismatches. During an import, the same items can be settled right away for that file.
+- There's no setup wizard. On first launch, empty screens explain the next step (add an account, then import a statement).
+
+The screens and flows are listed in [plan.md](plan.md).
+
 ## 6. Examples
 
 ### 6.1 Monthly view
@@ -173,3 +182,4 @@ New features and decisions are added here as we go.
 |---|---|
 | 2026-10-16 | Initial brief: accounts, import, categorization, transfers, reports, budgets, multi-currency |
 | 2026-10-17 | Resolved open questions: no currency conversion (per-currency reports), balance anchor instead of opening balance, duplicate fingerprinting, transfer window adjustable (default 3 days), budget view toggle, no login (localhost only), backup/restore in UI |
+| 2026-10-17 | Screens and flows plan ([plan.md](plan.md)): dashboard as home, Review inbox, empty states instead of a setup wizard, desktop and mobile layouts |
