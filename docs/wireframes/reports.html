@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reports · Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  /* Reports flow only. Shared pieces live in components.css. */
+  .kv a, .table td a, .m-list a { color: inherit; }
+  .swatch-cell { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border: 1px solid var(--wf-border); vertical-align: -1px; }
+</style>
+</head>
+<body class="wf">
+
+<!-- =====================================================================
+     Flow 7 in docs/plan.md §6: S1 → S12 → a category → S5 → S6; S13 for a
+     longer period; S11 for the balance trend. All amounts in EUR, never converted.
+     Same data as the other files:
+       Balances now: Main checking 3,240.50 € + Savings 12,505.00 € = 15,745.50 €
+       October so far: income +2,005.00 €, expenses −1,000.00 €, net +1,005.00 €
+         (Groceries 320, Eating out 80, Transport 45 match the dashboard budgets)
+       Items in Review: uncategorized expenses count under Uncategorized; possible
+         transfers (TRANSFER TO SAVINGS and its 2 matches) are left out until decided,
+         so Moved to savings = 200.00 € (GIROCONTO 05/10, already linked).
+       Aug–Oct spending: 3,000.00 € (Groceries 330 + 250 + 320 = 900.00 €)
+     ===================================================================== -->
+
+<!-- ======================= DESKTOP · S11 Balance over time ======================= -->
+<section class="wf-screen" id="desktop-s11">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Reports</span>
+    <span class="wf-group">
+      <a href="#desktop-s11" aria-current="page">S11 Balance over time</a>
+      <a href="#desktop-s12">S12 Monthly in vs out</a>
+      <a href="#desktop-s13">S13 Spending by category</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s11" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s11">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: EUR, last 12 months, two accounts stacked (Savings below, Main checking on top). Amounts are never converted: the US account shows when you switch to USD.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="review.html#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="review.html#desktop-s5">Transactions</a>
+          <a href="#desktop-s11">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Reports</h1></div>
+        <nav class="tabs"><a href="#desktop-s11" aria-current="page">Balance over time</a><a href="#desktop-s12">Monthly in vs out</a><a href="#desktop-s13">Spending by category</a></nav>
+        <div class="row">
+          <div class="dropdown" style="width:120px">EUR</div>
+          <a class="btn btn-secondary" title="Last 3 months">3M</a>
+          <a class="btn btn-primary">1Y</a>
+          <a class="btn btn-secondary" title="Since the first transaction">All</a>
+        </div>
+        <div class="chart">
+          <svg viewBox="0 0 1060 330" role="img" aria-label="Total EUR balance, stacked by account, Oct 2025 to Oct 2026"><line x1="48" y1="302.0" x2="1048" y2="302.0" stroke="#e0e0e0"/><text x="42" y="306.0" font-size="10" text-anchor="end" fill="#737373">0k</text><line x1="48" y1="232.5" x2="1048" y2="232.5" stroke="#e0e0e0"/><text x="42" y="236.5" font-size="10" text-anchor="end" fill="#737373">4k</text><line x1="48" y1="163.0" x2="1048" y2="163.0" stroke="#e0e0e0"/><text x="42" y="167.0" font-size="10" text-anchor="end" fill="#737373">8k</text><line x1="48" y1="93.5" x2="1048" y2="93.5" stroke="#e0e0e0"/><text x="42" y="97.5" font-size="10" text-anchor="end" fill="#737373">12k</text><line x1="48" y1="24.0" x2="1048" y2="24.0" stroke="#e0e0e0"/><text x="42" y="28.0" font-size="10" text-anchor="end" fill="#737373">16k</text><polygon points="48.0,302 48.0,128.2 131.3,124.8 214.7,121.3 298.0,119.6 381.3,117.8 464.7,114.3 548.0,112.6 631.3,110.9 714.7,109.1 798.0,108.3 881.3,107.4 964.7,105.7 1048.0,84.7 1048.0,302" fill="#d9d9d9"/><polygon points="48.0,128.2 131.3,124.8 214.7,121.3 298.0,119.6 381.3,117.8 464.7,114.3 548.0,112.6 631.3,110.9 714.7,109.1 798.0,108.3 881.3,107.4 964.7,105.7 1048.0,84.7 1048.0,28.4 964.7,52.4 881.3,60.5 798.0,52.7 714.7,57.9 631.3,56.1 548.0,60.5 464.7,65.7 381.3,64.8 298.0,69.2 214.7,75.3 131.3,70.9 48.0,76.5" fill="#a6a6a6"/><polyline points="48.0,76.5 131.3,70.9 214.7,75.3 298.0,69.2 381.3,64.8 464.7,65.7 548.0,60.5 631.3,56.1 714.7,57.9 798.0,52.7 881.3,60.5 964.7,52.4 1048.0,28.4" fill="none" stroke="#404040" stroke-width="2"/><circle cx="1048.0" cy="28.4" r="3.5" fill="#262626"/><text x="1042.0" y="20.4" font-size="11" text-anchor="end" fill="#262626">15,745.50 €</text><text x="48.0" y="322" font-size="10" text-anchor="middle" fill="#737373">Oct</text><text x="131.3" y="322" font-size="10" text-anchor="middle" fill="#737373">Nov</text><text x="214.7" y="322" font-size="10" text-anchor="middle" fill="#737373">Dec</text><text x="298.0" y="322" font-size="10" text-anchor="middle" fill="#737373">Jan</text><text x="381.3" y="322" font-size="10" text-anchor="middle" fill="#737373">Feb</text><text x="464.7" y="322" font-size="10" text-anchor="middle" fill="#737373">Mar</text><text x="548.0" y="322" font-size="10" text-anchor="middle" fill="#737373">Apr</text><text x="631.3" y="322" font-size="10" text-anchor="middle" fill="#737373">May</text><text x="714.7" y="322" font-size="10" text-anchor="middle" fill="#737373">Jun</text><text x="798.0" y="322" font-size="10" text-anchor="middle" fill="#737373">Jul</text><text x="881.3" y="322" font-size="10" text-anchor="middle" fill="#737373">Aug</text><text x="964.7" y="322" font-size="10" text-anchor="middle" fill="#737373">Sep</text><text x="1048.0" y="322" font-size="10" text-anchor="middle" fill="#737373">Oct</text></svg>
+          <div class="legend"><span><span class="swatch" style="background:#a6a6a6"></span>Main checking</span><span><span class="swatch" style="background:#d9d9d9"></span>Savings</span><span><span class="swatch" style="background:#404040"></span>Total</span></div>
+        </div>
+        <table class="table">
+          <colgroup><col><col style="width:200px"><col style="width:200px"><col style="width:200px"></colgroup>
+          <thead><tr><th>Account</th><th>Oct 2025</th><th>Oct 2026</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td>Main checking</td><td>2,980.00 €</td><td>3,240.50 €</td><td>+260.50 €</td></tr>
+            <tr><td>Savings</td><td>10,000.00 €</td><td>12,505.00 €</td><td>+2,505.00 €</td></tr>
+            <tr class="strong"><td><strong>Total</strong></td><td><strong>12,980.00 €</strong></td><td><strong>15,745.50 €</strong></td><td><strong>+2,765.50 €</strong></td></tr>
+          </tbody>
+        </table>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S12 Monthly in vs out ======================= -->
+<section class="wf-screen" id="desktop-s12">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Reports</span>
+    <span class="wf-group">
+      <a href="#desktop-s11">S11 Balance over time</a>
+      <a href="#desktop-s12" aria-current="page">S12 Monthly in vs out</a>
+      <a href="#desktop-s13">S13 Spending by category</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s12" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s12">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">October so far, with 12 items still in Review. Uncategorized expenses count under Uncategorized; the possible transfer and its two matches are left out until you decide. Totals match the dashboard. Click a category to open Transactions.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="review.html#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="review.html#desktop-s5">Transactions</a>
+          <a href="#desktop-s11">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Reports</h1></div>
+        <nav class="tabs"><a href="#desktop-s11">Balance over time</a><a href="#desktop-s12" aria-current="page">Monthly in vs out</a><a href="#desktop-s13">Spending by category</a></nav>
+        <div class="row">
+          <a class="btn btn-secondary" title="September 2026">◀</a>
+          <span class="h2">October 2026 <span class="muted" style="font-weight:400">· so far</span></span>
+          <a class="btn btn-secondary" title="Next month (none yet)">▶</a>
+          <div class="dropdown" style="width:120px">EUR</div>
+        </div>
+        <div class="banner">
+          <span>12 items in Review can still change these numbers. Uncategorized expenses count under Uncategorized; possible transfers are left out until you link or dismiss them.</span>
+          <a class="btn btn-secondary" href="review.html#desktop-s2">Open Review</a>
+        </div>
+        <div class="row" style="gap:24px; align-items:flex-start">
+          <div class="card roomy" style="width:440px; flex:none">
+          <div class="kv strong"><span>Income</span><span>+2,005.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#desktop-s5" title="Opens Transactions filtered to Salary (filter state not drawn)">Salary</a></span><span>+2,000.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#desktop-s5" title="Opens Transactions filtered to Interest (filter state not drawn)">Interest</a></span><span>+5.00 €</span></div>
+          <div class="kv strong"><span>Expenses</span><span>−1,000.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#desktop-s5" title="Opens Transactions filtered to Rent (filter state not drawn)">Rent</a></span><span>−450.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#desktop-s5" title="Opens Transactions filtered to Groceries (filter state not drawn)">Groceries</a></span><span>−320.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#desktop-s5" title="Opens Transactions filtered to Eating out (filter state not drawn)">Eating out</a></span><span>−80.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#desktop-s5" title="Opens Transactions filtered to Transport (filter state not drawn)">Transport</a></span><span>−45.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#desktop-s5" title="Opens Transactions filtered to Shopping (filter state not drawn)">Shopping</a></span><span>−34.90 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#desktop-s5" title="Opens Transactions filtered to Uncategorized (filter state not drawn)">Uncategorized</a></span><span>−70.10 €</span></div>
+          <div class="divider"></div>
+          <div class="kv strong"><span>Net cashflow</span><span>+1,005.00 €</span></div>
+          <div class="kv"><span>Savings rate</span><span>50 %</span></div>
+          <div class="divider"></div>
+          <div class="kv strong"><span>Moved to savings</span><span>200.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px">Checking → Savings · 05/10</span><span>200.00 €</span></div>
+            <span class="small muted">Not counted yet: TRANSFER TO SAVINGS −500.00 € and its 2 possible matches in Savings (+500.00 € each). Once linked, the 500.00 € shows under Moved to savings.</span>
+          </div>
+          <div class="chart" style="flex:1">
+            <span class="card-title">Last 12 months</span>
+            <svg viewBox="0 0 640 300" role="img" aria-label="Income and expenses per month, Nov 2025 to Oct 2026"><line x1="44" y1="272.0" x2="632" y2="272.0" stroke="#e0e0e0"/><text x="38" y="276.0" font-size="10" text-anchor="end" fill="#737373">0k</text><line x1="44" y1="168.0" x2="632" y2="168.0" stroke="#e0e0e0"/><text x="38" y="172.0" font-size="10" text-anchor="end" fill="#737373">1k</text><line x1="44" y1="64.0" x2="632" y2="64.0" stroke="#e0e0e0"/><text x="38" y="68.0" font-size="10" text-anchor="end" fill="#737373">2k</text><rect x="51.4" y="64.0" width="15.7" height="208.0" fill="#595959"/><rect x="69.0" y="100.4" width="15.7" height="171.6" fill="#bfbfbf"/><text x="68.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Nov</text><rect x="100.3" y="64.0" width="15.7" height="208.0" fill="#595959"/><rect x="118.0" y="38.0" width="15.7" height="234.0" fill="#bfbfbf"/><text x="117.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Dec</text><rect x="149.3" y="63.5" width="15.7" height="208.5" fill="#595959"/><rect x="167.0" y="95.2" width="15.7" height="176.8" fill="#bfbfbf"/><text x="166.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Jan</text><rect x="198.3" y="64.0" width="15.7" height="208.0" fill="#595959"/><rect x="216.0" y="105.6" width="15.7" height="166.4" fill="#bfbfbf"/><text x="215.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Feb</text><rect x="247.3" y="64.0" width="15.7" height="208.0" fill="#595959"/><rect x="265.0" y="74.4" width="15.7" height="197.6" fill="#bfbfbf"/><text x="264.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Mar</text><rect x="296.4" y="63.5" width="15.7" height="208.5" fill="#595959"/><rect x="314.0" y="100.4" width="15.7" height="171.6" fill="#bfbfbf"/><text x="313.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Apr</text><rect x="345.4" y="64.0" width="15.7" height="208.0" fill="#595959"/><rect x="363.0" y="105.6" width="15.7" height="166.4" fill="#bfbfbf"/><text x="362.0" y="292" font-size="10" text-anchor="middle" fill="#737373">May</text><rect x="394.4" y="64.0" width="15.7" height="208.0" fill="#595959"/><rect x="412.0" y="69.2" width="15.7" height="202.8" fill="#bfbfbf"/><text x="411.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Jun</text><rect x="443.4" y="63.5" width="15.7" height="208.5" fill="#595959"/><rect x="461.0" y="95.2" width="15.7" height="176.8" fill="#bfbfbf"/><text x="460.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Jul</text><rect x="492.4" y="64.0" width="15.7" height="208.0" fill="#595959"/><rect x="510.0" y="53.6" width="15.7" height="218.4" fill="#bfbfbf"/><text x="509.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Aug</text><rect x="541.4" y="64.0" width="15.7" height="208.0" fill="#595959"/><rect x="559.0" y="110.8" width="15.7" height="161.2" fill="#bfbfbf"/><text x="558.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Sep</text><rect x="590.4" y="63.5" width="15.7" height="208.5" fill="#595959"/><rect x="608.0" y="168.0" width="15.7" height="104.0" fill="#bfbfbf"/><text x="607.0" y="292" font-size="10" text-anchor="middle" fill="#737373">Oct</text></svg>
+            <div class="legend"><span><span class="swatch" style="background:#595959"></span>Income</span><span><span class="swatch" style="background:#bfbfbf"></span>Expenses</span><span>October is the month so far</span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S13 Spending by category ======================= -->
+<section class="wf-screen" id="desktop-s13">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Reports</span>
+    <span class="wf-group">
+      <a href="#desktop-s11">S11 Balance over time</a>
+      <a href="#desktop-s12">S12 Monthly in vs out</a>
+      <a href="#desktop-s13" aria-current="page">S13 Spending by category</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s13" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s13">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">Last 3 months. Groceries 900.00 € = Aug 330 + Sep 250 + Oct 320, the same months as the Groceries budget. Click a category to open Transactions.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="review.html#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="review.html#desktop-s5">Transactions</a>
+          <a href="#desktop-s11">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Reports</h1></div>
+        <nav class="tabs"><a href="#desktop-s11">Balance over time</a><a href="#desktop-s12">Monthly in vs out</a><a href="#desktop-s13" aria-current="page">Spending by category</a></nav>
+        <div class="row">
+          <div class="dropdown" style="width:220px">Aug – Oct 2026 (3 months)</div>
+          <div class="dropdown" style="width:120px">EUR</div>
+        </div>
+        <div class="row" style="gap:24px; align-items:flex-start">
+          <div class="chart" style="width:420px; flex:none; align-items:center">
+            <svg viewBox="0 0 300 300" role="img" aria-label="Spending by category, Aug to Oct 2026"><circle cx="150.0" cy="150.0" r="99.0" fill="none" stroke="#404040" stroke-width="48.0" stroke-dasharray="279.92 622.04" stroke-dashoffset="-0.00" transform="rotate(-90 150.0 150.0)"/><circle cx="150.0" cy="150.0" r="99.0" fill="none" stroke="#666666" stroke-width="48.0" stroke-dasharray="186.61 622.04" stroke-dashoffset="-279.92" transform="rotate(-90 150.0 150.0)"/><circle cx="150.0" cy="150.0" r="99.0" fill="none" stroke="#808080" stroke-width="48.0" stroke-dasharray="49.76 622.04" stroke-dashoffset="-466.53" transform="rotate(-90 150.0 150.0)"/><circle cx="150.0" cy="150.0" r="99.0" fill="none" stroke="#999999" stroke-width="48.0" stroke-dasharray="43.54 622.04" stroke-dashoffset="-516.29" transform="rotate(-90 150.0 150.0)"/><circle cx="150.0" cy="150.0" r="99.0" fill="none" stroke="#b3b3b3" stroke-width="48.0" stroke-dasharray="31.10 622.04" stroke-dashoffset="-559.83" transform="rotate(-90 150.0 150.0)"/><circle cx="150.0" cy="150.0" r="99.0" fill="none" stroke="#cccccc" stroke-width="48.0" stroke-dasharray="16.57 622.04" stroke-dashoffset="-590.93" transform="rotate(-90 150.0 150.0)"/><circle cx="150.0" cy="150.0" r="99.0" fill="none" stroke="#e0e0e0" stroke-width="48.0" stroke-dasharray="14.53 622.04" stroke-dashoffset="-607.50" transform="rotate(-90 150.0 150.0)"/><text x="150.0" y="148.0" font-size="15" font-weight="600" text-anchor="middle" fill="#262626">3,000.00 €</text><text x="150.0" y="166.0" font-size="11" text-anchor="middle" fill="#737373">Aug – Oct 2026</text></svg>
+          </div>
+          <div class="stack" style="flex:1; gap:8px">
+            <table class="table">
+              <colgroup><col><col style="width:160px"><col style="width:110px"></colgroup>
+              <thead><tr><th>Category</th><th>Amount</th><th>Share</th></tr></thead>
+              <tbody>
+            <tr><td><span class="swatch-cell" style="background:#404040"></span><a href="review.html#desktop-s5" title="Opens Transactions filtered to Rent (filter state not drawn)">Rent</a></td><td>1,350.00 €</td><td>45.0 %</td></tr>
+            <tr><td><span class="swatch-cell" style="background:#666666"></span><a href="review.html#desktop-s5" title="Opens Transactions filtered to Groceries (filter state not drawn)">Groceries</a></td><td>900.00 €</td><td>30.0 %</td></tr>
+            <tr><td><span class="swatch-cell" style="background:#808080"></span><a href="review.html#desktop-s5" title="Opens Transactions filtered to Eating out (filter state not drawn)">Eating out</a></td><td>240.00 €</td><td>8.0 %</td></tr>
+            <tr><td><span class="swatch-cell" style="background:#999999"></span><a href="review.html#desktop-s5" title="Opens Transactions filtered to Shopping (filter state not drawn)">Shopping</a></td><td>210.00 €</td><td>7.0 %</td></tr>
+            <tr><td><span class="swatch-cell" style="background:#b3b3b3"></span><a href="review.html#desktop-s5" title="Opens Transactions filtered to Transport (filter state not drawn)">Transport</a></td><td>150.00 €</td><td>5.0 %</td></tr>
+            <tr><td><span class="swatch-cell" style="background:#cccccc"></span><a href="review.html#desktop-s5" title="Opens Transactions filtered to Health (filter state not drawn)">Health</a></td><td>79.90 €</td><td>2.7 %</td></tr>
+            <tr><td><span class="swatch-cell" style="background:#e0e0e0"></span><a href="review.html#desktop-s5" title="Opens Transactions filtered to Uncategorized (filter state not drawn)">Uncategorized</a></td><td>70.10 €</td><td>2.3 %</td></tr>
+                <tr><td><strong>Total</strong></td><td><strong>3,000.00 €</strong></td><td><strong>100.0 %</strong></td></tr>
+              </tbody>
+            </table>
+            <span class="small muted">Uncategorized holds expenses still waiting in Review. Possible transfers are left out until you decide.</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= MOBILE · S11 Balance over time ======================= -->
+<section class="wf-screen" id="mobile-s11">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Reports</span>
+    <span class="wf-group">
+      <a href="#mobile-s11" aria-current="page">S11 Balance over time</a>
+      <a href="#mobile-s12">S12 Monthly in vs out</a>
+      <a href="#mobile-s13">S13 Spending by category</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s11">Desktop 1440</a>
+      <a href="#mobile-s11" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: EUR, last 12 months. The report tabs scroll sideways; the chart fills the width.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title">Reports</span></header>
+      <div class="m-content">
+        <nav class="tabs"><a href="#mobile-s11" aria-current="page">Balance over time</a><a href="#mobile-s12">Monthly in vs out</a><a href="#mobile-s13">Spending by category</a></nav>
+        <div class="row" style="gap:8px">
+          <div class="dropdown" style="width:100px">EUR</div>
+          <a class="btn btn-secondary" style="padding:10px 14px">3M</a>
+          <a class="btn btn-primary" style="padding:10px 14px">1Y</a>
+          <a class="btn btn-secondary" style="padding:10px 14px">All</a>
+        </div>
+        <div class="chart">
+          <svg viewBox="0 0 340 220" role="img" aria-label="Total EUR balance, stacked by account, Oct 2025 to Oct 2026"><line x1="48" y1="192.0" x2="328" y2="192.0" stroke="#e0e0e0"/><text x="42" y="196.0" font-size="10" text-anchor="end" fill="#737373">0k</text><line x1="48" y1="150.0" x2="328" y2="150.0" stroke="#e0e0e0"/><text x="42" y="154.0" font-size="10" text-anchor="end" fill="#737373">4k</text><line x1="48" y1="108.0" x2="328" y2="108.0" stroke="#e0e0e0"/><text x="42" y="112.0" font-size="10" text-anchor="end" fill="#737373">8k</text><line x1="48" y1="66.0" x2="328" y2="66.0" stroke="#e0e0e0"/><text x="42" y="70.0" font-size="10" text-anchor="end" fill="#737373">12k</text><line x1="48" y1="24.0" x2="328" y2="24.0" stroke="#e0e0e0"/><text x="42" y="28.0" font-size="10" text-anchor="end" fill="#737373">16k</text><polygon points="48.0,192 48.0,87.0 71.3,84.9 94.7,82.8 118.0,81.8 141.3,80.7 164.7,78.6 188.0,77.5 211.3,76.5 234.7,75.5 258.0,74.9 281.3,74.4 304.7,73.3 328.0,60.7 328.0,192" fill="#d9d9d9"/><polygon points="48.0,87.0 71.3,84.9 94.7,82.8 118.0,81.8 141.3,80.7 164.7,78.6 188.0,77.5 211.3,76.5 234.7,75.5 258.0,74.9 281.3,74.4 304.7,73.3 328.0,60.7 328.0,26.7 304.7,41.2 281.3,46.0 258.0,41.3 234.7,44.5 211.3,43.4 188.0,46.0 164.7,49.2 141.3,48.7 118.0,51.3 94.7,55.0 71.3,52.3 48.0,55.7" fill="#a6a6a6"/><polyline points="48.0,55.7 71.3,52.3 94.7,55.0 118.0,51.3 141.3,48.7 164.7,49.2 188.0,46.0 211.3,43.4 234.7,44.5 258.0,41.3 281.3,46.0 304.7,41.2 328.0,26.7" fill="none" stroke="#404040" stroke-width="2"/><circle cx="328.0" cy="26.7" r="3.5" fill="#262626"/><text x="322.0" y="18.7" font-size="11" text-anchor="end" fill="#262626">15,745.50 €</text><text x="48.0" y="212" font-size="10" text-anchor="middle" fill="#737373">Oct</text><text x="71.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Nov</text><text x="94.7" y="212" font-size="10" text-anchor="middle" fill="#737373">Dec</text><text x="118.0" y="212" font-size="10" text-anchor="middle" fill="#737373">Jan</text><text x="141.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Feb</text><text x="164.7" y="212" font-size="10" text-anchor="middle" fill="#737373">Mar</text><text x="188.0" y="212" font-size="10" text-anchor="middle" fill="#737373">Apr</text><text x="211.3" y="212" font-size="10" text-anchor="middle" fill="#737373">May</text><text x="234.7" y="212" font-size="10" text-anchor="middle" fill="#737373">Jun</text><text x="258.0" y="212" font-size="10" text-anchor="middle" fill="#737373">Jul</text><text x="281.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Aug</text><text x="304.7" y="212" font-size="10" text-anchor="middle" fill="#737373">Sep</text><text x="328.0" y="212" font-size="10" text-anchor="middle" fill="#737373">Oct</text></svg>
+          <div class="legend"><span><span class="swatch" style="background:#a6a6a6"></span>Main checking</span><span><span class="swatch" style="background:#d9d9d9"></span>Savings</span><span><span class="swatch" style="background:#404040"></span>Total</span></div>
+        </div>
+        <div class="m-list">
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Main checking</span><span class="small muted">2,980.00 € → 3,240.50 €</span></span><span>+260.50 €</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span class="strong">Savings</span><span class="small muted">10,000.00 € → 12,505.00 €</span></span><span>+2,505.00 €</span></div>
+          <div class="item"><span class="strong">Total</span><span class="strong">+2,765.50 €</span></div>
+        </div>
+        <span class="small muted">Oct 2025 → Oct 2026 · total now 15,745.50 €</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="review.html#mobile-s5">Transactions</a>
+        <a href="#mobile-s11" aria-current="page">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= MOBILE · S12 Monthly in vs out ======================= -->
+<section class="wf-screen" id="mobile-s12">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Reports</span>
+    <span class="wf-group">
+      <a href="#mobile-s11">S11 Balance over time</a>
+      <a href="#mobile-s12" aria-current="page">S12 Monthly in vs out</a>
+      <a href="#mobile-s13">S13 Spending by category</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s12">Desktop 1440</a>
+      <a href="#mobile-s12" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">October so far. Same numbers and rule as desktop: possible transfers are left out until you decide in Review.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title">Reports</span></header>
+      <div class="m-content">
+        <nav class="tabs"><a href="#mobile-s11">Balance over time</a><a href="#mobile-s12" aria-current="page">Monthly in vs out</a><a href="#mobile-s13">Spending by category</a></nav>
+        <div class="row" style="justify-content:space-between">
+          <a class="btn btn-secondary" style="padding:10px 14px">◀</a>
+          <span class="strong">October 2026 <span class="muted" style="font-weight:400">· so far</span></span>
+          <a class="btn btn-secondary" style="padding:10px 14px">▶</a>
+        </div>
+        <div class="m-banner">
+          <span style="font-size:13px">12 items in Review can still change these numbers. Possible transfers are left out until you decide.</span>
+          <a class="btn btn-secondary" href="review.html#mobile-s2">Open Review</a>
+        </div>
+        <div class="card roomy">
+          <div class="kv strong"><span>Income</span><span>+2,005.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#mobile-s5" title="Opens Transactions filtered to Salary (filter state not drawn)">Salary</a></span><span>+2,000.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#mobile-s5" title="Opens Transactions filtered to Interest (filter state not drawn)">Interest</a></span><span>+5.00 €</span></div>
+          <div class="kv strong"><span>Expenses</span><span>−1,000.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#mobile-s5" title="Opens Transactions filtered to Rent (filter state not drawn)">Rent</a></span><span>−450.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#mobile-s5" title="Opens Transactions filtered to Groceries (filter state not drawn)">Groceries</a></span><span>−320.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#mobile-s5" title="Opens Transactions filtered to Eating out (filter state not drawn)">Eating out</a></span><span>−80.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#mobile-s5" title="Opens Transactions filtered to Transport (filter state not drawn)">Transport</a></span><span>−45.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#mobile-s5" title="Opens Transactions filtered to Shopping (filter state not drawn)">Shopping</a></span><span>−34.90 €</span></div>
+          <div class="kv"><span style="padding-left:16px"><a href="review.html#mobile-s5" title="Opens Transactions filtered to Uncategorized (filter state not drawn)">Uncategorized</a></span><span>−70.10 €</span></div>
+          <div class="divider"></div>
+          <div class="kv strong"><span>Net cashflow</span><span>+1,005.00 €</span></div>
+          <div class="kv"><span>Savings rate</span><span>50 %</span></div>
+          <div class="divider"></div>
+          <div class="kv strong"><span>Moved to savings</span><span>200.00 €</span></div>
+          <div class="kv"><span style="padding-left:16px">Checking → Savings · 05/10</span><span>200.00 €</span></div>
+          <span class="small muted">Not counted yet: TRANSFER TO SAVINGS −500.00 € and its 2 possible matches in Savings (+500.00 € each). Once linked, the 500.00 € shows under Moved to savings.</span>
+        </div>
+        <div class="chart">
+          <span class="card-title">Last 12 months</span>
+          <svg viewBox="0 0 340 220" role="img" aria-label="Income and expenses per month, Nov 2025 to Oct 2026"><line x1="44" y1="192.0" x2="332" y2="192.0" stroke="#e0e0e0"/><text x="38" y="196.0" font-size="10" text-anchor="end" fill="#737373">0k</text><line x1="44" y1="120.0" x2="332" y2="120.0" stroke="#e0e0e0"/><text x="38" y="124.0" font-size="10" text-anchor="end" fill="#737373">1k</text><line x1="44" y1="48.0" x2="332" y2="48.0" stroke="#e0e0e0"/><text x="38" y="52.0" font-size="10" text-anchor="end" fill="#737373">2k</text><rect x="47.6" y="48.0" width="7.7" height="144.0" fill="#595959"/><rect x="57.3" y="73.2" width="7.7" height="118.8" fill="#bfbfbf"/><text x="56.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Nov</text><rect x="71.6" y="48.0" width="7.7" height="144.0" fill="#595959"/><rect x="81.3" y="30.0" width="7.7" height="162.0" fill="#bfbfbf"/><text x="80.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Dec</text><rect x="95.6" y="47.6" width="7.7" height="144.4" fill="#595959"/><rect x="105.3" y="69.6" width="7.7" height="122.4" fill="#bfbfbf"/><text x="104.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Jan</text><rect x="119.6" y="48.0" width="7.7" height="144.0" fill="#595959"/><rect x="129.3" y="76.8" width="7.7" height="115.2" fill="#bfbfbf"/><text x="128.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Feb</text><rect x="143.6" y="48.0" width="7.7" height="144.0" fill="#595959"/><rect x="153.3" y="55.2" width="7.7" height="136.8" fill="#bfbfbf"/><text x="152.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Mar</text><rect x="167.6" y="47.6" width="7.7" height="144.4" fill="#595959"/><rect x="177.3" y="73.2" width="7.7" height="118.8" fill="#bfbfbf"/><text x="176.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Apr</text><rect x="191.6" y="48.0" width="7.7" height="144.0" fill="#595959"/><rect x="201.3" y="76.8" width="7.7" height="115.2" fill="#bfbfbf"/><text x="200.3" y="212" font-size="10" text-anchor="middle" fill="#737373">May</text><rect x="215.6" y="48.0" width="7.7" height="144.0" fill="#595959"/><rect x="225.3" y="51.6" width="7.7" height="140.4" fill="#bfbfbf"/><text x="224.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Jun</text><rect x="239.6" y="47.6" width="7.7" height="144.4" fill="#595959"/><rect x="249.3" y="69.6" width="7.7" height="122.4" fill="#bfbfbf"/><text x="248.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Jul</text><rect x="263.6" y="48.0" width="7.7" height="144.0" fill="#595959"/><rect x="273.3" y="40.8" width="7.7" height="151.2" fill="#bfbfbf"/><text x="272.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Aug</text><rect x="287.6" y="48.0" width="7.7" height="144.0" fill="#595959"/><rect x="297.3" y="80.4" width="7.7" height="111.6" fill="#bfbfbf"/><text x="296.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Sep</text><rect x="311.6" y="47.6" width="7.7" height="144.4" fill="#595959"/><rect x="321.3" y="120.0" width="7.7" height="72.0" fill="#bfbfbf"/><text x="320.3" y="212" font-size="10" text-anchor="middle" fill="#737373">Oct</text></svg>
+          <div class="legend"><span><span class="swatch" style="background:#595959"></span>Income</span><span><span class="swatch" style="background:#bfbfbf"></span>Expenses</span></div>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="review.html#mobile-s5">Transactions</a>
+        <a href="#mobile-s11" aria-current="page">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= MOBILE · S13 Spending by category ======================= -->
+<section class="wf-screen" id="mobile-s13">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Reports</span>
+    <span class="wf-group">
+      <a href="#mobile-s11">S11 Balance over time</a>
+      <a href="#mobile-s12">S12 Monthly in vs out</a>
+      <a href="#mobile-s13" aria-current="page">S13 Spending by category</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s13">Desktop 1440</a>
+      <a href="#mobile-s13" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">Last 3 months: donut on top, ranked list under it.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title">Reports</span></header>
+      <div class="m-content">
+        <nav class="tabs"><a href="#mobile-s11">Balance over time</a><a href="#mobile-s12">Monthly in vs out</a><a href="#mobile-s13" aria-current="page">Spending by category</a></nav>
+        <div class="row" style="gap:8px">
+          <div class="dropdown" style="flex:1; width:auto">Aug – Oct 2026</div>
+          <div class="dropdown" style="width:90px">EUR</div>
+        </div>
+        <div class="chart" style="align-items:center">
+          <svg viewBox="0 0 260 260" role="img" aria-label="Spending by category, Aug to Oct 2026"><circle cx="130.0" cy="130.0" r="85.8" fill="none" stroke="#404040" stroke-width="41.6" stroke-dasharray="242.59 539.10" stroke-dashoffset="-0.00" transform="rotate(-90 130.0 130.0)"/><circle cx="130.0" cy="130.0" r="85.8" fill="none" stroke="#666666" stroke-width="41.6" stroke-dasharray="161.73 539.10" stroke-dashoffset="-242.59" transform="rotate(-90 130.0 130.0)"/><circle cx="130.0" cy="130.0" r="85.8" fill="none" stroke="#808080" stroke-width="41.6" stroke-dasharray="43.13 539.10" stroke-dashoffset="-404.32" transform="rotate(-90 130.0 130.0)"/><circle cx="130.0" cy="130.0" r="85.8" fill="none" stroke="#999999" stroke-width="41.6" stroke-dasharray="37.74 539.10" stroke-dashoffset="-447.45" transform="rotate(-90 130.0 130.0)"/><circle cx="130.0" cy="130.0" r="85.8" fill="none" stroke="#b3b3b3" stroke-width="41.6" stroke-dasharray="26.95 539.10" stroke-dashoffset="-485.19" transform="rotate(-90 130.0 130.0)"/><circle cx="130.0" cy="130.0" r="85.8" fill="none" stroke="#cccccc" stroke-width="41.6" stroke-dasharray="14.36 539.10" stroke-dashoffset="-512.14" transform="rotate(-90 130.0 130.0)"/><circle cx="130.0" cy="130.0" r="85.8" fill="none" stroke="#e0e0e0" stroke-width="41.6" stroke-dasharray="12.60 539.10" stroke-dashoffset="-526.50" transform="rotate(-90 130.0 130.0)"/><text x="130.0" y="128.0" font-size="15" font-weight="600" text-anchor="middle" fill="#262626">3,000.00 €</text><text x="130.0" y="146.0" font-size="11" text-anchor="middle" fill="#737373">Aug – Oct 2026</text></svg>
+        </div>
+        <div class="m-list">
+          <div class="item"><span><span class="swatch-cell" style="background:#404040"></span><a href="review.html#mobile-s5" title="Opens Transactions filtered to Rent (filter state not drawn)">Rent</a></span><span class="right"><span class="strong">1,350.00 €</span><span class="small muted">45.0 %</span></span></div>
+          <div class="item"><span><span class="swatch-cell" style="background:#666666"></span><a href="review.html#mobile-s5" title="Opens Transactions filtered to Groceries (filter state not drawn)">Groceries</a></span><span class="right"><span class="strong">900.00 €</span><span class="small muted">30.0 %</span></span></div>
+          <div class="item"><span><span class="swatch-cell" style="background:#808080"></span><a href="review.html#mobile-s5" title="Opens Transactions filtered to Eating out (filter state not drawn)">Eating out</a></span><span class="right"><span class="strong">240.00 €</span><span class="small muted">8.0 %</span></span></div>
+          <div class="item"><span><span class="swatch-cell" style="background:#999999"></span><a href="review.html#mobile-s5" title="Opens Transactions filtered to Shopping (filter state not drawn)">Shopping</a></span><span class="right"><span class="strong">210.00 €</span><span class="small muted">7.0 %</span></span></div>
+          <div class="item"><span><span class="swatch-cell" style="background:#b3b3b3"></span><a href="review.html#mobile-s5" title="Opens Transactions filtered to Transport (filter state not drawn)">Transport</a></span><span class="right"><span class="strong">150.00 €</span><span class="small muted">5.0 %</span></span></div>
+          <div class="item"><span><span class="swatch-cell" style="background:#cccccc"></span><a href="review.html#mobile-s5" title="Opens Transactions filtered to Health (filter state not drawn)">Health</a></span><span class="right"><span class="strong">79.90 €</span><span class="small muted">2.7 %</span></span></div>
+          <div class="item"><span><span class="swatch-cell" style="background:#e0e0e0"></span><a href="review.html#mobile-s5" title="Opens Transactions filtered to Uncategorized (filter state not drawn)">Uncategorized</a></span><span class="right"><span class="strong">70.10 €</span><span class="small muted">2.3 %</span></span></div>
+          <div class="item"><span class="strong">Total</span><span class="strong">3,000.00 €</span></div>
+        </div>
+        <span class="small muted">Uncategorized holds expenses still waiting in Review.</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="review.html#mobile-s5">Transactions</a>
+        <a href="#mobile-s11" aria-current="page">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

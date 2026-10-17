@@ -104,6 +104,7 @@ Amounts in different currencies are never added together. Every report is shown 
   - savings rate (net cashflow ÷ income);
   - a separate **Moved to savings** line: net transfers from checking into savings accounts (withdrawals from savings reduce it).
 - **Spending by category**: for any period, with drill-down to the individual transactions.
+- **Transactions still in Review**: uncategorized ones (including rule conflicts) count under an "Uncategorized" line. Possible transfers (a transfer to pick or a cross-currency suggestion, with their candidate matches) are left out of income, expenses and Moved to savings until I link or dismiss them. While items are waiting, reports say the numbers can still change.
 
 ### 5.6 Budgets
 
@@ -190,4 +191,5 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Screens and flows plan ([plan.md](plan.md)): dashboard as home, Review inbox, empty states instead of a setup wizard, desktop and mobile layouts |
 | 2026-10-17 | Resolved the plan's open questions: exclude instead of delete (no manual entry), new rules offered on existing uncategorized transactions, rule conflicts go to Review |
 | 2026-10-17 | Balance check: compares end-of-day balances, reports the window where they split, points to skipped or excluded rows; a hand-entered balance that differs is shown before it's used |
+| 2026-10-17 | Reports: uncategorized transactions count under Uncategorized; possible transfers are left out until linked or dismissed |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |

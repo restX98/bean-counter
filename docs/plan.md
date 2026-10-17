@@ -221,9 +221,10 @@ All three reports share a currency switcher (EUR first) and a period control.
   - income and expenses by category;
   - net cashflow and savings rate;
   - Moved to savings, with its transfers (layout as in brief §6.1);
-  - a 12-month bar chart of income vs. expenses.
+  - a 12-month bar chart of income vs. expenses;
+  - a note when items in Review can still change the numbers (brief §5.5).
 - **Actions**: open a category → S5, filtered to that month and category.
-- **States**: no data for the month.
+- **States**: no data for the month; items still in Review.
 
 #### S13 Spending by category
 

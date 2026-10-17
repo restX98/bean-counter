@@ -410,3 +410,21 @@ body:not(:has(.wf-screen:target)) .wf-screen:first-of-type { display: block; }
 .m-group:not([open]) > summary::before { content: "▸ "; }
 .m-group[open] { gap: 8px; }
 .m-group > .stack { gap: 8px; }
+
+/* ---------- Tabs (links styled as tabs; scroll sideways when narrow) ---------- */
+
+.tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--wf-rule); overflow-x: auto; white-space: nowrap; }
+.tabs a { padding-bottom: 8px; color: var(--wf-muted); text-decoration: none; }
+.tabs a[aria-current] { color: var(--wf-ink); font-weight: 600; border-bottom: 2px solid var(--wf-dark); }
+
+/* ---------- Chart frame (inline SVG inside) ---------- */
+
+.chart { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--wf-line); }
+.chart svg { display: block; width: 100%; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--wf-ink-2); }
+.legend .swatch { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -2px; border: 1px solid var(--wf-border); }
+
+/* ---------- Mobile banner and right-aligned list values ---------- */
+
+.m-banner { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--wf-fill); border: 1px solid var(--wf-border); }
+.m-list .item .right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
