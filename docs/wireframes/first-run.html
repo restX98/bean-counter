@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First run · Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  /* First-run flow only. Shared pieces live in components.css. */
+  .review-list { display: flex; flex-direction: column; gap: 4px; color: var(--wf-ink-2); }
+  .m-btn-row { display: flex; gap: 8px; }
+  .m-btn-row .btn { flex: 1; padding: 10px 8px; }
+</style>
+</head>
+<body class="wf">
+
+<!-- =====================================================================
+     Flow 1 in docs/plan.md §6:
+     S1 empty → D1 Add account → S4 empty → import.html (S7–S10) → S1 with data
+     After the import, the data matches import.html:
+     Main checking (Bank A, EUR) 3,240.50 € · Savings 12,505.00 € · US account in USD
+     Review: 4 earlier items + 8 from the import = 12
+       (7 uncategorized, 2 rule conflicts, 2 transfers to confirm, 1 balance mismatch)
+     October 2026 (EUR): income +2,005.00 €, expenses −1,000.00 €, net +1,005.00 €
+     ===================================================================== -->
+
+<!-- ======================== DESKTOP · S1 empty ========================= -->
+<section class="wf-screen" id="desktop-s1-empty">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">First run</span>
+    <span class="wf-group">
+      <a href="#desktop-s1-empty" aria-current="page">S1 Empty</a>
+      <a href="#desktop-d1">D1 Add account</a>
+      <a href="#desktop-s4-empty">S4 Empty</a>
+      <a href="import.html#desktop-s7">Import ↗</a>
+      <a href="#desktop-s1">S1 After import</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s1-empty" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s1-empty">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: no accounts yet. Counts and charts are hidden, and the only action is adding an account. Import needs an account first.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" title="Add an account first">Import</a>
+        <nav class="nav">
+          <a href="#desktop-s1-empty">Dashboard</a>
+          <a title="Not wireframed yet">Review</a>
+          <a title="Not wireframed yet">Accounts</a>
+          <a title="Not wireframed yet">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Dashboard</h1></div>
+        <div class="empty-state" style="padding:96px 24px">
+          <span class="icon"></span>
+          <span class="h2">No accounts yet</span>
+          <span class="muted">Add an account, then import a statement to see your cashflow.</span>
+          <a class="btn btn-primary" href="#desktop-d1">+ Add account</a>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== DESKTOP · D1 Add account ==================== -->
+<section class="wf-screen" id="desktop-d1">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">First run</span>
+    <span class="wf-group">
+      <a href="#desktop-s1-empty">S1 Empty</a>
+      <a href="#desktop-d1" aria-current="page">D1 Add account</a>
+      <a href="#desktop-s4-empty">S4 Empty</a>
+      <a href="import.html#desktop-s7">Import ↗</a>
+      <a href="#desktop-s1">S1 After import</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d1" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d1">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">Dialog over the empty dashboard. The balance anchor is optional and left empty here, so the import asks for it in S9.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" title="Add an account first">Import</a>
+        <nav class="nav">
+          <a href="#desktop-s1-empty">Dashboard</a>
+          <a title="Not wireframed yet">Review</a>
+          <a title="Not wireframed yet">Accounts</a>
+          <a title="Not wireframed yet">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Dashboard</h1></div>
+        <div class="empty-state" style="padding:96px 24px">
+          <span class="icon"></span>
+          <span class="h2">No accounts yet</span>
+          <span class="muted">Add an account, then import a statement to see your cashflow.</span>
+          <a class="btn btn-primary">+ Add account</a>
+        </div>
+      </main>
+
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Add account</span><a href="#desktop-s1-empty">✕</a></div>
+          <div class="dialog-body">
+            <div class="field"><span class="label">Name</span><div class="input fill">Main checking</div></div>
+            <div class="field"><span class="label">Bank</span><div class="input fill">Bank A</div></div>
+            <div class="field">
+              <span class="label">Type</span>
+              <div class="row" style="gap:24px"><span class="radio selected">Checking</span><span class="radio">Savings</span></div>
+            </div>
+            <div class="field"><span class="label">Currency</span><div class="dropdown fill">EUR</div></div>
+            <div class="field">
+              <span class="label">Balance anchor (optional)</span>
+              <div class="row">
+                <div class="input placeholder" style="flex:1; width:auto">Current balance, e.g. 3,240.50 €</div>
+                <div class="dropdown" style="width:180px">as of 16/10/2026</div>
+              </div>
+              <span class="small muted">Skip this if you don't know it yet. If the statement has no balance column, the import will ask for it.</span>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s1-empty">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s4-empty">Save account</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== DESKTOP · S4 empty ========================= -->
+<section class="wf-screen" id="desktop-s4-empty">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">First run</span>
+    <span class="wf-group">
+      <a href="#desktop-s1-empty">S1 Empty</a>
+      <a href="#desktop-d1">D1 Add account</a>
+      <a href="#desktop-s4-empty" aria-current="page">S4 Empty</a>
+      <a href="import.html#desktop-s7">Import ↗</a>
+      <a href="#desktop-s1">S1 After import</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s4-empty" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s4-empty">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: the account exists but has no transactions yet. Import continues in import.html (S7–S10).</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="#desktop-s1-empty">Dashboard</a>
+          <a title="Not wireframed yet">Review</a>
+          <a title="Not wireframed yet">Accounts</a>
+          <a title="Not wireframed yet">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb">Accounts / Main checking</span>
+        <div class="title-row">
+          <div class="stack"><h1 class="h1">Main checking</h1><span class="muted">Bank A · Checking · EUR</span></div>
+          <div class="actions">
+            <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+            <a class="btn btn-secondary" title="Not wireframed yet">Edit</a>
+            <a class="btn btn-secondary" title="Not wireframed yet">Set balance</a>
+            <a class="btn btn-secondary" title="Not wireframed yet">Archive</a>
+          </div>
+        </div>
+        <div class="row" style="gap:24px; align-items:stretch">
+          <div class="card roomy" style="width:320px">
+            <span class="small muted">Current balance</span>
+            <span class="big-number" style="font-size:28px">—</span>
+            <span class="small muted">Shown after your first import</span>
+          </div>
+          <div class="card roomy" style="flex:1">
+            <span class="small muted">Balance anchor</span>
+            <span class="strong">Not set yet</span>
+            <span class="small muted">If the statement has no balance column, the import asks for it.</span>
+          </div>
+        </div>
+        <div class="empty-state" style="padding:72px 24px">
+          <span class="icon"></span>
+          <span class="h2">No transactions yet</span>
+          <span class="muted">Import a statement from Bank A to see this account's history.</span>
+          <a class="btn btn-primary" href="import.html#desktop-s7">Import statement</a>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== DESKTOP · S1 after import =================== -->
+<section class="wf-screen" id="desktop-s1">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">First run</span>
+    <span class="wf-group">
+      <a href="#desktop-s1-empty">S1 Empty</a>
+      <a href="#desktop-d1">D1 Add account</a>
+      <a href="#desktop-s4-empty">S4 Empty</a>
+      <a href="import.html#desktop-s7">Import ↗</a>
+      <a href="#desktop-s1" aria-current="page">S1 After import</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s1" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s1">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: after the import. Same example data as import.html: Main checking 3,240.50 €, 12 items in Review, and a Savings account.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="#desktop-s1">Dashboard</a>
+          <a title="Not wireframed yet">Review <span class="tag">12</span></a>
+          <a title="Not wireframed yet">Accounts</a>
+          <a title="Not wireframed yet">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row">
+          <h1 class="h1">Dashboard</h1>
+          <div class="actions">
+            <div class="dropdown" style="width:120px">EUR</div>
+            <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card roomy">
+            <span class="card-title">Total balance</span>
+            <span class="big-number">15,745.50 €</span>
+            <div class="kv"><span>Main checking</span><span>3,240.50 €</span></div>
+            <div class="kv"><span>Savings</span><span>12,505.00 €</span></div>
+            <span class="small muted">The US account (USD) shows when you switch currency.</span>
+          </div>
+          <div class="card roomy">
+            <span class="card-title">October 2026</span>
+            <div class="kv"><span>Income</span><span>+2,005.00 €</span></div>
+            <div class="kv"><span>Expenses</span><span>−1,000.00 €</span></div>
+            <div class="kv strong"><span>Net cashflow</span><span>+1,005.00 €</span></div>
+            <a class="muted" title="Not wireframed yet">Open monthly report →</a>
+          </div>
+          <div class="card roomy">
+            <span class="card-title">Budgets</span>
+            <div class="stack" style="gap:6px">
+              <div class="kv"><span>Groceries ⚠ over</span><span>320 / 300 €</span></div>
+              <div class="bar over"><span style="width:100%"></span></div>
+            </div>
+            <div class="stack" style="gap:6px">
+              <div class="kv"><span>Eating out</span><span>80 / 150 €</span></div>
+              <div class="bar"><span style="width:53%"></span></div>
+            </div>
+            <div class="stack" style="gap:6px">
+              <div class="kv"><span>Transport</span><span>45 / 100 €</span></div>
+              <div class="bar"><span style="width:45%"></span></div>
+            </div>
+            <a class="muted" title="Not wireframed yet">All budgets →</a>
+          </div>
+          <div class="card roomy">
+            <span class="card-title">Review</span>
+            <span style="font-size:20px; font-weight:600">12 items to review</span>
+            <div class="review-list">
+              <span>• 7 uncategorized transactions</span>
+              <span>• 2 rule conflicts</span>
+              <span>• 2 transfers to confirm</span>
+              <span>• 1 balance mismatch</span>
+            </div>
+            <a class="btn btn-secondary" title="Not wireframed yet" style="align-self:flex-start">Open Review</a>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S1 empty ========================== -->
+<section class="wf-screen" id="mobile-s1-empty">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">First run</span>
+    <span class="wf-group">
+      <a href="#mobile-s1-empty" aria-current="page">S1 Empty</a>
+      <a href="#mobile-d1">D1 Add account</a>
+      <a href="#mobile-s4-empty">S4 Empty</a>
+      <a href="import.html#mobile-s7">Import ↗</a>
+      <a href="#mobile-s1">S1 After import</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s1-empty">Desktop 1440</a>
+      <a href="#mobile-s1-empty" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: no accounts yet. The Home header has no Import action until an account exists.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title">Home</span></header>
+      <div class="m-content">
+        <div class="empty-state" style="padding:64px 16px">
+          <span class="icon"></span>
+          <span class="h2">No accounts yet</span>
+          <span class="muted">Add an account, then import a statement to see your cashflow.</span>
+          <a class="btn btn-primary" href="#mobile-d1">+ Add account</a>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <a href="#mobile-s1-empty" aria-current="page">Home</a>
+        <a title="Not wireframed yet">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D1 Add account ===================== -->
+<section class="wf-screen" id="mobile-d1">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">First run</span>
+    <span class="wf-group">
+      <a href="#mobile-s1-empty">S1 Empty</a>
+      <a href="#mobile-d1" aria-current="page">D1 Add account</a>
+      <a href="#mobile-s4-empty">S4 Empty</a>
+      <a href="import.html#mobile-s7">Import ↗</a>
+      <a href="#mobile-s1">S1 After import</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d1">Desktop 1440</a>
+      <a href="#mobile-d1" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">On mobile, dialogs open as full-screen sheets. The balance anchor is optional and left empty here, so the import asks for it in S9.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s1-empty">✕</a><span class="title">Add account</span><span class="spacer"></span></header>
+      <div class="m-content">
+        <div class="field"><span class="label">Name</span><div class="input fill">Main checking</div></div>
+        <div class="field"><span class="label">Bank</span><div class="input fill">Bank A</div></div>
+        <div class="field">
+          <span class="label">Type</span>
+          <div class="row" style="gap:24px"><span class="radio selected">Checking</span><span class="radio">Savings</span></div>
+        </div>
+        <div class="field"><span class="label">Currency</span><div class="dropdown fill">EUR</div></div>
+        <div class="field">
+          <span class="label">Balance anchor (optional)</span>
+          <div class="input placeholder fill">Current balance, e.g. 3,240.50 €</div>
+          <div class="dropdown fill">as of 16/10/2026</div>
+          <span class="small muted">Skip this if you don't know it yet. If the statement has no balance column, the import will ask for it.</span>
+        </div>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s1-empty">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s4-empty">Save account</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S4 empty ========================== -->
+<section class="wf-screen" id="mobile-s4-empty">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">First run</span>
+    <span class="wf-group">
+      <a href="#mobile-s1-empty">S1 Empty</a>
+      <a href="#mobile-d1">D1 Add account</a>
+      <a href="#mobile-s4-empty" aria-current="page">S4 Empty</a>
+      <a href="import.html#mobile-s7">Import ↗</a>
+      <a href="#mobile-s1">S1 After import</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s4-empty">Desktop 1440</a>
+      <a href="#mobile-s4-empty" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: the account exists but has no transactions yet. Accounts live under More, so that tab is active. Import continues in import.html (S7–S10).</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header">
+        <span class="title"><a href="#mobile-s1-empty">←</a>Main checking</span>
+        <a class="action" href="import.html#mobile-s7">Import</a>
+      </header>
+      <div class="m-content">
+        <span class="muted" style="font-size:13px">Bank A · Checking · EUR</span>
+        <div class="card roomy">
+          <div class="kv"><span>Current balance</span><span class="strong">—</span></div>
+          <div class="kv"><span>Balance anchor</span><span class="strong">Not set yet</span></div>
+          <span class="small muted">If the statement has no balance column, the import asks for it.</span>
+        </div>
+        <div class="m-btn-row">
+          <a class="btn btn-secondary" title="Not wireframed yet">Edit</a>
+          <a class="btn btn-secondary" title="Not wireframed yet">Set balance</a>
+          <a class="btn btn-secondary" title="Not wireframed yet">Archive</a>
+        </div>
+        <div class="empty-state" style="padding:48px 16px">
+          <span class="icon"></span>
+          <span class="h2">No transactions yet</span>
+          <span class="muted">Import a statement from Bank A to see this account's history.</span>
+          <a class="btn btn-primary" href="import.html#mobile-s7">Import statement</a>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <a href="#mobile-s1-empty">Home</a>
+        <a title="Not wireframed yet">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S1 after import ==================== -->
+<section class="wf-screen" id="mobile-s1">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">First run</span>
+    <span class="wf-group">
+      <a href="#mobile-s1-empty">S1 Empty</a>
+      <a href="#mobile-d1">D1 Add account</a>
+      <a href="#mobile-s4-empty">S4 Empty</a>
+      <a href="import.html#mobile-s7">Import ↗</a>
+      <a href="#mobile-s1" aria-current="page">S1 After import</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s1">Desktop 1440</a>
+      <a href="#mobile-s1" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: after the import. Same example data as import.html: Main checking 3,240.50 €, 12 items in Review, and a Savings account. Cards are stacked in the desktop order.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title">Home</span><a class="action" href="import.html#mobile-s7">Import</a></header>
+      <div class="m-content">
+        <div class="card roomy">
+          <div class="title-row"><span class="card-title">Total balance</span><div class="dropdown" style="width:90px">EUR</div></div>
+          <span class="big-number" style="font-size:28px">15,745.50 €</span>
+          <div class="kv"><span>Main checking</span><span>3,240.50 €</span></div>
+          <div class="kv"><span>Savings</span><span>12,505.00 €</span></div>
+          <span class="small muted">The US account (USD) shows when you switch currency.</span>
+        </div>
+        <div class="card roomy">
+          <span class="card-title">October 2026</span>
+          <div class="kv"><span>Income</span><span>+2,005.00 €</span></div>
+          <div class="kv"><span>Expenses</span><span>−1,000.00 €</span></div>
+          <div class="kv strong"><span>Net cashflow</span><span>+1,005.00 €</span></div>
+          <a class="muted" title="Not wireframed yet">Open monthly report →</a>
+        </div>
+        <div class="card roomy">
+          <span class="card-title">Budgets</span>
+          <div class="stack" style="gap:6px">
+            <div class="kv"><span>Groceries ⚠ over</span><span>320 / 300 €</span></div>
+            <div class="bar over"><span style="width:100%"></span></div>
+          </div>
+          <div class="stack" style="gap:6px">
+            <div class="kv"><span>Eating out</span><span>80 / 150 €</span></div>
+            <div class="bar"><span style="width:53%"></span></div>
+          </div>
+          <div class="stack" style="gap:6px">
+            <div class="kv"><span>Transport</span><span>45 / 100 €</span></div>
+            <div class="bar"><span style="width:45%"></span></div>
+          </div>
+          <a class="muted" title="Not wireframed yet">All budgets →</a>
+        </div>
+        <div class="card roomy">
+          <span class="card-title">Review</span>
+          <span style="font-size:20px; font-weight:600">12 items to review</span>
+          <div class="review-list">
+            <span>• 7 uncategorized transactions</span>
+            <span>• 2 rule conflicts</span>
+            <span>• 2 transfers to confirm</span>
+            <span>• 1 balance mismatch</span>
+          </div>
+          <a class="btn btn-secondary" title="Not wireframed yet">Open Review</a>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <a href="#mobile-s1" aria-current="page">Home</a>
+        <a title="Not wireframed yet">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
