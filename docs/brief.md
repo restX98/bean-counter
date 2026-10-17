@@ -18,6 +18,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 - Multiple users or sign-up.
 - Login and online deployment (maybe later).
 - Automatic bank sync (open-banking APIs).
+- Adding transactions by hand.
 - Credit cards, cash, e-wallets, investments.
 - Currency conversion and exchange-rate feeds.
 - Native mobile app.
@@ -70,12 +71,15 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
   - near-matches (e.g. same date and amount, slightly different description) are flagged in the preview for me to decide;
   - counts are respected, so two identical transactions on the same day (two €1.20 coffees) are both kept;
   - fingerprints use the values as originally imported, so editing a transaction later doesn't break duplicate detection.
+- Transactions can't be added or deleted by hand: all data comes from files. Instead, I can **exclude** a transaction (e.g. a duplicate that slipped through). An excluded transaction is ignored by balances, reports and budgets, stays visible greyed out, and can be restored. A re-import still recognizes it, so it doesn't come back.
 
 ### 5.3 Categorization
 
 - Manage categories (income / expense).
 - Rules match on description (contains / regex), optionally narrowed by amount or account, and assign a category. They run automatically on import.
 - Uncategorized transactions are listed for manual review. When I categorize one by hand, I can turn that choice into a new rule.
+- When I save a rule, the app offers to apply it to the existing uncategorized transactions that match. Transactions that already have a category are never changed.
+- Rules have no order. If more than one rule matches a transaction, the app doesn't choose: the transaction goes to Review and I pick the category.
 
 ### 5.4 Transfer detection
 
@@ -123,7 +127,7 @@ Amounts in different currencies are never added together. Every report is shown 
 ### 5.9 Dashboard & Review
 
 - The app opens on a dashboard showing balances, this month's income and expenses, budgets at a glance, and how many items are waiting for review.
-- A Review inbox gathers everything waiting for my decision: uncategorized transactions, transfers to confirm and balance mismatches. During an import, the same items can be settled right away for that file.
+- A Review inbox gathers everything waiting for my decision: uncategorized transactions, rule conflicts, transfers to confirm and balance mismatches. During an import, the same items can be settled right away for that file.
 - There's no setup wizard. On first launch, empty screens explain the next step (add an account, then import a statement).
 
 The screens and flows are listed in [plan.md](plan.md).
@@ -183,3 +187,4 @@ New features and decisions are added here as we go.
 | 2026-10-16 | Initial brief: accounts, import, categorization, transfers, reports, budgets, multi-currency |
 | 2026-10-17 | Resolved open questions: no currency conversion (per-currency reports), balance anchor instead of opening balance, duplicate fingerprinting, transfer window adjustable (default 3 days), budget view toggle, no login (localhost only), backup/restore in UI |
 | 2026-10-17 | Screens and flows plan ([plan.md](plan.md)): dashboard as home, Review inbox, empty states instead of a setup wizard, desktop and mobile layouts |
+| 2026-10-17 | Resolved the plan's open questions: exclude instead of delete (no manual entry), new rules offered on existing uncategorized transactions, rule conflicts go to Review |

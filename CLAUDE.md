@@ -24,8 +24,11 @@ These are easy to get wrong. The brief has the details.
 - Each account's balances come from a single balance anchor. The opening balance is calculated backwards from it, never entered.
 - Duplicate fingerprints use a transaction's values as originally imported, not as later edited. Identical transactions in one file are all kept (detection respects counts).
 - Auto-link a transfer only when exactly one same-currency candidate falls inside the transfer window. Cross-currency pairs always need the user's confirmation.
+- An excluded transaction is ignored by balances, reports and budgets, but it still counts for duplicate detection, so a re-import doesn't bring it back.
+- When more than one rule matches a transaction, never pick one: send the transaction to Review.
 
 ## Workflow
 
 - When a feature or decision changes, update the relevant section of docs/brief.md and add a dated row to its Feature log, in the same commit as the code.
-- Domain logic (import parsing, duplicate detection, transfer matching, balances, budgets) must have unit tests. UI tests are optional.- Commit after each working, tested step, using Conventional Commits prefixes (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`). Never add a `Co-Authored-By` trailer to commit messages. Never push without asking.
+- Domain logic (import parsing, duplicate detection, transfer matching, balances, budgets) must have unit tests. UI tests are optional.
+- Commit after each working, tested step, using Conventional Commits prefixes (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`). Never add a `Co-Authored-By` trailer to commit messages. Never push without asking.

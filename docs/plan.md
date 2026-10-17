@@ -73,10 +73,12 @@ These are the screens to design in Figma and the flows that connect them. Each e
 - **Purpose**: one place for everything the app can't decide on its own.
 - **Shows**: three groups, each with a count.
   - **Uncategorized**: date, account, description and amount, with an inline category picker.
+  - **Rule conflicts**: transactions matched by more than one rule, with the competing rules and their categories. I pick the category.
   - **Transfers to confirm**: same-currency transactions with more than one possible match (pick one), and cross-currency suggestions (link, or mark as not a transfer).
   - **Balance mismatches**: account, computed vs. bank balance, the difference and the date where they diverge.
 - **Actions**:
   - categorize a transaction, with a shortcut to create a rule (D6);
+  - pick the category for a rule conflict;
   - link or dismiss a transfer;
   - open a mismatch in S4.
 - **States**: all caught up, or normal.
@@ -98,10 +100,11 @@ These are the screens to design in Figma and the flows that connect them. Each e
   - current balance;
   - balance anchor: its value and date, and whether it came from a file or was entered by hand;
   - a mismatch banner when the computed balance disagrees with the bank's;
-  - the account's transactions: date, description, category or transfer badge, amount, running balance.
+  - the account's transactions: date, description, category or transfer badge, amount, running balance. Excluded transactions stay in the list, greyed out.
 - **Actions**:
   - Import into this account (S7, account preselected);
   - edit (D1), set balance (D2) or archive (D3);
+  - exclude a transaction, or restore an excluded one;
   - open a transaction (S6).
 - **States**:
   - no transactions;
@@ -111,8 +114,8 @@ These are the screens to design in Figma and the flows that connect them. Each e
 #### S5 Transactions
 
 - **Purpose**: search and filter transactions across all accounts.
-- **Shows**: date, account, description, category (or transfer badge), and amount in the account's currency.
-- **Filters**: account, period, category, type (income / expense / transfer / uncategorized), text search.
+- **Shows**: date, account, description, category (or transfer badge), and amount in the account's currency. Excluded transactions are greyed out.
+- **Filters**: account, period, category, type (income / expense / transfer / uncategorized / excluded), text search.
 - **Actions**: open a transaction (S6).
 - **States**: no transactions yet, or no results for the current filters.
 - **Mobile**: rows grouped by day. The filters open in a sheet.
@@ -129,11 +132,13 @@ These are the screens to design in Figma and the flows that connect them. Each e
   - edit the description;
   - set the category;
   - create a rule from this transaction (D6, prefilled);
-  - link a transfer (D4), or unlink one.
+  - link a transfer (D4), or unlink one;
+  - exclude the transaction, or restore it.
 - **States**:
   - categorized;
   - uncategorized;
-  - linked transfer (the category is hidden; shows the counterpart's account and amount instead).
+  - linked transfer (the category is hidden; shows the counterpart's account and amount instead);
+  - excluded (greyed out, with Restore).
 - **Desktop**: a side panel over S2, S4 or S5. **Mobile**: full screen.
 
 ### Import
@@ -171,19 +176,20 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
 - **Purpose**: see what will be imported and settle anything that needs a decision before saving.
 - **Shows**: summary counts and every row, tagged as one of:
   - new, auto-categorized or uncategorized;
+  - rule conflict (more than one rule matches; pick a category);
   - duplicate (will be skipped);
   - near-match (keep or skip; must be decided);
   - transfer linked, or transfer to pick (choose the counterpart, including cross-currency suggestions).
 - If the account has no balance anchor and the file has no balance column, a field asks for the current balance and its date.
 - **Actions**:
   - filter by tag;
-  - categorize rows inline;
+  - categorize rows inline and settle rule conflicts;
   - decide near-matches;
   - pick transfer counterparts;
   - Import.
 - **States**:
   - clean file (nothing to decide);
-  - needs decisions: Import stays disabled until every near-match and the balance are settled. Uncategorized rows and unpicked transfers can be left for Review.
+  - needs decisions: Import stays disabled until every near-match and the balance are settled. Uncategorized rows, rule conflicts and unpicked transfers can be left for Review.
 - **Mobile**: the tag filter is a row of chips, and each row is a card.
 
 #### S10 Import · Done
@@ -258,6 +264,7 @@ All three reports share a currency switcher (EUR first) and a period control.
 #### S17 Rules
 
 - **Shows**: each rule as "description contains / matches regex X [+ amount, account] → category".
+- Rules have no order. When more than one rule matches a transaction, the app doesn't choose: the transaction goes to Review (S2).
 - **Actions**: add or edit a rule (D6), or delete one.
 - **States**: no rules.
 
@@ -278,7 +285,7 @@ On mobile, every dialog opens as a full-screen sheet.
 - **D3 Archive account**: asks to confirm archiving.
 - **D4 Link transfer**: pick the counterpart from the candidates (opposite direction, within the transfer window), including accounts in other currencies. Each candidate shows its account, date and amount.
 - **D5 Category form**: name, income / expense. Delete variant: move the category's transactions to another category, or leave them uncategorized.
-- **D6 Rule form**: description match (contains / regex), optional amount and account, category. Prefilled when opened from S6 or S2.
+- **D6 Rule form**: description match (contains / regex), optional amount and account, category. Prefilled when opened from S6 or S2. An "Also apply to N uncategorized transactions that match" option is ticked by default. Transactions that already have a category are never changed.
 - **D7 Budget form**: category, currency, monthly limit, start month. Edit variant: the new limit and the month it applies from.
 - **D8 Restore backup**: warns that all current data will be replaced, then asks to confirm.
 
@@ -294,12 +301,12 @@ On mobile, every dialog opens as a full-screen sheet.
    7. S10 → S1, which now shows data.
 2. **Monthly import**
    1. Import → S7: choose account and file. The preset is detected, so S8 is skipped.
-   2. S9: decide near-matches, categorize what's left, pick transfer counterparts.
+   2. S9: decide near-matches, categorize what's left, settle rule conflicts, pick transfer counterparts.
    3. S10 → S2 if anything was left for Review.
 3. **Categorize and create a rule**
    1. S2 or S5 → S6.
    2. Pick a category.
-   3. Create rule from this → D6 (prefilled) → save.
+   3. Create rule from this → D6 (prefilled) → keep "Also apply to N uncategorized transactions" ticked → save.
 4. **Confirm a transfer**
    1. S2 → Transfers to confirm → link, or mark as not a transfer.
    2. Manually: S6 → D4 → pick the counterpart.
@@ -311,7 +318,7 @@ On mobile, every dialog opens as a full-screen sheet.
 6. **Balance mismatch**
    1. Reach it from S10, S2 or the S4 banner.
    2. S4 opens at the date where the balances diverge.
-   3. Find the missing or duplicate transaction and fix it (how depends on open question 1).
+   3. A duplicate that slipped through: exclude it (S6). A missing transaction: import the statement that contains it.
 7. **Check how I'm doing**
    1. S1 → S12: this month's in vs. out.
    2. Open a category → S5 (filtered) → S6.
@@ -341,12 +348,12 @@ Design these first. Every screen is built from them.
 - **Month / period picker**.
 - **Category chip**.
 - **Transfer badge** (⇄), showing the counterpart account.
-- **Row status tag**: new / duplicate / near-match / auto-categorized / needs review.
+- **Row status tag**: new / duplicate / near-match / auto-categorized / rule conflict / needs review / excluded.
 - **Budget progress bar**: under, near and over the limit.
 - **Chart card**: a chart with a title, legend and empty state.
 - **Empty state**: illustration or icon, a message and one primary action.
 - **Review count badge**.
-- **Data row**: a desktop table row and its mobile list-row counterpart.
+- **Data row**: a desktop table row and its mobile list-row counterpart, each with an excluded (greyed) variant.
 
 ## 8. Design order
 
@@ -356,6 +363,4 @@ Design these first. Every screen is built from them.
 
 ## 9. Open design questions
 
-1. Can I delete a transaction (e.g. a duplicate that slipped through) or add one by hand? This affects S4, S6 and flow 6.
-2. Should a new rule also apply to existing uncategorized transactions? If so, D6 needs an "apply to N existing transactions" option.
-3. When several rules match a transaction, which one wins: list order (drag to reorder in S17) or the most specific rule?
+None right now.
