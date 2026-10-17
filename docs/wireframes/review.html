@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review &amp; categorize · Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  /* Review & categorize flow only. Shared pieces live in components.css. */
+  .table td a { text-decoration: none; }
+  .table tr.dim td[colspan] { font-size: 12px; }
+</style>
+</head>
+<body class="wf">
+
+<!-- =====================================================================
+     Flows 3 and 4 in docs/plan.md §6, plus the Review step of flow 6.
+       3: S2 or S5 → S6 → pick a category → D6 (prefilled) → save
+       4: S2 → pick the other side (D4) → link;  S6 → D4 → link;  S6 → Unlink
+     Same data as the other files. Review = 12:
+       7 uncategorized: PHARMACY 24 (Main checking, 15/10) and 5 more from the
+         import, plus DEPOSIT (Savings, 12/10) from earlier
+       2 rule conflicts: AMAZON DIGITAL (13/10, import), AMAZON PRIME (28/09)
+       2 transfers: TRANSFER TO SAVINGS (10/10, 2 candidates in Savings) and a
+         cross-currency suggestion Main checking −200.00 € ⇄ US account +218.00 $ (28–29/09)
+       1 mismatch: Savings (match up to 05/10, differ from 10/10)
+     Categorizing PHARMACY 24 or linking the transfer brings Review to 11.
+     ===================================================================== -->
+
+<!-- ======================= DESKTOP · S2 Review ======================= -->
+<section class="wf-screen" id="desktop-s2">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2" aria-current="page">S2 Review</a>
+      <a href="#desktop-s5">S5 Transactions</a>
+      <a href="#desktop-s6">S6 Categorize</a>
+      <a href="#desktop-d6">D6 Rule</a>
+      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
+      <a href="#desktop-d4">D4 Link transfer</a>
+      <a href="#desktop-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s2" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s2">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: 12 items in four groups (counts match the dashboard). Categorize inline, open a transaction, pick the other side of a transfer, or open the account with the mismatch.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="#desktop-s5">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><div class="stack"><h1 class="h1">Review</h1><span class="muted">12 items need your decision</span></div></div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Uncategorized (7)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col style="width:150px"><col><col style="width:120px"><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td>15/10/2026</td><td>Main checking</td><td><a class="strong" href="#desktop-s6">PHARMACY 24</a></td><td>−18.50 €</td><td><div class="row"><div class="dropdown" style="width:200px">Pick category</div><a class="muted" href="#desktop-d6">Create rule</a></div></td></tr>
+              <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td>+500.00 €</td><td><div class="row"><div class="dropdown" style="width:200px">Pick category</div><a class="muted" title="Opens D6 prefilled">Create rule</a></div></td></tr>
+              <tr class="dim"><td colspan="5">+ 5 more uncategorized · Show all</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Rule conflicts (2)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col style="width:150px"><col><col style="width:120px"><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td>13/10/2026</td><td>Main checking</td><td><span class="stack" style="gap:2px"><span>AMAZON DIGITAL</span><span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span></span></td><td>−9.99 €</td><td><div class="dropdown" style="width:200px">Pick category</div></td></tr>
+              <tr><td>28/09/2026</td><td>Main checking</td><td><span class="stack" style="gap:2px"><span>AMAZON PRIME</span><span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span></span></td><td>−4.99 €</td><td><div class="dropdown" style="width:200px">Pick category</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Transfers to confirm (2)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td>10/10/2026</td><td><span class="stack" style="gap:2px"><span>Main checking · TRANSFER TO SAVINGS · −500.00 €</span><span class="small muted">2 possible matches in Savings</span></span></td><td><a class="btn btn-secondary" href="#desktop-d4">Pick the other side</a></td></tr>
+              <tr><td>28/09/2026</td><td><span class="stack" style="gap:2px"><span>Main checking −200.00 €  ⇄  US account +218.00 $ (29/09)</span><span class="small muted">Different currencies: the app suggests the pair, you confirm it</span></span></td><td><div class="row"><a class="btn btn-primary" title="Links the pair">Link</a><a class="btn btn-secondary" title="Keeps them as normal transactions">Not a transfer</a></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Balance mismatches (1)</span>
+          <table class="table">
+            <colgroup><col style="width:260px"><col><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td class="strong">Savings</td><td><span class="stack" style="gap:2px"><span>App 12,505.00 € · bank 12,515.00 € · off by 10.00 €</span><span class="small muted">They match up to 05/10/2026 and differ from 10/10/2026</span></span></td><td><a class="btn btn-secondary" href="accounts.html#desktop-s4-savings">Open Savings</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S5 Transactions ======================= -->
+<section class="wf-screen" id="desktop-s5">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-s5" aria-current="page">S5 Transactions</a>
+      <a href="#desktop-s6">S6 Categorize</a>
+      <a href="#desktop-d6">D6 Rule</a>
+      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
+      <a href="#desktop-d4">D4 Link transfer</a>
+      <a href="#desktop-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s5" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s5">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: all accounts, October 2026, newest first. Rows waiting in Review keep their tag; the excluded duplicate is greyed. Click PHARMACY 24 or TRANSFER TO SAVINGS.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="#desktop-s5">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:220px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>Main checking</td><td><a class="strong" href="#desktop-s6">PHARMACY 24</a></td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr class="dim"><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL <span class="tag">Excluded</span></td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr><td>13/10/2026</td><td>Main checking</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td></tr>
+            <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td><span class="tag">Uncategorized</span></td><td>+500.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>Main checking</td><td>TRANSFER TO US ACCOUNT</td><td><span class="tag">⇄ US account</span></td><td>−1,000.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>US account</td><td>TRANSFER FROM BANK A</td><td><span class="tag">⇄ Main checking</span></td><td>+1,090.00 $</td></tr>
+            <tr><td>10/10/2026</td><td>Main checking</td><td><a class="strong" href="#desktop-s6-transfer">TRANSFER TO SAVINGS</a></td><td><span class="tag">Transfer to pick</span></td><td>−500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>TRANSFER FROM CHECKING</td><td><span class="tag">Transfer to pick</span></td><td>+500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>INTEREST</td><td>Interest</td><td>+5.00 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing 10 · Load more</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S6 Categorize ======================= -->
+<section class="wf-screen" id="desktop-s6">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-s5">S5 Transactions</a>
+      <a href="#desktop-s6" aria-current="page">S6 Categorize</a>
+      <a href="#desktop-d6">D6 Rule</a>
+      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
+      <a href="#desktop-d4">D4 Link transfer</a>
+      <a href="#desktop-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s6">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 as a side panel over S5. Health was just picked as the category of PHARMACY 24 (Review is down to 11). "Create rule from this" opens D6 prefilled.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">11</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:220px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr class="selected"><td>15/10/2026</td><td>Main checking</td><td>PHARMACY 24</td><td>Health</td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr class="dim"><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL <span class="tag">Excluded</span></td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr><td>13/10/2026</td><td>Main checking</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td></tr>
+            <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td><span class="tag">Uncategorized</span></td><td>+500.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>Main checking</td><td>TRANSFER TO US ACCOUNT</td><td><span class="tag">⇄ US account</span></td><td>−1,000.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>US account</td><td>TRANSFER FROM BANK A</td><td><span class="tag">⇄ Main checking</span></td><td>+1,090.00 $</td></tr>
+            <tr><td>10/10/2026</td><td>Main checking</td><td>TRANSFER TO SAVINGS</td><td><span class="tag">Transfer to pick</span></td><td>−500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>TRANSFER FROM CHECKING</td><td><span class="tag">Transfer to pick</span></td><td>+500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>INTEREST</td><td>Interest</td><td>+5.00 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing 10 · Load more</span>
+      </main>
+      <div class="scrim"></div>
+      <div class="side-panel">
+        <div class="panel-head"><span>Transaction</span><a href="#desktop-s5">✕</a></div>
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>15/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>−18.50 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">PHARMACY 24</span></div>
+        <div class="field"><span class="label">Description</span><div class="input fill">PHARMACY 24</div></div>
+        <div class="field"><span class="label">Category</span><div class="dropdown fill">Health</div></div>
+        <a class="btn btn-secondary" href="#desktop-d6" style="align-self:flex-start">Create rule from this</a>
+        <div class="divider"></div>
+        <span class="h2">Transfer</span>
+        <span class="small muted">Not linked to another account.</span>
+        <a class="btn btn-secondary" title="Opens D4" style="align-self:flex-start">Link transfer…</a>
+        <div class="divider push"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets" style="align-self:flex-start">Exclude transaction</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D6 Rule ======================= -->
+<section class="wf-screen" id="desktop-d6">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-s5">S5 Transactions</a>
+      <a href="#desktop-s6">S6 Categorize</a>
+      <a href="#desktop-d6" aria-current="page">D6 Rule</a>
+      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
+      <a href="#desktop-d4">D4 Link transfer</a>
+      <a href="#desktop-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d6" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d6">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D6 opened from S6, prefilled from PHARMACY 24. The rule would also categorize 2 other uncategorized transactions; categories set before are never changed.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">11</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:220px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr class="selected"><td>15/10/2026</td><td>Main checking</td><td>PHARMACY 24</td><td>Health</td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr class="dim"><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL <span class="tag">Excluded</span></td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr><td>13/10/2026</td><td>Main checking</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td></tr>
+            <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td><span class="tag">Uncategorized</span></td><td>+500.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>Main checking</td><td>TRANSFER TO US ACCOUNT</td><td><span class="tag">⇄ US account</span></td><td>−1,000.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>US account</td><td>TRANSFER FROM BANK A</td><td><span class="tag">⇄ Main checking</span></td><td>+1,090.00 $</td></tr>
+            <tr><td>10/10/2026</td><td>Main checking</td><td>TRANSFER TO SAVINGS</td><td><span class="tag">Transfer to pick</span></td><td>−500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>TRANSFER FROM CHECKING</td><td><span class="tag">Transfer to pick</span></td><td>+500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>INTEREST</td><td>Interest</td><td>+5.00 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing 10 · Load more</span>
+      </main>
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>New rule</span><a href="#desktop-s6">✕</a></div>
+          <div class="dialog-body">
+            <div class="field">
+              <span class="label">Description</span>
+              <div class="row"><div class="dropdown" style="width:160px">contains</div><div class="input" style="flex:1; width:auto">PHARMACY</div></div>
+            </div>
+            <div class="field"><span class="label">Amount (optional)</span><div class="dropdown fill">Any amount</div></div>
+            <div class="field"><span class="label">Account (optional)</span><div class="dropdown fill">Any account</div></div>
+            <div class="field"><span class="label">Category</span><div class="dropdown fill">Health</div></div>
+            <span class="checkbox checked">Also apply to 2 uncategorized transactions that match</span>
+            <span class="small muted">Transactions that already have a category are never changed. If another rule also matches a transaction, it goes to Review.</span>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s6">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s6">Save rule</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S6 Transfer to pick ======================= -->
+<section class="wf-screen" id="desktop-s6-transfer">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-s5">S5 Transactions</a>
+      <a href="#desktop-s6">S6 Categorize</a>
+      <a href="#desktop-d6">D6 Rule</a>
+      <a href="#desktop-s6-transfer" aria-current="page">S6 Transfer to pick</a>
+      <a href="#desktop-d4">D4 Link transfer</a>
+      <a href="#desktop-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6-transfer" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s6-transfer">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 for a transfer with two possible matches in Savings. Link it, or pick a category if it isn't a transfer.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:220px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>Main checking</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr class="dim"><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL <span class="tag">Excluded</span></td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr><td>13/10/2026</td><td>Main checking</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td></tr>
+            <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td><span class="tag">Uncategorized</span></td><td>+500.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>Main checking</td><td>TRANSFER TO US ACCOUNT</td><td><span class="tag">⇄ US account</span></td><td>−1,000.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>US account</td><td>TRANSFER FROM BANK A</td><td><span class="tag">⇄ Main checking</span></td><td>+1,090.00 $</td></tr>
+            <tr class="selected"><td>10/10/2026</td><td>Main checking</td><td>TRANSFER TO SAVINGS</td><td><span class="tag">Transfer to pick</span></td><td>−500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>TRANSFER FROM CHECKING</td><td><span class="tag">Transfer to pick</span></td><td>+500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>INTEREST</td><td>Interest</td><td>+5.00 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing 10 · Load more</span>
+      </main>
+      <div class="scrim"></div>
+      <div class="side-panel">
+        <div class="panel-head"><span>Transaction</span><a href="#desktop-s5">✕</a></div>
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>10/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>−500.00 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">TRANSFER TO SAVINGS</span></div>
+        <div class="field"><span class="label">Description</span><div class="input fill">TRANSFER TO SAVINGS</div></div>
+        <div class="divider"></div>
+        <div class="row"><span class="h2">Transfer</span><span class="tag">Transfer to pick</span></div>
+        <span class="small muted">2 possible matches in Savings. Pick the other side to link them.</span>
+        <a class="btn btn-primary" href="#desktop-d4" style="align-self:flex-start">Link transfer…</a>
+        <div class="divider"></div>
+        <div class="field"><span class="label">Category</span><div class="dropdown fill">Pick category</div><span class="small muted">Only if this isn't a transfer.</span></div>
+        <div class="divider push"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets" style="align-self:flex-start">Exclude transaction</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D4 Link transfer ======================= -->
+<section class="wf-screen" id="desktop-d4">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-s5">S5 Transactions</a>
+      <a href="#desktop-s6">S6 Categorize</a>
+      <a href="#desktop-d6">D6 Rule</a>
+      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
+      <a href="#desktop-d4" aria-current="page">D4 Link transfer</a>
+      <a href="#desktop-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d4" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d4">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D4 over S5: the candidates are in the opposite direction and within the 3-day transfer window.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:220px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>Main checking</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr class="dim"><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL <span class="tag">Excluded</span></td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr><td>13/10/2026</td><td>Main checking</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td></tr>
+            <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td><span class="tag">Uncategorized</span></td><td>+500.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>Main checking</td><td>TRANSFER TO US ACCOUNT</td><td><span class="tag">⇄ US account</span></td><td>−1,000.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>US account</td><td>TRANSFER FROM BANK A</td><td><span class="tag">⇄ Main checking</span></td><td>+1,090.00 $</td></tr>
+            <tr class="selected"><td>10/10/2026</td><td>Main checking</td><td>TRANSFER TO SAVINGS</td><td><span class="tag">Transfer to pick</span></td><td>−500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>TRANSFER FROM CHECKING</td><td><span class="tag">Transfer to pick</span></td><td>+500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>INTEREST</td><td>Interest</td><td>+5.00 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing 10 · Load more</span>
+      </main>
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Link transfer</span><a href="#desktop-s6-transfer">✕</a></div>
+          <div class="dialog-body">
+            <div class="card tinted">
+              <span class="strong">TRANSFER TO SAVINGS</span>
+              <span class="small muted">Main checking · 10/10/2026 · −500.00 €</span>
+            </div>
+            <span class="label">Pick the other side: opposite direction, within 3 days</span>
+            <div class="m-list">
+              <div class="item"><span class="radio selected">Savings · TRANSFER FROM CHECKING</span><span class="small muted">10/10/2026 · +500.00 €</span></div>
+              <div class="item"><span class="radio">Savings · DEPOSIT</span><span class="small muted">12/10/2026 · +500.00 €</span></div>
+            </div>
+            <span class="small muted">Accounts in other currencies are listed too when they have a transaction in the window; their amounts can't be compared.</span>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s6-transfer">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s6-linked">Link</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S6 Linked ======================= -->
+<section class="wf-screen" id="desktop-s6-linked">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-s5">S5 Transactions</a>
+      <a href="#desktop-s6">S6 Categorize</a>
+      <a href="#desktop-d6">D6 Rule</a>
+      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
+      <a href="#desktop-d4">D4 Link transfer</a>
+      <a href="#desktop-s6-linked" aria-current="page">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6-linked" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s6-linked">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 after linking: both rows now show the transfer, the category is gone (transfers aren't income or expense), and Review is down to 11. Unlink goes back.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">11</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:220px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>Main checking</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr class="dim"><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL <span class="tag">Excluded</span></td><td>Shopping</td><td>−34.90 €</td></tr>
+            <tr><td>13/10/2026</td><td>Main checking</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td></tr>
+            <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td><span class="tag">Uncategorized</span></td><td>+500.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>Main checking</td><td>TRANSFER TO US ACCOUNT</td><td><span class="tag">⇄ US account</span></td><td>−1,000.00 €</td></tr>
+            <tr><td>12/10/2026</td><td>US account</td><td>TRANSFER FROM BANK A</td><td><span class="tag">⇄ Main checking</span></td><td>+1,090.00 $</td></tr>
+            <tr class="selected"><td>10/10/2026</td><td>Main checking</td><td>TRANSFER TO SAVINGS</td><td><span class="tag">⇄ Savings</span></td><td>−500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>TRANSFER FROM CHECKING</td><td><span class="tag">⇄ Main checking</span></td><td>+500.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>Savings</td><td>INTEREST</td><td>Interest</td><td>+5.00 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing 10 · Load more</span>
+      </main>
+      <div class="scrim"></div>
+      <div class="side-panel">
+        <div class="panel-head"><span>Transaction</span><a href="#desktop-s5">✕</a></div>
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>10/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>−500.00 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">TRANSFER TO SAVINGS</span></div>
+        <div class="field"><span class="label">Description</span><div class="input fill">TRANSFER TO SAVINGS</div></div>
+        <div class="divider"></div>
+        <span class="h2">Transfer</span>
+        <div class="card tinted">
+          <span class="strong">⇄ Linked to Savings</span>
+          <span class="small muted">TRANSFER FROM CHECKING · 10/10/2026 · +500.00 €</span>
+        </div>
+        <a class="btn btn-secondary" href="#desktop-s6-transfer" style="align-self:flex-start">Unlink</a>
+        <span class="small muted">Transfers don't count as income or expense, so they have no category.</span>
+        <div class="divider push"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets" style="align-self:flex-start">Exclude transaction</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S2 Review ======================== -->
+<section class="wf-screen" id="mobile-s2">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2" aria-current="page">S2 Review</a>
+      <a href="#mobile-s5">S5 Transactions</a>
+      <a href="#mobile-s6">S6 Categorize</a>
+      <a href="#mobile-d6">D6 Rule</a>
+      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
+      <a href="#mobile-d4">D4 Link transfer</a>
+      <a href="#mobile-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s2">Desktop 1440</a>
+      <a href="#mobile-s2" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: 12 items in four collapsible groups, one card per item. Review lives under More, so that tab is active.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a title="Back to More (not wireframed yet)">←</a>Review</span></header>
+      <div class="m-content">
+        <span class="muted" style="font-size:13px">12 items need your decision</span>
+        <details class="m-group" open>
+          <summary>Uncategorized (7)</summary>
+          <div class="stack">
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 15/10</span><span class="strong">−18.50 €</span></div>
+              <a class="strong" href="#mobile-s6">PHARMACY 24</a>
+              <div class="dropdown fill">Pick category</div>
+              <a class="small muted" href="#mobile-d6">Create rule</a>
+            </div>
+            <div class="row-card">
+              <div class="top"><span class="small muted">Savings · 12/10</span><span class="strong">+500.00 €</span></div>
+              <span>DEPOSIT</span>
+              <div class="dropdown fill">Pick category</div>
+            </div>
+            <span class="small muted">+ 5 more uncategorized · Show all</span>
+          </div>
+        </details>
+        <details class="m-group" open>
+          <summary>Rule conflicts (2)</summary>
+          <div class="stack">
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 13/10</span><span class="strong">−9.99 €</span></div>
+              <span>AMAZON DIGITAL</span>
+              <span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span>
+              <div class="dropdown fill">Pick category</div>
+            </div>
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 28/09</span><span class="strong">−4.99 €</span></div>
+              <span>AMAZON PRIME</span>
+              <span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span>
+              <div class="dropdown fill">Pick category</div>
+            </div>
+          </div>
+        </details>
+        <details class="m-group" open>
+          <summary>Transfers to confirm (2)</summary>
+          <div class="stack">
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 10/10</span><span class="strong">−500.00 €</span></div>
+              <span>TRANSFER TO SAVINGS</span>
+              <span class="small muted">2 possible matches in Savings</span>
+              <a class="btn btn-secondary" href="#mobile-d4">Pick the other side</a>
+            </div>
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 28/09</span><span class="strong">−200.00 €</span></div>
+              <span>⇄ US account +218.00 $ (29/09)</span>
+              <span class="small muted">Different currencies: the app suggests the pair, you confirm it</span>
+              <div class="split"><a class="btn btn-primary" title="Links the pair">Link</a><a class="btn btn-secondary" title="Keeps them as normal transactions">Not a transfer</a></div>
+            </div>
+          </div>
+        </details>
+        <details class="m-group" open>
+          <summary>Balance mismatches (1)</summary>
+          <div class="stack">
+            <div class="row-card">
+              <div class="top"><span class="small muted">Savings</span><span class="strong">off by 10.00 €</span></div>
+              <span>App 12,505.00 € · bank 12,515.00 €</span>
+              <span class="small muted">They match up to 05/10/2026 and differ from 10/10/2026</span>
+              <a class="btn btn-secondary" href="accounts.html#mobile-s4-savings">Open Savings</a>
+            </div>
+          </div>
+        </details>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S5 Transactions ======================== -->
+<section class="wf-screen" id="mobile-s5">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-s5" aria-current="page">S5 Transactions</a>
+      <a href="#mobile-s6">S6 Categorize</a>
+      <a href="#mobile-d6">D6 Rule</a>
+      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
+      <a href="#mobile-d4">D4 Link transfer</a>
+      <a href="#mobile-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s5">Desktop 1440</a>
+      <a href="#mobile-s5" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: all accounts, October 2026, grouped by day. Tap PHARMACY 24 or TRANSFER TO SAVINGS.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title">Transactions</span><a class="action" title="Opens the filters in a sheet">Filter</a></header>
+      <div class="m-content">
+        <div class="input placeholder fill">Search description…</div>
+        <div class="row" style="gap:8px"><span class="tag">October 2026 ✕</span><span class="tag">All accounts</span></div>
+        <span class="label">15/10/2026</span>
+        <div class="m-list">
+            <div class="item"><span class="stack" style="gap:2px"><a class="strong" href="#mobile-s6">PHARMACY 24</a><span class="small muted">Main checking · <span class="tag">Uncategorized</span></span></span><span class="strong">−18.50 €</span></div>
+        </div>
+        <span class="label">14/10/2026</span>
+        <div class="m-list">
+            <div class="item"><span class="stack" style="gap:2px"><span>AMAZON EU SARL</span><span class="small muted">Main checking · Shopping</span></span><span class="strong">−34.90 €</span></div>
+            <div class="item dim"><span class="stack" style="gap:2px"><span>AMAZON EU SARL</span><span class="small muted">Main checking · Excluded</span></span><span class="strong">−34.90 €</span></div>
+        </div>
+        <span class="label">13/10/2026</span>
+        <div class="m-list">
+            <div class="item"><span class="stack" style="gap:2px"><span>AMAZON DIGITAL</span><span class="small muted">Main checking · <span class="tag">Rule conflict</span></span></span><span class="strong">−9.99 €</span></div>
+        </div>
+        <span class="label">12/10/2026</span>
+        <div class="m-list">
+            <div class="item"><span class="stack" style="gap:2px"><span>DEPOSIT</span><span class="small muted">Savings · <span class="tag">Uncategorized</span></span></span><span class="strong">+500.00 €</span></div>
+            <div class="item"><span class="stack" style="gap:2px"><span>TRANSFER TO US ACCOUNT</span><span class="small muted">Main checking · ⇄ US account</span></span><span class="strong">−1,000.00 €</span></div>
+            <div class="item"><span class="stack" style="gap:2px"><span>TRANSFER FROM BANK A</span><span class="small muted">US account · ⇄ Main checking</span></span><span class="strong">+1,090.00 $</span></div>
+        </div>
+        <span class="label">10/10/2026</span>
+        <div class="m-list">
+            <div class="item"><span class="stack" style="gap:2px"><a class="strong" href="#mobile-s6-transfer">TRANSFER TO SAVINGS</a><span class="small muted">Main checking · <span class="tag">Transfer to pick</span></span></span><span class="strong">−500.00 €</span></div>
+            <div class="item"><span class="stack" style="gap:2px"><span>TRANSFER FROM CHECKING</span><span class="small muted">Savings · <span class="tag">Transfer to pick</span></span></span><span class="strong">+500.00 €</span></div>
+            <div class="item"><span class="stack" style="gap:2px"><span>INTEREST</span><span class="small muted">Savings · Interest</span></span><span class="strong">+5.00 €</span></div>
+        </div>
+        <span class="small muted">Load more</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5" aria-current="page">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S6 Categorize ======================== -->
+<section class="wf-screen" id="mobile-s6">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-s5">S5 Transactions</a>
+      <a href="#mobile-s6" aria-current="page">S6 Categorize</a>
+      <a href="#mobile-d6">D6 Rule</a>
+      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
+      <a href="#mobile-d4">D4 Link transfer</a>
+      <a href="#mobile-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6">Desktop 1440</a>
+      <a href="#mobile-s6" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 as a full screen. Health was just picked as the category of PHARMACY 24 (Review is down to 11).</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a href="#mobile-s5">←</a>Transaction</span></header>
+      <div class="m-content">
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>15/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>−18.50 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">PHARMACY 24</span></div>
+        <div class="field"><span class="label">Description</span><div class="input fill">PHARMACY 24</div></div>
+        <div class="field"><span class="label">Category</span><div class="dropdown fill">Health</div></div>
+        <a class="btn btn-secondary" href="#mobile-d6">Create rule from this</a>
+        <div class="divider"></div>
+        <span class="h2">Transfer</span>
+        <span class="small muted">Not linked to another account.</span>
+        <a class="btn btn-secondary" title="Opens D4">Link transfer…</a>
+        <div class="divider"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets">Exclude transaction</a>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5" aria-current="page">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D6 Rule ======================== -->
+<section class="wf-screen" id="mobile-d6">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-s5">S5 Transactions</a>
+      <a href="#mobile-s6">S6 Categorize</a>
+      <a href="#mobile-d6" aria-current="page">D6 Rule</a>
+      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
+      <a href="#mobile-d4">D4 Link transfer</a>
+      <a href="#mobile-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d6">Desktop 1440</a>
+      <a href="#mobile-d6" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D6 as a full-screen sheet, prefilled from PHARMACY 24.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s6">✕</a><span class="title">New rule</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <div class="field">
+              <span class="label">Description</span>
+              <div class="dropdown fill">contains</div><div class="input fill">PHARMACY</div>
+            </div>
+            <div class="field"><span class="label">Amount (optional)</span><div class="dropdown fill">Any amount</div></div>
+            <div class="field"><span class="label">Account (optional)</span><div class="dropdown fill">Any account</div></div>
+            <div class="field"><span class="label">Category</span><div class="dropdown fill">Health</div></div>
+            <span class="checkbox checked">Also apply to 2 uncategorized transactions that match</span>
+            <span class="small muted">Transactions that already have a category are never changed. If another rule also matches a transaction, it goes to Review.</span>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s6">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s6">Save rule</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S6 Transfer to pick ======================== -->
+<section class="wf-screen" id="mobile-s6-transfer">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-s5">S5 Transactions</a>
+      <a href="#mobile-s6">S6 Categorize</a>
+      <a href="#mobile-d6">D6 Rule</a>
+      <a href="#mobile-s6-transfer" aria-current="page">S6 Transfer to pick</a>
+      <a href="#mobile-d4">D4 Link transfer</a>
+      <a href="#mobile-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6-transfer">Desktop 1440</a>
+      <a href="#mobile-s6-transfer" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 for a transfer with two possible matches in Savings.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a href="#mobile-s5">←</a>Transaction</span></header>
+      <div class="m-content">
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>10/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>−500.00 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">TRANSFER TO SAVINGS</span></div>
+        <div class="field"><span class="label">Description</span><div class="input fill">TRANSFER TO SAVINGS</div></div>
+        <div class="divider"></div>
+        <div class="row"><span class="h2">Transfer</span><span class="tag">Transfer to pick</span></div>
+        <span class="small muted">2 possible matches in Savings. Pick the other side to link them.</span>
+        <a class="btn btn-primary" href="#mobile-d4">Link transfer…</a>
+        <div class="divider"></div>
+        <div class="field"><span class="label">Category</span><div class="dropdown fill">Pick category</div><span class="small muted">Only if this isn't a transfer.</span></div>
+        <div class="divider"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets">Exclude transaction</a>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5" aria-current="page">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D4 Link transfer ======================== -->
+<section class="wf-screen" id="mobile-d4">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-s5">S5 Transactions</a>
+      <a href="#mobile-s6">S6 Categorize</a>
+      <a href="#mobile-d6">D6 Rule</a>
+      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
+      <a href="#mobile-d4" aria-current="page">D4 Link transfer</a>
+      <a href="#mobile-s6-linked">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d4">Desktop 1440</a>
+      <a href="#mobile-d4" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D4 as a full-screen sheet: candidates in the opposite direction, within 3 days.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s6-transfer">✕</a><span class="title">Link transfer</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <div class="card tinted">
+              <span class="strong">TRANSFER TO SAVINGS</span>
+              <span class="small muted">Main checking · 10/10/2026 · −500.00 €</span>
+            </div>
+            <span class="label">Pick the other side: opposite direction, within 3 days</span>
+            <div class="m-list">
+              <div class="item"><span class="stack" style="gap:4px"><span class="radio selected">Savings · TRANSFER FROM CHECKING</span><span class="small muted" style="padding-left:24px">10/10/2026 · +500.00 €</span></span></div>
+              <div class="item"><span class="stack" style="gap:4px"><span class="radio">Savings · DEPOSIT</span><span class="small muted" style="padding-left:24px">12/10/2026 · +500.00 €</span></span></div>
+            </div>
+            <span class="small muted">Accounts in other currencies are listed too when they have a transaction in the window; their amounts can't be compared.</span>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s6-transfer">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s6-linked">Link</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S6 Linked ======================== -->
+<section class="wf-screen" id="mobile-s6-linked">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-s5">S5 Transactions</a>
+      <a href="#mobile-s6">S6 Categorize</a>
+      <a href="#mobile-d6">D6 Rule</a>
+      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
+      <a href="#mobile-d4">D4 Link transfer</a>
+      <a href="#mobile-s6-linked" aria-current="page">S6 Linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6-linked">Desktop 1440</a>
+      <a href="#mobile-s6-linked" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 after linking: the transfer replaces the category; Unlink goes back.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a href="#mobile-s5">←</a>Transaction</span></header>
+      <div class="m-content">
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>10/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>−500.00 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">TRANSFER TO SAVINGS</span></div>
+        <div class="field"><span class="label">Description</span><div class="input fill">TRANSFER TO SAVINGS</div></div>
+        <div class="divider"></div>
+        <span class="h2">Transfer</span>
+        <div class="card tinted">
+          <span class="strong">⇄ Linked to Savings</span>
+          <span class="small muted">TRANSFER FROM CHECKING · 10/10/2026 · +500.00 €</span>
+        </div>
+        <a class="btn btn-secondary" href="#mobile-s6-transfer">Unlink</a>
+        <span class="small muted">Transfers don't count as income or expense, so they have no category.</span>
+        <div class="divider"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets">Exclude transaction</a>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5" aria-current="page">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
