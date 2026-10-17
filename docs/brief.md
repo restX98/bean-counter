@@ -113,6 +113,8 @@ Amounts in different currencies are never added together. Every report is shown 
   - **This month**: spent vs. limit for the current month. It starts fresh each month.
   - **Running balance**: everything budgeted minus everything spent since the budget started. Unspent money carries over, and overspending reduces what's left.
 - If I change a limit, each month keeps the limit that was in force at the time.
+- A budget's first month counts in full, even if I create it mid-month: whatever I've already spent that month comes out of it.
+- The running balance never resets on its own. I can start it over from a month I choose; earlier months stay in the history but no longer count.
 - Past months are kept as history.
 
 ### 5.7 Multiple currencies
@@ -192,4 +194,5 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Resolved the plan's open questions: exclude instead of delete (no manual entry), new rules offered on existing uncategorized transactions, rule conflicts go to Review |
 | 2026-10-17 | Balance check: compares end-of-day balances, reports the window where they split, points to skipped or excluded rows; a hand-entered balance that differs is shown before it's used |
 | 2026-10-17 | Reports: uncategorized transactions count under Uncategorized; possible transfers are left out until linked or dismissed |
+| 2026-10-17 | Budgets: the first month counts in full; the running balance never resets on its own but can be started over from a chosen month |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |

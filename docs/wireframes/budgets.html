@@ -34,6 +34,7 @@
       <a href="#desktop-s15">S15 Groceries</a>
       <a href="#desktop-d7-add">D7 Add budget</a>
       <a href="#desktop-d7-limit">D7 Change limit</a>
+      <a href="#desktop-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s14" aria-current="page">Desktop 1440</a>
@@ -94,6 +95,7 @@
       <a href="#desktop-s15">S15 Groceries</a>
       <a href="#desktop-d7-add">D7 Add budget</a>
       <a href="#desktop-d7-limit">D7 Change limit</a>
+      <a href="#desktop-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s14-running" aria-current="page">Desktop 1440</a>
@@ -154,13 +156,14 @@
       <a href="#desktop-s15" aria-current="page">S15 Groceries</a>
       <a href="#desktop-d7-add">D7 Add budget</a>
       <a href="#desktop-d7-limit">D7 Change limit</a>
+      <a href="#desktop-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s15" aria-current="page">Desktop 1440</a>
       <a href="#mobile-s15">Mobile 390</a>
     </span>
   </nav>
-  <p class="wf-note">Groceries month by month. Each month keeps the limit it had, so the running balance stays correct when the limit changes.</p>
+  <p class="wf-note">Groceries month by month. Each month keeps the limit it had, so the running balance stays correct when the limit changes. The running balance never resets on its own; "Start over…" lets you count from a month you choose.</p>
   <div class="wf-stage">
     <div class="frame frame-desktop">
       <aside class="sidebar">
@@ -182,7 +185,7 @@
         <span class="crumb"><a href="#desktop-s14">Budgets</a> / Groceries</span>
         <div class="title-row">
           <div class="stack"><h1 class="h1">Groceries</h1><span class="muted">EUR · 300.00 € per month · since September 2026</span></div>
-          <a class="btn btn-secondary" href="#desktop-d7-limit">Change limit</a>
+          <div class="actions"><a class="btn btn-secondary" href="#desktop-d7-restart">Start over…</a><a class="btn btn-secondary" href="#desktop-d7-limit">Change limit</a></div>
         </div>
         <div class="row" style="gap:24px; align-items:stretch">
           <div class="card roomy" style="width:320px">
@@ -224,6 +227,7 @@
       <a href="#desktop-s15">S15 Groceries</a>
       <a href="#desktop-d7-add" aria-current="page">D7 Add budget</a>
       <a href="#desktop-d7-limit">D7 Change limit</a>
+      <a href="#desktop-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-d7-add" aria-current="page">Desktop 1440</a>
@@ -268,7 +272,7 @@
             <div class="field"><span class="label">Category</span><div class="dropdown fill">Shopping</div><span class="small muted">Expense categories without a budget: Rent, Shopping, Health, Digital subscriptions.</span></div>
             <div class="field"><span class="label">Currency</span><div class="dropdown fill">EUR</div><span class="small muted">Only spending in this currency counts toward the budget.</span></div>
             <div class="field"><span class="label">Monthly limit</span><div class="input fill">150.00 €</div></div>
-            <div class="field"><span class="label">Starts in</span><div class="dropdown fill">October 2026</div><span class="small muted">October so far: 34.90 € spent on Shopping.</span></div>
+            <div class="field"><span class="label">Starts in</span><div class="dropdown fill">October 2026</div><span class="small muted">The whole October limit counts. The 34.90 € already spent on Shopping this month comes out of it.</span></div>
           </div>
           <div class="dialog-actions">
             <a class="btn btn-secondary" href="#desktop-s14">Cancel</a>
@@ -291,6 +295,7 @@
       <a href="#desktop-s15">S15 Groceries</a>
       <a href="#desktop-d7-add">D7 Add budget</a>
       <a href="#desktop-d7-limit" aria-current="page">D7 Change limit</a>
+      <a href="#desktop-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-d7-limit" aria-current="page">Desktop 1440</a>
@@ -311,7 +316,7 @@
         <span class="crumb">Budgets / Groceries</span>
         <div class="title-row">
           <div class="stack"><h1 class="h1">Groceries</h1><span class="muted">EUR · 300.00 € per month · since September 2026</span></div>
-          <a class="btn btn-secondary">Change limit</a>
+          <div class="actions"><a class="btn btn-secondary">Start over…</a><a class="btn btn-secondary">Change limit</a></div>
         </div>
         <div class="row" style="gap:24px; align-items:stretch">
           <div class="card roomy" style="width:320px">
@@ -360,6 +365,86 @@
   </div>
 </section>
 
+<!-- ======================= DESKTOP · D7 Start over ======================= -->
+<section class="wf-screen" id="desktop-d7-restart">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Budgets</span>
+    <span class="wf-group">
+      <a href="#desktop-s14">S14 This month</a>
+      <a href="#desktop-s14-running">S14 Running balance</a>
+      <a href="#desktop-s15">S15 Groceries</a>
+      <a href="#desktop-d7-add">D7 Add budget</a>
+      <a href="#desktop-d7-limit">D7 Change limit</a>
+      <a href="#desktop-d7-restart" aria-current="page">D7 Start over</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d7-restart" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d7-restart">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D7 in its start-over form, over S15: the running balance counts again from November 2026. Earlier months stay in the history but no longer count.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb">Budgets / Groceries</span>
+        <div class="title-row">
+          <div class="stack"><h1 class="h1">Groceries</h1><span class="muted">EUR · 300.00 € per month · since September 2026</span></div>
+          <div class="actions"><a class="btn btn-secondary">Start over…</a><a class="btn btn-secondary">Change limit</a></div>
+        </div>
+        <div class="row" style="gap:24px; align-items:stretch">
+          <div class="card roomy" style="width:320px">
+            <span class="small muted">This month</span>
+            <span class="big-number" style="font-size:24px">320.00 / 300.00 €</span>
+            <div class="bar over"><span style="width:100%"></span></div>
+            <span class="small muted">20.00 € over</span>
+          </div>
+          <div class="card roomy" style="width:320px">
+            <span class="small muted">Running balance</span>
+            <span class="big-number" style="font-size:24px">+30.00 €</span>
+            <div class="bar"><span style="width:95%"></span></div>
+            <span class="small muted">600.00 € budgeted · 570.00 € spent</span>
+          </div>
+        </div>
+        <span class="h2">History</span>
+        <table class="table">
+          <colgroup><col><col style="width:150px"><col style="width:150px"><col style="width:150px"><col style="width:170px"><col style="width:150px"></colgroup>
+          <thead><tr><th>Month</th><th>Limit</th><th>Spent</th><th>Left</th><th>Running balance</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>October 2026 · so far</td><td>300.00 €</td><td>320.00 €</td><td>−20.00 €</td><td>+30.00 €</td><td><span class="muted">Transactions →</span></td></tr>
+            <tr><td>September 2026</td><td>300.00 €</td><td>250.00 €</td><td>+50.00 €</td><td>+50.00 €</td><td><span class="muted">Transactions →</span></td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">If you change the limit, you choose the month it applies from. Earlier months keep the limit they had.</span>
+      </main>
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Start over · Groceries</span><a href="#desktop-s15">✕</a></div>
+          <div class="dialog-body">
+            <div class="kv"><span>Running balance now</span><span class="strong">+30.00 € since September 2026</span></div>
+            <div class="field"><span class="label">Count from</span><div class="dropdown fill">November 2026</div><span class="small muted">Months before it stay in the history but no longer count.</span></div>
+            <div class="card tinted">
+              <span class="strong">From November</span>
+              <span class="small muted">The running balance starts at 0.00 €, then 300.00 € is added each month. Today's +30.00 € is dropped.</span>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s15">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s15">Start over</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ======================== MOBILE · S14 This month ======================== -->
 <section class="wf-screen" id="mobile-s14">
   <nav class="wf-toolbar">
@@ -371,6 +456,7 @@
       <a href="#mobile-s15">S15 Groceries</a>
       <a href="#mobile-d7-add">D7 Add budget</a>
       <a href="#mobile-d7-limit">D7 Change limit</a>
+      <a href="#mobile-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s14">Desktop 1440</a>
@@ -427,6 +513,7 @@
       <a href="#mobile-s15">S15 Groceries</a>
       <a href="#mobile-d7-add">D7 Add budget</a>
       <a href="#mobile-d7-limit">D7 Change limit</a>
+      <a href="#mobile-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s14-running">Desktop 1440</a>
@@ -483,6 +570,7 @@
       <a href="#mobile-s15" aria-current="page">S15 Groceries</a>
       <a href="#mobile-d7-add">D7 Add budget</a>
       <a href="#mobile-d7-limit">D7 Change limit</a>
+      <a href="#mobile-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s15">Desktop 1440</a>
@@ -505,6 +593,7 @@
           <div class="bar"><span style="width:95%"></span></div>
           <span class="small muted">600.00 € budgeted · 570.00 € spent</span>
         </div>
+        <a class="btn btn-secondary" href="#mobile-d7-restart">Start over…</a>
         <span class="h2">History</span>
         <div class="m-list">
           <div class="item"><span class="stack" style="gap:2px"><span class="strong">October 2026 · so far</span><span class="small muted">320.00 € of 300.00 € · −20.00 €</span></span><span class="right"><span class="strong">+30.00 €</span><span class="small muted">running</span></span></div>
@@ -534,6 +623,7 @@
       <a href="#mobile-s15">S15 Groceries</a>
       <a href="#mobile-d7-add" aria-current="page">D7 Add budget</a>
       <a href="#mobile-d7-limit">D7 Change limit</a>
+      <a href="#mobile-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-d7-add">Desktop 1440</a>
@@ -548,7 +638,7 @@
             <div class="field"><span class="label">Category</span><div class="dropdown fill">Shopping</div><span class="small muted">Expense categories without a budget: Rent, Shopping, Health, Digital subscriptions.</span></div>
             <div class="field"><span class="label">Currency</span><div class="dropdown fill">EUR</div><span class="small muted">Only spending in this currency counts toward the budget.</span></div>
             <div class="field"><span class="label">Monthly limit</span><div class="input fill">150.00 €</div></div>
-            <div class="field"><span class="label">Starts in</span><div class="dropdown fill">October 2026</div><span class="small muted">October so far: 34.90 € spent on Shopping.</span></div>
+            <div class="field"><span class="label">Starts in</span><div class="dropdown fill">October 2026</div><span class="small muted">The whole October limit counts. The 34.90 € already spent on Shopping this month comes out of it.</span></div>
       </div>
       <div class="action-bar">
             <a class="btn btn-secondary" href="#mobile-s14">Cancel</a>
@@ -569,6 +659,7 @@
       <a href="#mobile-s15">S15 Groceries</a>
       <a href="#mobile-d7-add">D7 Add budget</a>
       <a href="#mobile-d7-limit" aria-current="page">D7 Change limit</a>
+      <a href="#mobile-d7-restart">D7 Start over</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-d7-limit">Desktop 1440</a>
@@ -592,6 +683,45 @@
       <div class="action-bar">
             <a class="btn btn-secondary" href="#mobile-s15">Cancel</a>
             <a class="btn btn-primary" href="#mobile-s15">Save limit</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D7 Start over ======================== -->
+<section class="wf-screen" id="mobile-d7-restart">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Budgets</span>
+    <span class="wf-group">
+      <a href="#mobile-s14">S14 This month</a>
+      <a href="#mobile-s14-running">S14 Running balance</a>
+      <a href="#mobile-s15">S15 Groceries</a>
+      <a href="#mobile-d7-add">D7 Add budget</a>
+      <a href="#mobile-d7-limit">D7 Change limit</a>
+      <a href="#mobile-d7-restart" aria-current="page">D7 Start over</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d7-restart">Desktop 1440</a>
+      <a href="#mobile-d7-restart" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D7 start-over form as a full-screen sheet.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s15">✕</a><span class="title">Start over</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <span class="strong">Groceries</span>
+            <div class="kv"><span>Running balance now</span><span class="strong">+30.00 € since September 2026</span></div>
+            <div class="field"><span class="label">Count from</span><div class="dropdown fill">November 2026</div><span class="small muted">Months before it stay in the history but no longer count.</span></div>
+            <div class="card tinted">
+              <span class="strong">From November</span>
+              <span class="small muted">The running balance starts at 0.00 €, then 300.00 € is added each month. Today's +30.00 € is dropped.</span>
+            </div>
+      </div>
+      <div class="action-bar">
+            <a class="btn btn-secondary" href="#mobile-s15">Cancel</a>
+            <a class="btn btn-primary" href="#mobile-s15">Start over</a>
       </div>
     </div>
   </div>

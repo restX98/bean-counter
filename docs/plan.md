@@ -252,7 +252,7 @@ All three reports share a currency switcher (EUR first) and a period control.
 #### S15 Budget detail
 
 - **Shows**: a month-by-month table with the limit in force that month, spent, left and running balance.
-- **Actions**: change the limit from a given month (D7), or open a month's transactions (S5, filtered).
+- **Actions**: change the limit from a given month (D7), start the running balance over from a chosen month (D7), or open a month's transactions (S5, filtered).
 
 ### Organize
 
@@ -287,7 +287,7 @@ On mobile, every dialog opens as a full-screen sheet.
 - **D4 Link transfer**: pick the counterpart from the candidates (opposite direction, within the transfer window), including accounts in other currencies. Each candidate shows its account, date and amount.
 - **D5 Category form**: name, income / expense. Delete variant: move the category's transactions to another category, or leave them uncategorized.
 - **D6 Rule form**: description match (contains / regex), optional amount and account, category. Prefilled when opened from S6 or S2. An "Also apply to N uncategorized transactions that match" option is ticked by default. Transactions that already have a category are never changed.
-- **D7 Budget form**: category, currency, monthly limit, start month. Edit variant: the new limit and the month it applies from.
+- **D7 Budget form**: category, currency, monthly limit, start month. Edit variant: the new limit and the month it applies from. Start-over variant: the month the running balance counts from.
 - **D8 Restore backup**: warns that all current data will be replaced, then asks to confirm.
 
 ## 6. User flows

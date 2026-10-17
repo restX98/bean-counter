@@ -27,6 +27,7 @@ These are easy to get wrong. The brief has the details.
 - A balance mismatch can only be located between the last day the balances match and the first day they don't (the bank reports balances only on days with rows). Never report a more precise date than the data supports.
 - An excluded transaction is ignored by balances, reports and budgets, but it still counts for duplicate detection, so a re-import doesn't bring it back.
 - When more than one rule matches a transaction, never pick one: send the transaction to Review.
+- A budget's running balance adds each month's limit in force and subtracts that month's spending, from the start month (or the last start-over). The first month counts in full, even if the budget was created mid-month.
 - In reports, transactions waiting in Review count under "Uncategorized", except possible transfers and their candidate matches, which are left out until linked or dismissed.
 
 ## Wireframes
