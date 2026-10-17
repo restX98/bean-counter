@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manage accounts · Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  /* Manage-accounts flow only. Shared pieces live in components.css. */
+  .group { display: flex; flex-direction: column; gap: 8px; }
+  .group-head { display: flex; justify-content: space-between; align-items: center; }
+  .table td a { text-decoration: none; }
+  .table tr.marker td {
+    background: #fafafa;
+    border-top: 1px dashed var(--wf-border);
+    border-bottom: 1px dashed var(--wf-border);
+    color: var(--wf-ink-2);
+    font-size: 12px;
+  }
+  .cards { display: flex; gap: 24px; align-items: stretch; }
+  .m-btn-row { display: flex; gap: 8px; }
+  .m-btn-row .btn { flex: 1; padding: 10px 8px; }
+  .m-list .item .right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .m-list .item.marker { background: #fafafa; color: var(--wf-ink-2); font-size: 12px; border-top: 1px dashed var(--wf-border); }
+  .m-banner { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--wf-fill); border: 1px solid var(--wf-border); }
+</style>
+</head>
+<body class="wf">
+
+<!-- =====================================================================
+     Flow 9 in docs/plan.md §6: S3 → S4 → D1 edit / D2 set balance / D3 archive.
+     Same data as import.html and first-run.html:
+       EUR: Main checking (Bank A) 3,240.50 € · Savings (Bank A) 12,505.00 € → 15,745.50 €
+       USD: US account (Bank C) 1,120.00 $
+       Archived: Old checking (Bank D)
+     Main checking: anchor 3,240.50 € on 16/10/2026, entered during the import (its
+       export has no balance column, so it can't show a mismatch).
+     Savings: anchor 11,300.00 € on 30/09/2026 from the statement's balance column.
+       The bank balance runs 10.00 € higher from 08/10/2026 → the dashboard's
+       "1 balance mismatch".
+     Running balances (newest first) are checked: each row = balance after it.
+     ===================================================================== -->
+
+<!-- ============================ DESKTOP · S3 ============================ -->
+<section class="wf-screen" id="desktop-s3">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#desktop-s3" aria-current="page">S3 Accounts</a>
+      <a href="#desktop-s4">S4 Main checking</a>
+      <a href="#desktop-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#desktop-d1-edit">D1 Edit</a>
+      <a href="#desktop-d2">D2 Set balance</a>
+      <a href="#desktop-d3">D3 Archive</a>
+      <a href="#desktop-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s3" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s3">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: three active accounts in two currencies, one archived account hidden. Click an account name to open it.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a title="Not wireframed yet">Review <span class="tag">12</span></a>
+          <a href="#desktop-s3">Accounts</a>
+          <a title="Not wireframed yet">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row">
+          <h1 class="h1">Accounts</h1>
+          <a class="btn btn-primary" title="Same form as D1 in first-run.html">+ Add account</a>
+        </div>
+
+        <div class="group">
+          <div class="group-head"><span class="h2">EUR</span><span class="strong" style="color:var(--wf-ink-2)">Total 15,745.50 €</span></div>
+          <table class="table">
+            <colgroup><col><col style="width:200px"><col style="width:160px"><col style="width:200px"></colgroup>
+            <thead><tr><th>Account</th><th>Bank</th><th>Type</th><th>Balance</th></tr></thead>
+            <tbody>
+              <tr><td><a class="strong" href="#desktop-s4">Main checking</a></td><td>Bank A</td><td>Checking</td><td>3,240.50 €</td></tr>
+              <tr><td><a class="strong" href="#desktop-s4-savings">Savings</a></td><td>Bank A</td><td>Savings</td><td>12,505.00 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="group">
+          <div class="group-head"><span class="h2">USD</span><span class="strong" style="color:var(--wf-ink-2)">Total 1,120.00 $</span></div>
+          <table class="table">
+            <colgroup><col><col style="width:200px"><col style="width:160px"><col style="width:200px"></colgroup>
+            <thead><tr><th>Account</th><th>Bank</th><th>Type</th><th>Balance</th></tr></thead>
+            <tbody>
+              <tr><td><a class="strong" title="Not wireframed yet">US account</a></td><td>Bank C</td><td>Checking</td><td>1,120.00 $</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <span class="checkbox">Show archived accounts (1)</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S4 Main checking ==================== -->
+<section class="wf-screen" id="desktop-s4">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#desktop-s3">S3 Accounts</a>
+      <a href="#desktop-s4" aria-current="page">S4 Main checking</a>
+      <a href="#desktop-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#desktop-d1-edit">D1 Edit</a>
+      <a href="#desktop-d2">D2 Set balance</a>
+      <a href="#desktop-d3">D3 Archive</a>
+      <a href="#desktop-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s4" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s4">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: normal, right after the import. Rows still waiting in Review show their tag; one duplicate has been excluded and can be restored.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a title="Not wireframed yet">Review <span class="tag">12</span></a>
+          <a href="#desktop-s3">Accounts</a>
+          <a title="Not wireframed yet">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb"><a href="#desktop-s3">Accounts</a> / Main checking</span>
+        <div class="title-row">
+          <div class="stack"><h1 class="h1">Main checking</h1><span class="muted">Bank A · Checking · EUR</span></div>
+          <div class="actions">
+            <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+            <a class="btn btn-secondary" href="#desktop-d1-edit">Edit</a>
+            <a class="btn btn-secondary" href="#desktop-d2">Set balance</a>
+            <a class="btn btn-secondary" href="#desktop-d3">Archive</a>
+          </div>
+        </div>
+        <div class="cards">
+          <div class="card roomy" style="width:320px">
+            <span class="small muted">Current balance</span>
+            <span class="big-number" style="font-size:28px">3,240.50 €</span>
+          </div>
+          <div class="card roomy" style="flex:1">
+            <span class="small muted">Balance anchor</span>
+            <span class="strong">3,240.50 € on 16/10/2026</span>
+            <span class="small muted">Entered by hand during the import. Every other balance is worked out from it.</span>
+          </div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col><col style="width:200px"><col style="width:130px"><col style="width:150px"><col style="width:90px"></colgroup>
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Balance</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td><td>3,240.50 €</td><td>⋮</td></tr>
+            <tr><td>14/10/2026</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td><td>3,259.00 €</td><td>⋮</td></tr>
+            <tr class="dim"><td>14/10/2026</td><td>AMAZON EU SARL <span class="tag">Excluded</span></td><td>Shopping</td><td>−34.90 €</td><td>—</td><td><a title="Restores the transaction">Restore</a></td></tr>
+            <tr><td>13/10/2026</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td><td>3,293.90 €</td><td>⋮</td></tr>
+            <tr><td>12/10/2026</td><td>TRANSFER TO US ACCOUNT</td><td><span class="tag">⇄ US account</span></td><td>−1,000.00 €</td><td>3,303.89 €</td><td>⋮</td></tr>
+            <tr><td>10/10/2026</td><td>TRANSFER TO SAVINGS</td><td><span class="tag">Transfer to pick</span></td><td>−500.00 €</td><td>4,303.89 €</td><td>⋮</td></tr>
+            <tr><td>09/10/2026</td><td>SATISPAY*BAR CENTRALE</td><td>Eating out</td><td>−2.40 €</td><td>4,803.89 €</td><td>⋮</td></tr>
+            <tr><td>05/10/2026</td><td>GIROCONTO</td><td><span class="tag">⇄ Savings</span></td><td>−200.00 €</td><td>4,806.29 €</td><td>⋮</td></tr>
+            <tr><td>02/10/2026</td><td>ESSELUNGA MILANO</td><td>Groceries</td><td>−56.30 €</td><td>5,006.29 €</td><td>⋮</td></tr>
+            <tr><td>01/10/2026</td><td>SALARY ACME SPA</td><td>Salary</td><td>+2,000.00 €</td><td>5,062.59 €</td><td>⋮</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing the 10 most recent · Load more</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DESKTOP · S4 Savings (mismatch) ================== -->
+<section class="wf-screen" id="desktop-s4-savings">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#desktop-s3">S3 Accounts</a>
+      <a href="#desktop-s4">S4 Main checking</a>
+      <a href="#desktop-s4-savings" aria-current="page">S4 Savings (mismatch)</a>
+      <a href="#desktop-d1-edit">D1 Edit</a>
+      <a href="#desktop-d2">D2 Set balance</a>
+      <a href="#desktop-d3">D3 Archive</a>
+      <a href="#desktop-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s4-savings" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s4-savings">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: balance mismatch. Savings' statements have a balance column, so each row shows the bank's balance next to the computed one. From 08/10 the bank is 10.00 € higher: a transaction is probably missing.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a title="Not wireframed yet">Review <span class="tag">12</span></a>
+          <a href="#desktop-s3">Accounts</a>
+          <a title="Not wireframed yet">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb"><a href="#desktop-s3">Accounts</a> / Savings</span>
+        <div class="title-row">
+          <div class="stack"><h1 class="h1">Savings</h1><span class="muted">Bank A · Savings · EUR</span></div>
+          <div class="actions">
+            <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+            <a class="btn btn-secondary" title="Same dialog as D1 for Main checking">Edit</a>
+            <a class="btn btn-secondary" title="Same dialog as D2 for Main checking">Set balance</a>
+            <a class="btn btn-secondary" title="Same dialog as D3 for Main checking">Archive</a>
+          </div>
+        </div>
+        <div class="cards">
+          <div class="card roomy" style="width:320px">
+            <span class="small muted">Current balance</span>
+            <span class="big-number" style="font-size:28px">12,505.00 €</span>
+          </div>
+          <div class="card roomy" style="flex:1">
+            <span class="small muted">Balance anchor</span>
+            <span class="strong">11,300.00 € on 30/09/2026</span>
+            <span class="small muted">Taken from the statement's balance column. Every other balance is worked out from it.</span>
+          </div>
+        </div>
+        <div class="banner">
+          <span>⚠ The computed balance differs from the bank's by 10.00 € since 08/10/2026. A transaction may be missing: import the statement that contains it.</span>
+          <a class="btn btn-secondary" title="Scrolls to the marked row">Jump to 08/10</a>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col><col style="width:200px"><col style="width:130px"><col style="width:150px"><col style="width:160px"></colgroup>
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Balance</th><th>Bank balance</th></tr></thead>
+          <tbody>
+            <tr><td>12/10/2026</td><td>DEPOSIT</td><td><span class="tag">Uncategorized</span></td><td>+500.00 €</td><td>12,505.00 €</td><td>⚠ 12,515.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>TRANSFER FROM CHECKING</td><td><span class="tag">Transfer to pick</span></td><td>+500.00 €</td><td>12,005.00 €</td><td>⚠ 12,015.00 €</td></tr>
+            <tr><td>10/10/2026</td><td>INTEREST</td><td>Interest</td><td>+5.00 €</td><td>11,505.00 €</td><td>⚠ 11,515.00 €</td></tr>
+            <tr class="marker"><td>08/10/2026</td><td colspan="5">Balances diverge here: the bank's balance goes up by 10.00 € with no matching transaction in the app.</td></tr>
+            <tr><td>05/10/2026</td><td>GIROCONTO</td><td><span class="tag">⇄ Main checking</span></td><td>+200.00 €</td><td>11,500.00 €</td><td>11,500.00 €</td></tr>
+            <tr><td>30/09/2026</td><td>INTEREST</td><td>Interest</td><td>+4.80 €</td><td>11,300.00 €</td><td>11,300.00 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing the 5 most recent · Load more</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= DESKTOP · D1 Edit ========================== -->
+<section class="wf-screen" id="desktop-d1-edit">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#desktop-s3">S3 Accounts</a>
+      <a href="#desktop-s4">S4 Main checking</a>
+      <a href="#desktop-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#desktop-d1-edit" aria-current="page">D1 Edit</a>
+      <a href="#desktop-d2">D2 Set balance</a>
+      <a href="#desktop-d3">D3 Archive</a>
+      <a href="#desktop-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d1-edit" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d1-edit">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D1 in edit mode, over S4. Currency is locked because the account already has transactions in EUR. The anchor is shown read-only; it changes through D2.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb">Accounts / Main checking</span>
+        <div class="title-row">
+          <div class="stack"><h1 class="h1">Main checking</h1><span class="muted">Bank A · Checking · EUR</span></div>
+          <div class="actions"><a class="btn btn-primary">Import</a><a class="btn btn-secondary">Edit</a><a class="btn btn-secondary">Set balance</a><a class="btn btn-secondary">Archive</a></div>
+        </div>
+        <div class="cards">
+          <div class="card roomy" style="width:320px"><span class="small muted">Current balance</span><span class="big-number" style="font-size:28px">3,240.50 €</span></div>
+          <div class="card roomy" style="flex:1"><span class="small muted">Balance anchor</span><span class="strong">3,240.50 € on 16/10/2026</span></div>
+        </div>
+        <table class="table">
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Balance</th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td><td>3,240.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td><td>3,259.00 €</td></tr>
+            <tr><td>13/10/2026</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td><td>3,293.90 €</td></tr>
+          </tbody>
+        </table>
+      </main>
+
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Edit account</span><a href="#desktop-s4">✕</a></div>
+          <div class="dialog-body">
+            <div class="field"><span class="label">Name</span><div class="input fill">Main checking</div></div>
+            <div class="field"><span class="label">Bank</span><div class="input fill">Bank A</div></div>
+            <div class="field">
+              <span class="label">Type</span>
+              <div class="row" style="gap:24px"><span class="radio selected">Checking</span><span class="radio">Savings</span></div>
+            </div>
+            <div class="field">
+              <span class="label">Currency</span>
+              <div class="input readonly fill">EUR</div>
+              <span class="small muted">Can't change: the account already has transactions in EUR.</span>
+            </div>
+            <div class="field">
+              <span class="label">Balance anchor</span>
+              <div class="input readonly fill">3,240.50 € on 16/10/2026</div>
+              <span class="small muted">To change it, use <a href="#desktop-d2">Set balance</a>.</span>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s4">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s4">Save changes</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D2 Set balance ====================== -->
+<section class="wf-screen" id="desktop-d2">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#desktop-s3">S3 Accounts</a>
+      <a href="#desktop-s4">S4 Main checking</a>
+      <a href="#desktop-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#desktop-d1-edit">D1 Edit</a>
+      <a href="#desktop-d2" aria-current="page">D2 Set balance</a>
+      <a href="#desktop-d3">D3 Archive</a>
+      <a href="#desktop-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d2" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d2">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D2 over S4. Saving a new anchor recalculates every balance of the account; the transactions themselves don't change.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb">Accounts / Main checking</span>
+        <div class="title-row">
+          <div class="stack"><h1 class="h1">Main checking</h1><span class="muted">Bank A · Checking · EUR</span></div>
+          <div class="actions"><a class="btn btn-primary">Import</a><a class="btn btn-secondary">Edit</a><a class="btn btn-secondary">Set balance</a><a class="btn btn-secondary">Archive</a></div>
+        </div>
+        <div class="cards">
+          <div class="card roomy" style="width:320px"><span class="small muted">Current balance</span><span class="big-number" style="font-size:28px">3,240.50 €</span></div>
+          <div class="card roomy" style="flex:1"><span class="small muted">Balance anchor</span><span class="strong">3,240.50 € on 16/10/2026</span></div>
+        </div>
+        <table class="table">
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Balance</th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td><td>3,240.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td><td>3,259.00 €</td></tr>
+            <tr><td>13/10/2026</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td><td>3,293.90 €</td></tr>
+          </tbody>
+        </table>
+      </main>
+
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Set balance · Main checking</span><a href="#desktop-s4">✕</a></div>
+          <div class="dialog-body">
+            <p style="color:var(--wf-ink-2)">Enter the balance shown in your bank app and its date. Every other balance of this account is worked out from it.</p>
+            <div class="kv"><span>Current anchor</span><span class="strong">3,240.50 € on 16/10/2026</span></div>
+            <div class="field">
+              <span class="label">Balance and date</span>
+              <div class="row">
+                <div class="input" style="flex:1; width:auto">3,240.50 €</div>
+                <div class="dropdown" style="width:180px">16/10/2026</div>
+              </div>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s4">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s4">Save balance</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= DESKTOP · D3 Archive ======================= -->
+<section class="wf-screen" id="desktop-d3">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#desktop-s3">S3 Accounts</a>
+      <a href="#desktop-s4">S4 Main checking</a>
+      <a href="#desktop-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#desktop-d1-edit">D1 Edit</a>
+      <a href="#desktop-d2">D2 Set balance</a>
+      <a href="#desktop-d3" aria-current="page">D3 Archive</a>
+      <a href="#desktop-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d3" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d3">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D3 over S4: a short confirmation. Archive leads to the archived state of S4.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb">Accounts / Main checking</span>
+        <div class="title-row">
+          <div class="stack"><h1 class="h1">Main checking</h1><span class="muted">Bank A · Checking · EUR</span></div>
+          <div class="actions"><a class="btn btn-primary">Import</a><a class="btn btn-secondary">Edit</a><a class="btn btn-secondary">Set balance</a><a class="btn btn-secondary">Archive</a></div>
+        </div>
+        <div class="cards">
+          <div class="card roomy" style="width:320px"><span class="small muted">Current balance</span><span class="big-number" style="font-size:28px">3,240.50 €</span></div>
+          <div class="card roomy" style="flex:1"><span class="small muted">Balance anchor</span><span class="strong">3,240.50 € on 16/10/2026</span></div>
+        </div>
+        <table class="table">
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Balance</th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td><td>3,240.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td><td>3,259.00 €</td></tr>
+            <tr><td>13/10/2026</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td><td>3,293.90 €</td></tr>
+          </tbody>
+        </table>
+      </main>
+
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Archive Main checking?</span><a href="#desktop-s4">✕</a></div>
+          <div class="dialog-body">
+            <p style="color:var(--wf-ink-2)">Archived accounts are hidden from lists and become read-only. You can unarchive them any time.</p>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s4">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s4-archived">Archive</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== DESKTOP · S4 Archived ======================= -->
+<section class="wf-screen" id="desktop-s4-archived">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#desktop-s3">S3 Accounts</a>
+      <a href="#desktop-s4">S4 Main checking</a>
+      <a href="#desktop-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#desktop-d1-edit">D1 Edit</a>
+      <a href="#desktop-d2">D2 Set balance</a>
+      <a href="#desktop-d3">D3 Archive</a>
+      <a href="#desktop-s4-archived" aria-current="page">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s4-archived" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s4-archived">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: archived. Read-only: no Import, Edit, Set balance or row actions. Unarchive brings back the normal S4.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a title="Not wireframed yet">Review <span class="tag">12</span></a>
+          <a href="#desktop-s3">Accounts</a>
+          <a title="Not wireframed yet">Transactions</a>
+          <a title="Not wireframed yet">Reports</a>
+          <a title="Not wireframed yet">Budgets</a>
+          <a title="Not wireframed yet">Categories</a>
+          <a title="Not wireframed yet">Rules</a>
+          <a title="Not wireframed yet">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <span class="crumb"><a href="#desktop-s3">Accounts</a> / Main checking</span>
+        <div class="title-row">
+          <div class="stack">
+            <div class="row"><h1 class="h1">Main checking</h1><span class="tag">Archived</span></div>
+            <span class="muted">Bank A · Checking · EUR</span>
+          </div>
+        </div>
+        <div class="banner">
+          <span>Archived on 17/10/2026. This account is read-only and hidden from lists.</span>
+          <a class="btn btn-primary" href="#desktop-s4">Unarchive</a>
+        </div>
+        <div class="cards">
+          <div class="card roomy" style="width:320px"><span class="small muted">Balance when archived</span><span class="big-number" style="font-size:28px">3,240.50 €</span></div>
+          <div class="card roomy" style="flex:1"><span class="small muted">Balance anchor</span><span class="strong">3,240.50 € on 16/10/2026</span></div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col><col style="width:200px"><col style="width:130px"><col style="width:150px"></colgroup>
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Balance</th></tr></thead>
+          <tbody>
+            <tr><td>15/10/2026</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td><td>3,240.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td><td>3,259.00 €</td></tr>
+            <tr class="dim"><td>14/10/2026</td><td>AMAZON EU SARL <span class="tag">Excluded</span></td><td>Shopping</td><td>−34.90 €</td><td>—</td></tr>
+            <tr><td>13/10/2026</td><td>AMAZON DIGITAL</td><td><span class="tag">Rule conflict</span></td><td>−9.99 €</td><td>3,293.90 €</td></tr>
+            <tr><td>12/10/2026</td><td>TRANSFER TO US ACCOUNT</td><td><span class="tag">⇄ US account</span></td><td>−1,000.00 €</td><td>3,303.89 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing the 5 most recent · Load more</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= MOBILE · S3 ============================ -->
+<section class="wf-screen" id="mobile-s3">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#mobile-s3" aria-current="page">S3 Accounts</a>
+      <a href="#mobile-s4">S4 Main checking</a>
+      <a href="#mobile-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#mobile-d1-edit">D1 Edit</a>
+      <a href="#mobile-d2">D2 Set balance</a>
+      <a href="#mobile-d3">D3 Archive</a>
+      <a href="#mobile-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s3">Desktop 1440</a>
+      <a href="#mobile-s3" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: three active accounts in two currencies, one archived account hidden. Accounts live under More, so that tab is active.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header">
+        <span class="title"><a title="Back to More (not wireframed yet)">←</a>Accounts</span>
+        <a class="action" title="Same form as D1 in first-run.html">+ Add</a>
+      </header>
+      <div class="m-content">
+        <div class="group">
+          <div class="group-head"><span class="h2">EUR</span><span class="strong" style="color:var(--wf-ink-2)">15,745.50 €</span></div>
+          <div class="m-list">
+            <a class="item" href="#mobile-s4"><span class="stack" style="gap:2px"><span class="strong">Main checking</span><span class="small muted">Bank A · Checking</span></span><span>3,240.50 € ›</span></a>
+            <a class="item" href="#mobile-s4-savings"><span class="stack" style="gap:2px"><span class="strong">Savings</span><span class="small muted">Bank A · Savings</span></span><span>12,505.00 € ›</span></a>
+          </div>
+        </div>
+        <div class="group">
+          <div class="group-head"><span class="h2">USD</span><span class="strong" style="color:var(--wf-ink-2)">1,120.00 $</span></div>
+          <div class="m-list">
+            <a class="item" title="Not wireframed yet"><span class="stack" style="gap:2px"><span class="strong">US account</span><span class="small muted">Bank C · Checking</span></span><span>1,120.00 $ ›</span></a>
+          </div>
+        </div>
+        <span class="checkbox">Show archived accounts (1)</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a title="Not wireframed yet">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S4 Main checking ==================== -->
+<section class="wf-screen" id="mobile-s4">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#mobile-s3">S3 Accounts</a>
+      <a href="#mobile-s4" aria-current="page">S4 Main checking</a>
+      <a href="#mobile-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#mobile-d1-edit">D1 Edit</a>
+      <a href="#mobile-d2">D2 Set balance</a>
+      <a href="#mobile-d3">D3 Archive</a>
+      <a href="#mobile-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s4">Desktop 1440</a>
+      <a href="#mobile-s4" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: normal, right after the import. Each row shows the amount and the balance after it; the excluded duplicate is greyed with Restore.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header">
+        <span class="title"><a href="#mobile-s3">←</a>Main checking</span>
+        <a class="action" href="import.html#mobile-s7">Import</a>
+      </header>
+      <div class="m-content">
+        <span class="muted" style="font-size:13px">Bank A · Checking · EUR</span>
+        <div class="card roomy">
+          <div class="kv"><span>Current balance</span><span class="strong" style="font-size:20px">3,240.50 €</span></div>
+          <div class="kv"><span>Balance anchor</span><span class="strong">3,240.50 € on 16/10</span></div>
+          <span class="small muted">Entered by hand during the import.</span>
+        </div>
+        <div class="m-btn-row">
+          <a class="btn btn-secondary" href="#mobile-d1-edit">Edit</a>
+          <a class="btn btn-secondary" href="#mobile-d2">Set balance</a>
+          <a class="btn btn-secondary" href="#mobile-d3">Archive</a>
+        </div>
+        <span class="h2">Transactions</span>
+        <div class="m-list">
+          <div class="item"><span class="stack" style="gap:2px"><span>PHARMACY 24</span><span class="small muted">15/10 · <span class="tag">Uncategorized</span></span></span><span class="right"><span class="strong">−18.50 €</span><span class="small muted">3,240.50 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>AMAZON EU SARL</span><span class="small muted">14/10 · Shopping</span></span><span class="right"><span class="strong">−34.90 €</span><span class="small muted">3,259.00 €</span></span></div>
+          <div class="item dim"><span class="stack" style="gap:2px"><span>AMAZON EU SARL</span><span class="small">14/10 · Excluded</span></span><span class="right"><span>−34.90 €</span><a class="small" title="Restores the transaction">Restore</a></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>AMAZON DIGITAL</span><span class="small muted">13/10 · <span class="tag">Rule conflict</span></span></span><span class="right"><span class="strong">−9.99 €</span><span class="small muted">3,293.90 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>TRANSFER TO US ACCOUNT</span><span class="small muted">12/10 · ⇄ US account</span></span><span class="right"><span class="strong">−1,000.00 €</span><span class="small muted">3,303.89 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>TRANSFER TO SAVINGS</span><span class="small muted">10/10 · <span class="tag">Transfer to pick</span></span></span><span class="right"><span class="strong">−500.00 €</span><span class="small muted">4,303.89 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>SATISPAY*BAR CENTRALE</span><span class="small muted">09/10 · Eating out</span></span><span class="right"><span class="strong">−2.40 €</span><span class="small muted">4,803.89 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>GIROCONTO</span><span class="small muted">05/10 · ⇄ Savings</span></span><span class="right"><span class="strong">−200.00 €</span><span class="small muted">4,806.29 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>ESSELUNGA MILANO</span><span class="small muted">02/10 · Groceries</span></span><span class="right"><span class="strong">−56.30 €</span><span class="small muted">5,006.29 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>SALARY ACME SPA</span><span class="small muted">01/10 · Salary</span></span><span class="right"><span class="strong">+2,000.00 €</span><span class="small muted">5,062.59 €</span></span></div>
+        </div>
+        <span class="small muted">Showing the 10 most recent · Load more</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a title="Not wireframed yet">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== MOBILE · S4 Savings (mismatch) ================== -->
+<section class="wf-screen" id="mobile-s4-savings">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#mobile-s3">S3 Accounts</a>
+      <a href="#mobile-s4">S4 Main checking</a>
+      <a href="#mobile-s4-savings" aria-current="page">S4 Savings (mismatch)</a>
+      <a href="#mobile-d1-edit">D1 Edit</a>
+      <a href="#mobile-d2">D2 Set balance</a>
+      <a href="#mobile-d3">D3 Archive</a>
+      <a href="#mobile-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s4-savings">Desktop 1440</a>
+      <a href="#mobile-s4-savings" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: balance mismatch. Each row shows the computed balance and, under it, the bank's. From 08/10 the bank is 10.00 € higher.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header">
+        <span class="title"><a href="#mobile-s3">←</a>Savings</span>
+        <a class="action" href="import.html#mobile-s7">Import</a>
+      </header>
+      <div class="m-content">
+        <span class="muted" style="font-size:13px">Bank A · Savings · EUR</span>
+        <div class="m-banner">
+          <span>⚠ The computed balance differs from the bank's by 10.00 € since 08/10/2026. A transaction may be missing: import the statement that contains it.</span>
+          <a class="btn btn-secondary" title="Scrolls to the marked row">Jump to 08/10</a>
+        </div>
+        <div class="card roomy">
+          <div class="kv"><span>Current balance</span><span class="strong" style="font-size:20px">12,505.00 €</span></div>
+          <div class="kv"><span>Balance anchor</span><span class="strong">11,300.00 € on 30/09</span></div>
+          <span class="small muted">Taken from the statement's balance column.</span>
+        </div>
+        <div class="m-btn-row">
+          <a class="btn btn-secondary" title="Same as D1 for Main checking">Edit</a>
+          <a class="btn btn-secondary" title="Same as D2 for Main checking">Set balance</a>
+          <a class="btn btn-secondary" title="Same as D3 for Main checking">Archive</a>
+        </div>
+        <span class="h2">Transactions</span>
+        <div class="m-list">
+          <div class="item"><span class="stack" style="gap:2px"><span>DEPOSIT</span><span class="small muted">12/10 · <span class="tag">Uncategorized</span></span></span><span class="right"><span class="strong">+500.00 €</span><span class="small muted">12,505.00 €</span><span class="small">⚠ bank 12,515.00 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>TRANSFER FROM CHECKING</span><span class="small muted">10/10 · <span class="tag">Transfer to pick</span></span></span><span class="right"><span class="strong">+500.00 €</span><span class="small muted">12,005.00 €</span><span class="small">⚠ bank 12,015.00 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>INTEREST</span><span class="small muted">10/10 · Interest</span></span><span class="right"><span class="strong">+5.00 €</span><span class="small muted">11,505.00 €</span><span class="small">⚠ bank 11,515.00 €</span></span></div>
+          <div class="item marker"><span>08/10 · Balances diverge here: the bank's balance goes up by 10.00 € with no matching transaction in the app.</span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>GIROCONTO</span><span class="small muted">05/10 · ⇄ Main checking</span></span><span class="right"><span class="strong">+200.00 €</span><span class="small muted">11,500.00 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>INTEREST</span><span class="small muted">30/09 · Interest</span></span><span class="right"><span class="strong">+4.80 €</span><span class="small muted">11,300.00 €</span></span></div>
+        </div>
+        <span class="small muted">Showing the 5 most recent · Load more</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a title="Not wireframed yet">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== MOBILE · D1 Edit ========================== -->
+<section class="wf-screen" id="mobile-d1-edit">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#mobile-s3">S3 Accounts</a>
+      <a href="#mobile-s4">S4 Main checking</a>
+      <a href="#mobile-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#mobile-d1-edit" aria-current="page">D1 Edit</a>
+      <a href="#mobile-d2">D2 Set balance</a>
+      <a href="#mobile-d3">D3 Archive</a>
+      <a href="#mobile-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d1-edit">Desktop 1440</a>
+      <a href="#mobile-d1-edit" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D1 in edit mode as a full-screen sheet. Currency is locked; the anchor changes through D2.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s4">✕</a><span class="title">Edit account</span><span class="spacer"></span></header>
+      <div class="m-content">
+        <div class="field"><span class="label">Name</span><div class="input fill">Main checking</div></div>
+        <div class="field"><span class="label">Bank</span><div class="input fill">Bank A</div></div>
+        <div class="field">
+          <span class="label">Type</span>
+          <div class="row" style="gap:24px"><span class="radio selected">Checking</span><span class="radio">Savings</span></div>
+        </div>
+        <div class="field">
+          <span class="label">Currency</span>
+          <div class="input readonly fill">EUR</div>
+          <span class="small muted">Can't change: the account already has transactions in EUR.</span>
+        </div>
+        <div class="field">
+          <span class="label">Balance anchor</span>
+          <div class="input readonly fill">3,240.50 € on 16/10/2026</div>
+          <span class="small muted">To change it, use <a href="#mobile-d2">Set balance</a>.</span>
+        </div>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s4">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s4">Save changes</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D2 Set balance ====================== -->
+<section class="wf-screen" id="mobile-d2">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#mobile-s3">S3 Accounts</a>
+      <a href="#mobile-s4">S4 Main checking</a>
+      <a href="#mobile-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#mobile-d1-edit">D1 Edit</a>
+      <a href="#mobile-d2" aria-current="page">D2 Set balance</a>
+      <a href="#mobile-d3">D3 Archive</a>
+      <a href="#mobile-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d2">Desktop 1440</a>
+      <a href="#mobile-d2" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D2 as a full-screen sheet. Saving a new anchor recalculates every balance of the account.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s4">✕</a><span class="title">Set balance</span><span class="spacer"></span></header>
+      <div class="m-content">
+        <span class="strong">Main checking</span>
+        <p style="color:var(--wf-ink-2); font-size:13px">Enter the balance shown in your bank app and its date. Every other balance of this account is worked out from it.</p>
+        <div class="kv"><span>Current anchor</span><span class="strong">3,240.50 € on 16/10/2026</span></div>
+        <div class="field"><span class="label">Balance</span><div class="input fill">3,240.50 €</div></div>
+        <div class="field"><span class="label">Date</span><div class="dropdown fill">16/10/2026</div></div>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s4">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s4">Save balance</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== MOBILE · D3 Archive ======================= -->
+<section class="wf-screen" id="mobile-d3">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#mobile-s3">S3 Accounts</a>
+      <a href="#mobile-s4">S4 Main checking</a>
+      <a href="#mobile-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#mobile-d1-edit">D1 Edit</a>
+      <a href="#mobile-d2">D2 Set balance</a>
+      <a href="#mobile-d3" aria-current="page">D3 Archive</a>
+      <a href="#mobile-s4-archived">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d3">Desktop 1440</a>
+      <a href="#mobile-d3" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D3 as a full-screen sheet, as the plan says for all mobile dialogs. Archive leads to the archived state of S4.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s4">✕</a><span class="title">Archive account</span><span class="spacer"></span></header>
+      <div class="m-content">
+        <span class="h2">Archive Main checking?</span>
+        <p style="color:var(--wf-ink-2)">Archived accounts are hidden from lists and become read-only. You can unarchive them any time.</p>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s4">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s4-archived">Archive</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= MOBILE · S4 Archived ======================= -->
+<section class="wf-screen" id="mobile-s4-archived">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Manage accounts</span>
+    <span class="wf-group">
+      <a href="#mobile-s3">S3 Accounts</a>
+      <a href="#mobile-s4">S4 Main checking</a>
+      <a href="#mobile-s4-savings">S4 Savings (mismatch)</a>
+      <a href="#mobile-d1-edit">D1 Edit</a>
+      <a href="#mobile-d2">D2 Set balance</a>
+      <a href="#mobile-d3">D3 Archive</a>
+      <a href="#mobile-s4-archived" aria-current="page">S4 Archived</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s4-archived">Desktop 1440</a>
+      <a href="#mobile-s4-archived" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">State: archived. Read-only: no Import action, no Edit / Set balance / Archive buttons, no Restore on rows.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header">
+        <span class="title"><a href="#mobile-s3">←</a>Main checking</span>
+        <span class="tag">Archived</span>
+      </header>
+      <div class="m-content">
+        <span class="muted" style="font-size:13px">Bank A · Checking · EUR</span>
+        <div class="m-banner">
+          <span>Archived on 17/10/2026. This account is read-only and hidden from lists.</span>
+          <a class="btn btn-primary" href="#mobile-s4">Unarchive</a>
+        </div>
+        <div class="card roomy">
+          <div class="kv"><span>Balance when archived</span><span class="strong" style="font-size:20px">3,240.50 €</span></div>
+          <div class="kv"><span>Balance anchor</span><span class="strong">3,240.50 € on 16/10</span></div>
+        </div>
+        <span class="h2">Transactions</span>
+        <div class="m-list">
+          <div class="item"><span class="stack" style="gap:2px"><span>PHARMACY 24</span><span class="small muted">15/10 · <span class="tag">Uncategorized</span></span></span><span class="right"><span class="strong">−18.50 €</span><span class="small muted">3,240.50 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>AMAZON EU SARL</span><span class="small muted">14/10 · Shopping</span></span><span class="right"><span class="strong">−34.90 €</span><span class="small muted">3,259.00 €</span></span></div>
+          <div class="item dim"><span class="stack" style="gap:2px"><span>AMAZON EU SARL</span><span class="small">14/10 · Excluded</span></span><span class="right"><span>−34.90 €</span><span class="small">—</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>AMAZON DIGITAL</span><span class="small muted">13/10 · <span class="tag">Rule conflict</span></span></span><span class="right"><span class="strong">−9.99 €</span><span class="small muted">3,293.90 €</span></span></div>
+          <div class="item"><span class="stack" style="gap:2px"><span>TRANSFER TO US ACCOUNT</span><span class="small muted">12/10 · ⇄ US account</span></span><span class="right"><span class="strong">−1,000.00 €</span><span class="small muted">3,303.89 €</span></span></div>
+        </div>
+        <span class="small muted">Showing the 5 most recent · Load more</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a title="Not wireframed yet">Transactions</a>
+        <a title="Not wireframed yet">Reports</a>
+        <a title="Not wireframed yet">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

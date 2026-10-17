@@ -339,3 +339,35 @@ body:not(:has(.wf-screen:target)) .wf-screen:first-of-type { display: block; }
 .tabbar a::before { content: ""; width: 20px; height: 20px; border: 1.5px solid var(--wf-border); border-radius: 4px; }
 .tabbar a[aria-current] { color: var(--wf-ink); font-weight: 600; }
 .tabbar a[aria-current]::before { background: var(--wf-dark); border-color: var(--wf-dark); }
+
+/* ---------- Banner (warnings above a list) ---------- */
+
+.banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--wf-fill);
+  border: 1px solid var(--wf-border);
+}
+
+/* ---------- Read-only field ---------- */
+
+.input.readonly { background: var(--wf-fill); color: var(--wf-muted); }
+
+/* ---------- Mobile list (rows inside one bordered box) ---------- */
+
+.m-list { border: 1px solid var(--wf-line); }
+.m-list .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--wf-rule);
+  font-size: 13px;
+  text-decoration: none;
+}
+.m-list .item:last-child { border-bottom: 0; }
+.m-list .item.dim { color: var(--wf-faint); }
