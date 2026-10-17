@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  .index { max-width: 960px; margin: 0 auto; padding: 48px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .index .table { background: #fff; }
+  .index .table td:first-child { width: 40px; color: var(--wf-muted); }
+  .index a[href] { font-weight: 600; }
+</style>
+</head>
+<body class="wf">
+<main class="index">
+  <h1 class="h1">Bean Counter wireframes</h1>
+  <p class="muted">Low-fidelity wireframes of the screens in <code>docs/plan.md</code>. They are for design only and are never reused as app code. Each flow file has a desktop layout (1440 px wide) and a mobile layout (390 px wide). Use the dark bar at the top of a flow to switch screens and devices, or click the buttons inside the wireframe to walk through the flow.</p>
+
+  <h2 class="h2">Flows</h2>
+  <table class="table">
+    <thead><tr><th>#</th><th>Flow (plan §6)</th><th>Screens</th><th>Wireframe</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>First run</td><td>S1, D1, S4, S7–S10</td><td class="muted">Import steps in <a href="import.html">import.html</a>; the rest not built yet</td></tr>
+      <tr><td>2</td><td>Monthly import</td><td>S7–S10</td><td><a href="import.html">import.html</a> · desktop + mobile</td></tr>
+      <tr><td>3</td><td>Categorize and create a rule</td><td>S2, S5, S6, D6</td><td class="muted">Not built yet</td></tr>
+      <tr><td>4</td><td>Confirm a transfer</td><td>S2, S6, D4</td><td class="muted">Not built yet</td></tr>
+      <tr><td>5</td><td>Currency exchange</td><td>S7–S10, S2</td><td class="muted">Import steps in <a href="import.html">import.html</a>; S2 not built yet</td></tr>
+      <tr><td>6</td><td>Balance mismatch</td><td>S10, S2, S4, S6</td><td class="muted">S10 in <a href="import.html">import.html</a>; the rest not built yet</td></tr>
+      <tr><td>7</td><td>Check how I'm doing</td><td>S1, S11–S13, S5, S6</td><td class="muted">Not built yet</td></tr>
+      <tr><td>8</td><td>Budgets</td><td>S14, S15, D7</td><td class="muted">Not built yet</td></tr>
+      <tr><td>9</td><td>Manage accounts</td><td>S3, S4, D1, D2, D3</td><td class="muted">Not built yet</td></tr>
+      <tr><td>10</td><td>Backup and restore</td><td>S18, D8</td><td class="muted">Not built yet</td></tr>
+      <tr><td>11</td><td>Organize categories and rules</td><td>S16, S17, D5, D6</td><td class="muted">Not built yet</td></tr>
+    </tbody>
+  </table>
+
+  <p class="small muted">Shared pieces (sidebar, step indicators, buttons, dropdowns, inputs, tags, checkbox, tables, cards, mobile bars) live in <code>components.css</code>.</p>
+</main>
+</body>
+</html>
