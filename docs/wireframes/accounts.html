@@ -36,7 +36,7 @@
      Main checking: anchor 3,240.50 € on 16/10/2026, entered during the import (its
        export has no balance column, so it can't show a mismatch).
      Savings: anchor 11,300.00 € on 30/09/2026 from the statement's balance column.
-       The bank balance runs 10.00 € higher from 08/10/2026 → the dashboard's
+       The bank balance is 10.00 € higher from 10/10/2026 (they match up to 05/10) → the dashboard's
        "1 balance mismatch".
      Running balances (newest first) are checked: each row = balance after it.
      ===================================================================== -->
@@ -213,7 +213,7 @@
       <a href="#mobile-s4-savings">Mobile 390</a>
     </span>
   </nav>
-  <p class="wf-note">State: balance mismatch. Savings' statements have a balance column, so each row shows the bank's balance next to the computed one. From 08/10 the bank is 10.00 € higher: a transaction is probably missing.</p>
+  <p class="wf-note">State: balance mismatch. Savings' statements have a balance column, so each row shows the bank's balance next to the computed one. They match up to 05/10 and differ from 10/10. The bank only reports a balance on days with rows, so the app can't narrow the gap further.</p>
   <div class="wf-stage">
     <div class="frame frame-desktop">
       <aside class="sidebar">
@@ -254,8 +254,8 @@
           </div>
         </div>
         <div class="banner">
-          <span>⚠ The computed balance differs from the bank's by 10.00 € since 08/10/2026. A transaction may be missing: import the statement that contains it.</span>
-          <a class="btn btn-secondary" title="Scrolls to the marked row">Jump to 08/10</a>
+          <span>⚠ The bank's balance is 10.00 € higher than the app's. They match up to 05/10/2026 and differ from 10/10/2026, so a transaction between those dates is missing. Import the statement that covers them.</span>
+          <a class="btn btn-secondary" title="Scrolls to the marked row">Show the gap</a>
         </div>
         <table class="table">
           <colgroup><col style="width:110px"><col><col style="width:200px"><col style="width:130px"><col style="width:150px"><col style="width:160px"></colgroup>
@@ -264,7 +264,7 @@
             <tr><td>12/10/2026</td><td>DEPOSIT</td><td><span class="tag">Uncategorized</span></td><td>+500.00 €</td><td>12,505.00 €</td><td>⚠ 12,515.00 €</td></tr>
             <tr><td>10/10/2026</td><td>TRANSFER FROM CHECKING</td><td><span class="tag">Transfer to pick</span></td><td>+500.00 €</td><td>12,005.00 €</td><td>⚠ 12,015.00 €</td></tr>
             <tr><td>10/10/2026</td><td>INTEREST</td><td>Interest</td><td>+5.00 €</td><td>11,505.00 €</td><td>⚠ 11,515.00 €</td></tr>
-            <tr class="marker"><td>08/10/2026</td><td colspan="5">Balances diverge here: the bank's balance goes up by 10.00 € with no matching transaction in the app.</td></tr>
+            <tr class="marker"><td>05/10 – 10/10</td><td colspan="5">The balances split here: between these dates the bank's balance gained 10.00 € more than the app's transactions explain. No skipped or excluded row in this window would explain it.</td></tr>
             <tr><td>05/10/2026</td><td>GIROCONTO</td><td><span class="tag">⇄ Main checking</span></td><td>+200.00 €</td><td>11,500.00 €</td><td>11,500.00 €</td></tr>
             <tr><td>30/09/2026</td><td>INTEREST</td><td>Interest</td><td>+4.80 €</td><td>11,300.00 €</td><td>11,300.00 €</td></tr>
           </tbody>
@@ -374,7 +374,7 @@
       <a href="#mobile-d2">Mobile 390</a>
     </span>
   </nav>
-  <p class="wf-note">D2 over S4. Saving a new anchor recalculates every balance of the account; the transactions themselves don't change.</p>
+  <p class="wf-note">D2 over S4, with a balance that differs from the app's. The difference is shown first: "Use my balance" makes it the new anchor (every balance moves by 10.00 €); "Look for what's missing" keeps the anchor and shows a mismatch on S4 and in Review.</p>
   <div class="wf-stage">
     <div class="frame frame-desktop">
       <aside class="sidebar">
@@ -408,19 +408,23 @@
         <div class="dialog">
           <div class="dialog-title"><span>Set balance · Main checking</span><a href="#desktop-s4">✕</a></div>
           <div class="dialog-body">
-            <p style="color:var(--wf-ink-2)">Enter the balance shown in your bank app and its date. Every other balance of this account is worked out from it.</p>
-            <div class="kv"><span>Current anchor</span><span class="strong">3,240.50 € on 16/10/2026</span></div>
+            <p style="color:var(--wf-ink-2)">Enter the balance shown in your bank app and its date. The app compares it with its own balance before using it.</p>
             <div class="field">
               <span class="label">Balance and date</span>
               <div class="row">
-                <div class="input" style="flex:1; width:auto">3,240.50 €</div>
-                <div class="dropdown" style="width:180px">16/10/2026</div>
+                <div class="input" style="flex:1; width:auto">3,250.50 €</div>
+                <div class="dropdown" style="width:180px">17/10/2026</div>
               </div>
+            </div>
+            <div class="card tinted" style="border-color:var(--wf-border)">
+              <span class="strong">⚠ 10.00 € more than the app's balance</span>
+              <span class="small muted">On 17/10/2026 the app has 3,240.50 €. A transaction may be missing, or the current anchor (3,240.50 € on 16/10/2026) was wrong.</span>
             </div>
           </div>
           <div class="dialog-actions">
             <a class="btn btn-secondary" href="#desktop-s4">Cancel</a>
-            <a class="btn btn-primary" href="#desktop-s4">Save balance</a>
+            <a class="btn btn-secondary" href="#desktop-s4" title="Keeps the anchor; the difference shows as a mismatch on S4 and in Review">Look for what's missing</a>
+            <a class="btn btn-primary" href="#desktop-s4" title="Makes it the new anchor; every balance moves by 10.00 €">Use my balance</a>
           </div>
         </div>
       </div>
@@ -699,7 +703,7 @@
       <a href="#mobile-s4-savings" aria-current="page">Mobile 390</a>
     </span>
   </nav>
-  <p class="wf-note">State: balance mismatch. Each row shows the computed balance and, under it, the bank's. From 08/10 the bank is 10.00 € higher.</p>
+  <p class="wf-note">State: balance mismatch. Each row shows the computed balance and, under it, the bank's. They match up to 05/10 and differ from 10/10.</p>
   <div class="wf-stage">
     <div class="frame frame-mobile">
       <header class="m-header">
@@ -709,8 +713,8 @@
       <div class="m-content">
         <span class="muted" style="font-size:13px">Bank A · Savings · EUR</span>
         <div class="m-banner">
-          <span>⚠ The computed balance differs from the bank's by 10.00 € since 08/10/2026. A transaction may be missing: import the statement that contains it.</span>
-          <a class="btn btn-secondary" title="Scrolls to the marked row">Jump to 08/10</a>
+          <span>⚠ The bank's balance is 10.00 € higher than the app's. They match up to 05/10/2026 and differ from 10/10/2026, so a transaction between those dates is missing. Import the statement that covers them.</span>
+          <a class="btn btn-secondary" title="Scrolls to the marked row">Show the gap</a>
         </div>
         <div class="card roomy">
           <div class="kv"><span>Current balance</span><span class="strong" style="font-size:20px">12,505.00 €</span></div>
@@ -727,7 +731,7 @@
           <div class="item"><span class="stack" style="gap:2px"><span>DEPOSIT</span><span class="small muted">12/10 · <span class="tag">Uncategorized</span></span></span><span class="right"><span class="strong">+500.00 €</span><span class="small muted">12,505.00 €</span><span class="small">⚠ bank 12,515.00 €</span></span></div>
           <div class="item"><span class="stack" style="gap:2px"><span>TRANSFER FROM CHECKING</span><span class="small muted">10/10 · <span class="tag">Transfer to pick</span></span></span><span class="right"><span class="strong">+500.00 €</span><span class="small muted">12,005.00 €</span><span class="small">⚠ bank 12,015.00 €</span></span></div>
           <div class="item"><span class="stack" style="gap:2px"><span>INTEREST</span><span class="small muted">10/10 · Interest</span></span><span class="right"><span class="strong">+5.00 €</span><span class="small muted">11,505.00 €</span><span class="small">⚠ bank 11,515.00 €</span></span></div>
-          <div class="item marker"><span>08/10 · Balances diverge here: the bank's balance goes up by 10.00 € with no matching transaction in the app.</span></div>
+          <div class="item marker"><span>05/10 – 10/10 · The balances split here: the bank gained 10.00 € more than the app's transactions explain. No skipped or excluded row in this window would explain it.</span></div>
           <div class="item"><span class="stack" style="gap:2px"><span>GIROCONTO</span><span class="small muted">05/10 · ⇄ Main checking</span></span><span class="right"><span class="strong">+200.00 €</span><span class="small muted">11,500.00 €</span></span></div>
           <div class="item"><span class="stack" style="gap:2px"><span>INTEREST</span><span class="small muted">30/09 · Interest</span></span><span class="right"><span class="strong">+4.80 €</span><span class="small muted">11,300.00 €</span></span></div>
         </div>
@@ -812,20 +816,24 @@
       <a href="#mobile-d2" aria-current="page">Mobile 390</a>
     </span>
   </nav>
-  <p class="wf-note">D2 as a full-screen sheet. Saving a new anchor recalculates every balance of the account.</p>
+  <p class="wf-note">D2 as a full-screen sheet, with a balance that differs from the app's. The difference is shown first, then you choose: use your balance as the new anchor, or keep the anchor and look for what's missing.</p>
   <div class="wf-stage">
     <div class="frame frame-mobile">
       <header class="m-topbar"><a class="close" href="#mobile-s4">✕</a><span class="title">Set balance</span><span class="spacer"></span></header>
       <div class="m-content">
         <span class="strong">Main checking</span>
-        <p style="color:var(--wf-ink-2); font-size:13px">Enter the balance shown in your bank app and its date. Every other balance of this account is worked out from it.</p>
-        <div class="kv"><span>Current anchor</span><span class="strong">3,240.50 € on 16/10/2026</span></div>
-        <div class="field"><span class="label">Balance</span><div class="input fill">3,240.50 €</div></div>
-        <div class="field"><span class="label">Date</span><div class="dropdown fill">16/10/2026</div></div>
+        <p style="color:var(--wf-ink-2); font-size:13px">Enter the balance shown in your bank app and its date. The app compares it with its own balance before using it.</p>
+        <div class="field"><span class="label">Balance</span><div class="input fill">3,250.50 €</div></div>
+        <div class="field"><span class="label">Date</span><div class="dropdown fill">17/10/2026</div></div>
+        <div class="card tinted" style="border-color:var(--wf-border)">
+          <span class="strong">⚠ 10.00 € more than the app's balance</span>
+          <span class="small muted">On 17/10/2026 the app has 3,240.50 €. A transaction may be missing, or the current anchor (3,240.50 € on 16/10/2026) was wrong.</span>
+        </div>
       </div>
-      <div class="action-bar">
+      <div class="action-bar stacked">
+        <a class="btn btn-primary" href="#mobile-s4" title="Makes it the new anchor; every balance moves by 10.00 €">Use my balance</a>
+        <a class="btn btn-secondary" href="#mobile-s4" title="Keeps the anchor; the difference shows as a mismatch on S4 and in Review">Look for what's missing</a>
         <a class="btn btn-secondary" href="#mobile-s4">Cancel</a>
-        <a class="btn btn-primary" href="#mobile-s4">Save balance</a>
       </div>
     </div>
   </div>

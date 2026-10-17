@@ -75,7 +75,7 @@ These are the screens to design and the flows that connect them. Each entry cove
   - **Uncategorized**: date, account, description and amount, with an inline category picker.
   - **Rule conflicts**: transactions matched by more than one rule, with the competing rules and their categories. I pick the category.
   - **Transfers to confirm**: same-currency transactions with more than one possible match (pick one), and cross-currency suggestions (link, or mark as not a transfer).
-  - **Balance mismatches**: account, computed vs. bank balance, the difference and the date where they diverge.
+  - **Balance mismatches**: account, computed vs. bank balance, the difference, and the last day the balances match and the first day they don't.
 - **Actions**:
   - categorize a transaction, with a shortcut to create a rule (D6);
   - pick the category for a rule conflict;
@@ -108,7 +108,7 @@ These are the screens to design and the flows that connect them. Each entry cove
   - open a transaction (S6).
 - **States**:
   - no transactions;
-  - mismatch warning, which jumps to the date where the balances diverge;
+  - mismatch warning, which jumps to where the balances split;
   - archived (read-only, with Unarchive).
 
 #### S5 Transactions
@@ -281,7 +281,7 @@ All three reports share a currency switcher (EUR first) and a period control.
 On mobile, every dialog opens as a full-screen sheet.
 
 - **D1 Account form**: name, bank, type (checking / savings), currency, optional balance anchor. Used to create and edit accounts.
-- **D2 Set balance**: current balance and its date (the anchor). Opened from S4. The same fields appear inline in S9.
+- **D2 Set balance**: current balance and its date (the anchor). Opened from S4. The same fields appear inline in S9. If the balance differs from the app's, D2 shows the difference first and offers "Use my balance" (new anchor) or "Look for what's missing" (keeps the anchor; the difference shows as a mismatch).
 - **D3 Archive account**: asks to confirm archiving.
 - **D4 Link transfer**: pick the counterpart from the candidates (opposite direction, within the transfer window), including accounts in other currencies. Each candidate shows its account, date and amount.
 - **D5 Category form**: name, income / expense. Delete variant: move the category's transactions to another category, or leave them uncategorized.
@@ -317,7 +317,7 @@ On mobile, every dialog opens as a full-screen sheet.
    3. Confirm it there, or later in S2.
 6. **Balance mismatch**
    1. Reach it from S10, S2 or the S4 banner.
-   2. S4 opens at the date where the balances diverge.
+   2. S4 opens where the balances split.
    3. A duplicate that slipped through: exclude it (S6). A missing transaction: import the statement that contains it.
 7. **Check how I'm doing**
    1. S1 → S12: this month's in vs. out.

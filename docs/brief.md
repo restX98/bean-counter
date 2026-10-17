@@ -57,7 +57,8 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
   - if the export has a balance column, the app takes it from there;
   - otherwise I enter the current balance and its date.
 - The app works the opening balance out backwards from the anchor and the transactions, so I never need to know it.
-- When the export has a balance column, each import also checks the computed balance against it and flags any mismatch, which usually means missing or duplicate transactions.
+- When the export has a balance column, each import compares the app's end-of-day balance with the bank's, for every day that has rows in the file. If they differ, the app flags a balance mismatch and shows where it starts: the last day the balances match and the first day they don't. It can't be more precise than that, because the bank only reports a balance on days with rows. If a skipped or excluded transaction in that window would explain the difference, the app points to it.
+- Accounts without a balance column are only checked when I enter a balance by hand (Set balance). If it differs from the app's balance, the app shows the difference first and lets me choose: use my balance as the new anchor, or keep the anchor and look for what's missing. In the second case the difference shows as a balance mismatch until it's resolved.
 - Each account shows its current balance and its list of transactions.
 
 ### 5.2 Import
@@ -188,4 +189,5 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Resolved open questions: no currency conversion (per-currency reports), balance anchor instead of opening balance, duplicate fingerprinting, transfer window adjustable (default 3 days), budget view toggle, no login (localhost only), backup/restore in UI |
 | 2026-10-17 | Screens and flows plan ([plan.md](plan.md)): dashboard as home, Review inbox, empty states instead of a setup wizard, desktop and mobile layouts |
 | 2026-10-17 | Resolved the plan's open questions: exclude instead of delete (no manual entry), new rules offered on existing uncategorized transactions, rule conflicts go to Review |
+| 2026-10-17 | Balance check: compares end-of-day balances, reports the window where they split, points to skipped or excluded rows; a hand-entered balance that differs is shown before it's used |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |
