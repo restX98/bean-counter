@@ -1,0 +1,195 @@
+/* App shell: desktop sidebar, mobile top bar and bottom tabs, page layout. */
+
+.app {
+  display: flex;
+  height: 100dvh;
+}
+.app.is-mobile {
+  flex-direction: column;
+}
+.main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* ---------- Desktop ---------- */
+
+.sidebar {
+  flex: none;
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-3);
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-right: var(--border-width) solid var(--color-border);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  font: var(--type-section-title);
+}
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-decoration: none;
+}
+.nav a:hover {
+  background: var(--color-hover);
+}
+.nav a .icon {
+  color: var(--color-text-muted);
+}
+.nav a[aria-current="page"] {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  font-weight: var(--weight-semibold);
+}
+.nav a[aria-current="page"] .icon {
+  color: var(--color-accent-text);
+}
+.nav .badge {
+  margin-left: auto;
+}
+.nav-sep {
+  height: var(--border-width);
+  margin: var(--space-1) var(--space-3);
+  background: var(--color-border);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: var(--content-max);
+  padding: var(--space-6) var(--space-7) var(--space-7);
+}
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.page-head h1 {
+  font: var(--type-page-title);
+}
+.page-head p {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+}
+.page-head .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  font: var(--type-table);
+  color: var(--color-text-muted);
+}
+.page-head .crumb {
+  margin-top: 0;
+}
+.crumb a {
+  color: var(--color-accent-text);
+  text-decoration: none;
+}
+.crumb a:hover {
+  text-decoration: underline;
+}
+.title-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ---------- Mobile ---------- */
+
+.m-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--topbar-height);
+  padding: 0 var(--space-3) 0 var(--space-4);
+  background: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+.m-header h1 {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--type-page-title);
+}
+.m-header .back {
+  margin-left: calc(-1 * var(--space-3));
+}
+.m-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+.tabbar {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  min-height: var(--tabbar-height);
+  background: var(--color-surface);
+  border-top: var(--border-width) solid var(--color-border);
+}
+.tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--color-text-muted);
+  font: var(--type-caption);
+  text-decoration: none;
+}
+.tabbar a[aria-current="page"] {
+  color: var(--color-accent-text);
+  font-weight: var(--weight-semibold);
+}
+.tabbar .tab-icon {
+  position: relative;
+  display: inline-flex;
+}
+.tabbar .tab-icon .badge {
+  position: absolute;
+  top: -7px;
+  left: calc(100% - 2px);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--space-1);
+}
+.tabbar a:focus-visible {
+  outline-offset: calc(-1 * var(--focus-width));
+}

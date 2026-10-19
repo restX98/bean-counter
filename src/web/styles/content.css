@@ -1,0 +1,392 @@
+/* Cards, lists, accounts, empty states and dialogs. */
+
+/* ---------- Cards ---------- */
+
+.card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.card-title {
+  font: var(--type-section-title);
+}
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.summary-cards .card {
+  gap: var(--space-1);
+}
+.m-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- Grouped lists (S3) ---------- */
+
+.group {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5) var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border);
+  font: var(--type-section-title);
+}
+.group-head .total {
+  margin-left: auto;
+  font: var(--type-table);
+  color: var(--color-text-muted);
+}
+.group-head .total strong {
+  color: var(--color-text);
+  font-variant-numeric: var(--numbers);
+}
+.ar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) 160px;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--row-height);
+  padding: var(--space-2) var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
+  font: var(--type-table);
+  text-decoration: none;
+}
+.ar.head {
+  min-height: 0;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-top: 0;
+  background: var(--color-surface-muted);
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+a.ar:hover {
+  background: var(--color-hover);
+}
+a.ar:focus-visible {
+  outline-offset: calc(-1 * var(--focus-width));
+}
+.ar .name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-weight: var(--weight-semibold);
+}
+.ar .name .caption {
+  font-weight: var(--weight-regular);
+}
+.ar > .amount,
+.ar.head > :last-child {
+  text-align: right;
+}
+.ar .muted-cell {
+  color: var(--color-text-muted);
+}
+.ar.is-archived,
+.ar.is-archived .amount,
+.ar.is-archived .muted-cell {
+  color: var(--color-text-subtle);
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.day-head {
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+.m-list {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.m-tx {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px var(--space-3);
+  min-height: var(--touch-target);
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
+  text-decoration: none;
+}
+.m-list > :first-child {
+  border-top: 0;
+}
+.m-tx:focus-visible,
+.more-row:focus-visible {
+  outline-offset: calc(-1 * var(--focus-width));
+}
+.m-tx .desc {
+  min-width: 0;
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+.m-tx .meta {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font: var(--type-caption);
+  color: var(--color-text-muted);
+}
+.m-tx > .amount {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  text-align: right;
+}
+.m-tx.is-archived,
+.m-tx.is-archived .desc,
+.m-tx.is-archived .amount {
+  color: var(--color-text-subtle);
+}
+
+/* ---------- More menu (mobile) ---------- */
+
+.more-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 64px;
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
+  text-decoration: none;
+}
+.more-row > .icon {
+  color: var(--color-text-muted);
+}
+.more-row .text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.more-row .caption {
+  color: var(--color-text-muted);
+}
+.more-row .chev {
+  color: var(--color-text-subtle);
+}
+
+/* ---------- Empty states ---------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+}
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+}
+.empty-icon .icon {
+  width: 28px;
+  height: 28px;
+}
+.empty h2 {
+  font: var(--type-dialog-title);
+}
+.empty p {
+  max-width: 46ch;
+  color: var(--color-text-muted);
+}
+.empty .btn {
+  margin-top: var(--space-2);
+}
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  counter-reset: step;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  counter-increment: step;
+}
+.steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+.steps li.is-next {
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+}
+.steps li.is-next::before {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.steps li.is-done::before {
+  content: "✓";
+  border-color: var(--color-success-solid);
+  color: var(--color-success-text);
+}
+
+/* ---------- Dialogs: centred on desktop, a full-screen sheet on mobile ---------- */
+
+.dialog {
+  width: calc(100% - 2 * var(--space-5));
+  max-width: var(--dialog-width);
+  max-height: calc(100dvh - 2 * var(--space-5));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-overlay);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+}
+.dialog.sm {
+  max-width: var(--dialog-width-sm);
+}
+.dialog::backdrop {
+  background: var(--color-scrim);
+}
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-height: inherit;
+  padding: var(--space-5);
+}
+.dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.dialog-head h2 {
+  font: var(--type-dialog-title);
+}
+.dialog-head .icon-btn {
+  width: var(--control-height);
+  height: var(--control-height);
+  margin-right: calc(-1 * var(--space-2));
+}
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  overflow-y: auto;
+  /* Room for the focus rings of the fields at the edges. */
+  margin: calc(-1 * var(--space-1));
+  padding: var(--space-1);
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+@media (max-width: 767px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  .card {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+  /* Again, or the .card rule above would add the padding back. */
+  .m-list {
+    padding: 0;
+    gap: 0;
+  }
+  .banner {
+    flex-wrap: wrap;
+  }
+  .banner .text {
+    flex: 1 1 calc(100% - var(--space-6));
+  }
+
+  .dialog,
+  .dialog.sm {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .dialog-form {
+    height: 100%;
+    max-height: none;
+    padding: 0;
+    gap: 0;
+  }
+  .dialog-head {
+    justify-content: flex-start;
+    gap: var(--space-1);
+    min-height: var(--topbar-height);
+    padding: 0 var(--space-3) 0 var(--space-4);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+  .dialog-head h2 {
+    flex: 1;
+    font: var(--type-page-title);
+  }
+  .dialog-head .icon-btn {
+    order: -1;
+    width: var(--touch-target);
+    height: var(--touch-target);
+    margin: 0 0 0 calc(-1 * var(--space-3));
+  }
+  .dialog-body {
+    flex: 1;
+    margin: 0;
+    padding: var(--space-4);
+  }
+  .dialog-actions {
+    padding: var(--space-3) var(--space-4);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+  .dialog-actions .btn {
+    flex: 1;
+  }
+}

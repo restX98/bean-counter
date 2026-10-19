@@ -18,6 +18,7 @@ TypeScript everywhere: one Node process, with the data in one SQLite file. Appro
 - **Money**: integer minor units (cents) plus a currency code. Parse text straight to cents, never through `parseFloat`.
 - **Tests**: Vitest, with `*.test.ts` files next to the code they test.
 - **TypeScript 6.0, not 7**: typescript-eslint doesn't support 7 yet.
+- **React Router 7, not 8**: 8 needs Node 22.22 or later.
 - Add a dependency only when a feature needs it.
 
 ## Commands
@@ -28,6 +29,7 @@ TypeScript everywhere: one Node process, with the data in one SQLite file. Appro
 - Test: `pnpm test` (or `pnpm test:watch`). One file: `pnpm test src/server/app.test.ts`. One test by name: `pnpm test -t "SQLite version"`.
 - Check: `pnpm lint`, `pnpm typecheck`, `pnpm format:check` (`pnpm format` fixes formatting).
 - The database is `data/bean-counter.db`. `BEAN_COUNTER_DB` points the server at another file; tests use `:memory:`. `PORT` changes the server's port; the Vite proxy in `vite.config.ts` must match it.
+- After changing `src/server/db/schema.ts`, `pnpm db:generate` writes a migration to `src/server/db/migrations/`. Migrations run on their own when the server opens the database.
 - A new package with an install script needs `pnpm approve-builds <name>`, which records it in `pnpm-workspace.yaml`.
 
 ## Domain rules

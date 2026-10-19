@@ -1,0 +1,134 @@
+/*
+  Base styles. Like every stylesheet in the app, only meaning tokens from
+  docs/design/tokens.css. Ported from docs/design/screens/components.css.
+*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: var(--type-body);
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Icons ---------- */
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon-sm {
+  width: 16px;
+  height: 16px;
+}
+.logo {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+.logo-bean {
+  fill: var(--color-accent);
+}
+.logo-line {
+  fill: none;
+  stroke: var(--color-on-accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+/* ---------- Text, links, amounts ---------- */
+
+.muted {
+  color: var(--color-text-muted);
+}
+.caption {
+  font: var(--type-caption);
+  color: var(--color-text-subtle);
+}
+.label {
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+.big-number {
+  font: var(--type-big-number);
+  font-variant-numeric: var(--numbers);
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-accent-text);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
+button.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+}
+.amount {
+  font-variant-numeric: var(--numbers);
+  white-space: nowrap;
+}
+.amount.income {
+  color: var(--color-income);
+}
+.amount.expense {
+  color: var(--color-expense);
+}
+.amount.transfer {
+  color: var(--color-transfer);
+}
+.amount.payback {
+  color: var(--color-payback);
+}
+
+:is(a, button, input, select, label):focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
