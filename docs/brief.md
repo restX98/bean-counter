@@ -55,13 +55,17 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 ### 5.1 Accounts
 
 - Create, edit and archive accounts (name, bank, type, currency).
+  - Two accounts can't share a name, ignoring case and including archived accounts.
+  - The currency can change until the account has transactions. The balance anchor keeps its written amount (1,120.00 € becomes 1,120.00 $). The change is refused if the new currency can't write it, for example 1,120.50 € to JPY, which has no decimals.
 - Each account needs one known balance (the anchor):
   - if the export has a balance column, the app takes it from there;
-  - otherwise I enter the current balance and its date.
+  - otherwise I enter the current balance and its date, which can't be in the future.
 - The app works the opening balance out backwards from the anchor and the transactions, so I never need to know it.
 - When the export has a balance column, each import compares the app's end-of-day balance with the bank's, for every day that has rows in the file. If they differ, the app flags a balance mismatch and shows where it starts: the last day the balances match and the first day they don't. It can't be more precise than that, because the bank only reports a balance on days with rows. If a skipped or excluded transaction in that window would explain the difference, the app points to it.
 - Accounts without a balance column are only checked when I enter a balance by hand (Set balance). If it differs from the app's balance, the app shows the difference first and lets me choose: use my balance as the new anchor, or keep the anchor and look for what's missing. In the second case the difference shows as a balance mismatch until it's resolved.
 - Each account shows its current balance and its list of transactions.
+- The accounts list shows a total for each currency. While an account in that currency has no balance yet, the total isn't shown, rather than showing a partial sum.
+- Amounts I type are written like 3,240.50. A single comma followed by one or two digits also counts as decimals (3240,50, as phone keypads type it), and the currency's symbol or code can be included. Anything ambiguous, such as 3.240,50, is refused rather than guessed.
 
 ### 5.2 Import
 
@@ -219,3 +223,4 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |
 | 2026-10-19 | Design tokens in [design/tokens.css](design/tokens.css): light and dark themes following the system setting; teal main colour; income in green, expenses in the normal text colour, red only for problems |
 | 2026-10-19 | Tech stack: TypeScript, React and Vite, Fastify on 127.0.0.1, SQLite (better-sqlite3 and Drizzle), Papa Parse and ExcelJS (.xlsx only, no old .xls), Vitest; money stored as integer cents |
+| 2026-10-19 | Account rules: unique names, a currency change keeps the anchor's written amount, hand-entered balances can't be dated in the future, per-currency totals hidden while an account has no balance, how typed amounts are read |
