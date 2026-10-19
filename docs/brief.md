@@ -83,6 +83,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 - When I save a rule, the app offers to apply it to the existing uncategorized transactions that match. Transactions that already have a category are never changed.
 - Rules have no order. If more than one rule matches a transaction, the app doesn't choose: the transaction goes to Review and I pick the category.
 - Rules that overlap (both could match the same transaction) are flagged on the rules page, with a link to the conflicts they caused.
+- Deleting a category: its transactions move to a category I pick, or become uncategorized. The rules that assign it follow the transactions (or are deleted if the transactions become uncategorized), and its budget is deleted with its history. The app lists what will change before I confirm.
 
 ### 5.4 Transfer detection
 
@@ -91,6 +92,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 - **More than one candidate**: the app asks me to pick.
 - **Different currencies (an exchange)**: there's no rate to compare the amounts with, so the app never links these on its own. It suggests pairs that move money in opposite directions within the window, and I confirm. The two amounts record the real rate my bank applied.
 - I can always link or unlink transfers manually.
+- If I say a suggested pair is not a transfer, the app remembers it and never suggests that pair again. I can still link them by hand.
 - A linked transfer:
   - still updates both accounts' balances and still appears in both accounts' transaction lists;
   - does **not** count as income, expense or category spending.
@@ -145,7 +147,7 @@ The screens and flows are listed in [plan.md](plan.md).
 - Amounts don't have to match: an expense can have several paybacks (one per friend), and one payment can be split across several expenses, choosing how much goes to each.
 - The paybacks linked to an expense can't add up to more than the expense. The part of a payment that isn't linked counts as a normal transaction and needs a category.
 - A payback and its expenses must be in the same currency. The payback can arrive in any of my accounts.
-- I can link a payback by hand from either transaction. The app also suggests possible paybacks in Review: money coming in that no rule categorized and that isn't a possible transfer, together with my expenses from the previous 30 days that aren't fully paid back yet. I link it or mark it as income. Unlinking makes it a normal transaction again.
+- I can link a payback by hand from either transaction. The app also suggests possible paybacks in Review: money coming in that no rule categorized and that isn't a possible transfer, together with my expenses from the previous 30 days that aren't fully paid back yet. I link it or mark it as income; if I mark it as income, the app remembers that and doesn't suggest it again. Unlinking makes it a normal transaction again.
 - If I change the expense's category, its paybacks follow it.
 - Until a friend pays, the expense counts in full: the app doesn't track who owes what.
 - When a friend pays the bill and I send them my share, my payment is simply my expense: I categorize it, and no link is needed.
@@ -212,4 +214,5 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Categories and rules: categories show what uses them; overlapping rules are flagged with a link to their conflicts in Review |
 | 2026-10-17 | Settings: import presets are per export format (a bank can have several); restore offers to back up the current data first |
 | 2026-10-19 | Split bills: paybacks from friends are linked to the expense they pay back (one payment can cover several expenses); they aren't income and reduce the expense's category in the expense's month |
+| 2026-10-19 | Resolved the plan's open questions: deleting a category moves its rules with its transactions and deletes its budget; dismissed suggestions (not a transfer, it's income) are remembered |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |
