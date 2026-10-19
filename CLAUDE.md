@@ -22,7 +22,13 @@ TypeScript everywhere: one Node process, with the data in one SQLite file. Appro
 
 ## Commands
 
-_Added with the project setup._
+- Install: `pnpm install`.
+- Develop: `pnpm dev`, then open http://127.0.0.1:4281. Vite reloads the UI on change and forwards `/api` to the server on port 4280, which restarts on change.
+- Use: `pnpm start` builds the UI and serves the whole app at http://127.0.0.1:4280.
+- Test: `pnpm test` (or `pnpm test:watch`). One file: `pnpm test src/server/app.test.ts`. One test by name: `pnpm test -t "SQLite version"`.
+- Check: `pnpm lint`, `pnpm typecheck`, `pnpm format:check` (`pnpm format` fixes formatting).
+- The database is `data/bean-counter.db`. `BEAN_COUNTER_DB` points the server at another file; tests use `:memory:`. `PORT` changes the server's port; the Vite proxy in `vite.config.ts` must match it.
+- A new package with an install script needs `pnpm approve-builds <name>`, which records it in `pnpm-workspace.yaml`.
 
 ## Domain rules
 
