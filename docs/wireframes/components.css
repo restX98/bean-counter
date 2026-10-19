@@ -445,3 +445,7 @@ body:not(:has(.wf-screen:target)) .wf-screen:first-of-type { display: block; }
 .mapping td .dropdown { width: 100%; }
 .mapping tr.sample td { color: var(--wf-ink-2); border-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
 .col-card { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--wf-line); }
+
+/* ---------- Viewer: label inside a toolbar group (e.g. "States:") ---------- */
+
+.wf-toolbar .wf-label { color: var(--wf-faint); padding: 4px 4px 4px 0; }

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navigation · Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  /* Navigation only. Shared pieces live in components.css. */
+  .m-list a.item { text-decoration: none; }
+</style>
+</head>
+<body class="wf">
+
+<!-- =====================================================================
+     Mobile "More" tab (docs/plan.md §3): the places that don't have their own tab.
+     Desktop has no equivalent screen: these are all in the sidebar.
+     ===================================================================== -->
+
+<section class="wf-screen" id="mobile-more">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Navigation</span>
+    <span class="wf-group"><a href="#mobile-more" aria-current="page">More menu</a></span>
+    <span class="wf-group"><span class="wf-label">Desktop: in the sidebar</span> <a href="#mobile-more" aria-current="page">Mobile 390</a></span>
+  </nav>
+  <p class="wf-note">The More tab lists what doesn't have its own tab. Review shows its count here and on Home. Import is also a button in the Home and account headers.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title">More</span></header>
+      <div class="m-content">
+        <div class="m-list">
+          <a class="item" href="accounts.html#mobile-s3"><span class="stack" style="gap:2px"><span class="strong">Accounts</span><span class="small muted">3 accounts · 1 archived</span></span><span class="row" style="gap:8px"><span class="muted">›</span></span></a>
+          <a class="item" href="review.html#mobile-s2"><span class="stack" style="gap:2px"><span class="strong">Review</span><span class="small muted">Items waiting for your decision</span></span><span class="row" style="gap:8px"><span class="tag">12</span><span class="muted">›</span></span></a>
+          <a class="item" href="organize.html#mobile-s16"><span class="stack" style="gap:2px"><span class="strong">Categories</span><span class="small muted">11 categories</span></span><span class="row" style="gap:8px"><span class="muted">›</span></span></a>
+          <a class="item" href="organize.html#mobile-s17"><span class="stack" style="gap:2px"><span class="strong">Rules</span><span class="small muted">5 rules · 2 overlap</span></span><span class="row" style="gap:8px"><span class="muted">›</span></span></a>
+          <a class="item" href="settings.html#mobile-s18"><span class="stack" style="gap:2px"><span class="strong">Settings</span><span class="small muted">Transfer window, presets, backup</span></span><span class="row" style="gap:8px"><span class="muted">›</span></span></a>
+        </div>
+        <a class="btn btn-primary" href="import.html#mobile-s7">Import a statement</a>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="review.html#mobile-s5">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a href="navigation.html#mobile-more" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

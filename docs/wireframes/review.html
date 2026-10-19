@@ -34,12 +34,14 @@
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#desktop-s2" aria-current="page">S2 Review</a>
+      <a href="#desktop-d4-s2">D4 · from S2</a>
+      <a href="#desktop-s2-after">S2 · after linking</a>
       <a href="#desktop-s5">S5 Transactions</a>
-      <a href="#desktop-s6">S6 Categorize</a>
-      <a href="#desktop-d6">D6 Rule</a>
-      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
-      <a href="#desktop-d4">D4 Link transfer</a>
-      <a href="#desktop-s6-linked">S6 Linked</a>
+      <a href="#desktop-s6">S6 · categorize</a>
+      <a href="#desktop-d6">D6 · new rule</a>
+      <a href="#desktop-s6-transfer">S6 · transfer to pick</a>
+      <a href="#desktop-d4">D4 · from S6</a>
+      <a href="#desktop-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s2" aria-current="page">Desktop 1440</a>
@@ -92,7 +94,192 @@
           <table class="table">
             <colgroup><col style="width:110px"><col><col style="width:330px"></colgroup>
             <tbody>
-              <tr><td>10/10/2026</td><td><span class="stack" style="gap:2px"><span>Main checking · TRANSFER TO SAVINGS · −500.00 €</span><span class="small muted">2 possible matches in Savings</span></span></td><td><a class="btn btn-secondary" href="#desktop-d4">Pick the other side</a></td></tr>
+              <tr><td>10/10/2026</td><td><span class="stack" style="gap:2px"><span>Main checking · TRANSFER TO SAVINGS · −500.00 €</span><span class="small muted">2 possible matches in Savings</span></span></td><td><a class="btn btn-secondary" href="#desktop-d4-s2">Pick the other side</a></td></tr>
+              <tr><td>28/09/2026</td><td><span class="stack" style="gap:2px"><span>Main checking −200.00 €  ⇄  US account +218.00 $ (29/09)</span><span class="small muted">Different currencies: the app suggests the pair, you confirm it</span></span></td><td><div class="row"><a class="btn btn-primary" title="Links the pair">Link</a><a class="btn btn-secondary" title="Keeps them as normal transactions">Not a transfer</a></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Balance mismatches (1)</span>
+          <table class="table">
+            <colgroup><col style="width:260px"><col><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td class="strong">Savings</td><td><span class="stack" style="gap:2px"><span>App 12,505.00 € · bank 12,515.00 € · off by 10.00 €</span><span class="small muted">They match up to 05/10/2026 and differ from 10/10/2026</span></span></td><td><a class="btn btn-secondary" href="accounts.html#desktop-s4-savings">Open Savings</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D4 · from S2 ======================= -->
+<section class="wf-screen" id="desktop-d4-s2">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-d4-s2" aria-current="page">D4 · from S2</a>
+      <a href="#desktop-s2-after">S2 · after linking</a>
+      <a href="#desktop-s5">S5 Transactions</a>
+      <a href="#desktop-s6">S6 · categorize</a>
+      <a href="#desktop-d6">D6 · new rule</a>
+      <a href="#desktop-s6-transfer">S6 · transfer to pick</a>
+      <a href="#desktop-d4">D4 · from S6</a>
+      <a href="#desktop-s6-linked">S6 · linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d4-s2" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d4-s2">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D4 opened from S2's "Pick the other side": same dialog as from S6, but Link brings you back to Review.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><div class="stack"><h1 class="h1">Review</h1><span class="muted">12 items need your decision</span></div></div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Uncategorized (7)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col style="width:150px"><col><col style="width:120px"><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td>15/10/2026</td><td>Main checking</td><td><a class="strong" href="#desktop-s6">PHARMACY 24</a></td><td>−18.50 €</td><td><div class="row"><div class="dropdown" style="width:200px">Pick category</div><a class="muted" href="#desktop-d6">Create rule</a></div></td></tr>
+              <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td>+500.00 €</td><td><div class="row"><div class="dropdown" style="width:200px">Pick category</div><a class="muted" title="Opens D6 prefilled">Create rule</a></div></td></tr>
+              <tr class="dim"><td colspan="5">+ 5 more uncategorized · Show all</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Rule conflicts (2)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col style="width:150px"><col><col style="width:120px"><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td>13/10/2026</td><td>Main checking</td><td><span class="stack" style="gap:2px"><span>AMAZON DIGITAL</span><span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span></span></td><td>−9.99 €</td><td><div class="dropdown" style="width:200px">Pick category</div></td></tr>
+              <tr><td>28/09/2026</td><td>Main checking</td><td><span class="stack" style="gap:2px"><span>AMAZON PRIME</span><span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span></span></td><td>−4.99 €</td><td><div class="dropdown" style="width:200px">Pick category</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Transfers to confirm (2)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td>10/10/2026</td><td><span class="stack" style="gap:2px"><span>Main checking · TRANSFER TO SAVINGS · −500.00 €</span><span class="small muted">2 possible matches in Savings</span></span></td><td><a class="btn btn-secondary" href="#desktop-d4-s2">Pick the other side</a></td></tr>
+              <tr><td>28/09/2026</td><td><span class="stack" style="gap:2px"><span>Main checking −200.00 €  ⇄  US account +218.00 $ (29/09)</span><span class="small muted">Different currencies: the app suggests the pair, you confirm it</span></span></td><td><div class="row"><a class="btn btn-primary" title="Links the pair">Link</a><a class="btn btn-secondary" title="Keeps them as normal transactions">Not a transfer</a></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Balance mismatches (1)</span>
+          <table class="table">
+            <colgroup><col style="width:260px"><col><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td class="strong">Savings</td><td><span class="stack" style="gap:2px"><span>App 12,505.00 € · bank 12,515.00 € · off by 10.00 €</span><span class="small muted">They match up to 05/10/2026 and differ from 10/10/2026</span></span></td><td><a class="btn btn-secondary" href="accounts.html#desktop-s4-savings">Open Savings</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+      <div class="overlay">
+        <div class="dialog">
+          <div class="dialog-title"><span>Link transfer</span><a href="#desktop-s2">✕</a></div>
+          <div class="dialog-body">
+            <div class="card tinted">
+              <span class="strong">TRANSFER TO SAVINGS</span>
+              <span class="small muted">Main checking · 10/10/2026 · −500.00 €</span>
+            </div>
+            <span class="label">Pick the other side: opposite direction, within 3 days</span>
+            <div class="m-list">
+              <div class="item"><span class="radio selected">Savings · TRANSFER FROM CHECKING</span><span class="small muted">10/10/2026 · +500.00 €</span></div>
+              <div class="item"><span class="radio">Savings · DEPOSIT</span><span class="small muted">12/10/2026 · +500.00 €</span></div>
+            </div>
+            <span class="small muted">Accounts in other currencies are listed too when they have a transaction in the window; their amounts can't be compared.</span>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s2">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s2-after">Link</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S2 · after linking ======================= -->
+<section class="wf-screen" id="desktop-s2-after">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-d4-s2">D4 · from S2</a>
+      <a href="#desktop-s2-after" aria-current="page">S2 · after linking</a>
+      <a href="#desktop-s5">S5 Transactions</a>
+      <a href="#desktop-s6">S6 · categorize</a>
+      <a href="#desktop-d6">D6 · new rule</a>
+      <a href="#desktop-s6-transfer">S6 · transfer to pick</a>
+      <a href="#desktop-d4">D4 · from S6</a>
+      <a href="#desktop-s6-linked">S6 · linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s2-after" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s2-after">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">Back in Review after linking: 11 items. The transfer left the list, DEPOSIT stays uncategorized, and an Undo note confirms the link.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="#desktop-s2">Review <span class="tag">11</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="#desktop-s5">Transactions</a>
+          <a href="reports.html#desktop-s11">Reports</a>
+          <a href="budgets.html#desktop-s14">Budgets</a>
+          <a href="organize.html#desktop-s16">Categories</a>
+          <a href="organize.html#desktop-s17">Rules</a>
+          <a href="settings.html#desktop-s18">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><div class="stack"><h1 class="h1">Review</h1><span class="muted">11 items need your decision</span></div></div>
+        <div class="banner"><span>✓ Linked TRANSFER TO SAVINGS (Main checking) ⇄ TRANSFER FROM CHECKING (Savings). DEPOSIT stays uncategorized.</span><a class="btn btn-secondary" href="#desktop-s2">Undo</a></div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Uncategorized (7)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col style="width:150px"><col><col style="width:120px"><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td>15/10/2026</td><td>Main checking</td><td><a class="strong" href="#desktop-s6">PHARMACY 24</a></td><td>−18.50 €</td><td><div class="row"><div class="dropdown" style="width:200px">Pick category</div><a class="muted" href="#desktop-d6">Create rule</a></div></td></tr>
+              <tr><td>12/10/2026</td><td>Savings</td><td>DEPOSIT</td><td>+500.00 €</td><td><div class="row"><div class="dropdown" style="width:200px">Pick category</div><a class="muted" title="Opens D6 prefilled">Create rule</a></div></td></tr>
+              <tr class="dim"><td colspan="5">+ 5 more uncategorized · Show all</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Rule conflicts (2)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col style="width:150px"><col><col style="width:120px"><col style="width:330px"></colgroup>
+            <tbody>
+              <tr><td>13/10/2026</td><td>Main checking</td><td><span class="stack" style="gap:2px"><span>AMAZON DIGITAL</span><span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span></span></td><td>−9.99 €</td><td><div class="dropdown" style="width:200px">Pick category</div></td></tr>
+              <tr><td>28/09/2026</td><td>Main checking</td><td><span class="stack" style="gap:2px"><span>AMAZON PRIME</span><span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span></span></td><td>−4.99 €</td><td><div class="dropdown" style="width:200px">Pick category</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack" style="gap:8px">
+          <span class="h2">Transfers to confirm (1)</span>
+          <table class="table">
+            <colgroup><col style="width:110px"><col><col style="width:330px"></colgroup>
+            <tbody>
               <tr><td>28/09/2026</td><td><span class="stack" style="gap:2px"><span>Main checking −200.00 €  ⇄  US account +218.00 $ (29/09)</span><span class="small muted">Different currencies: the app suggests the pair, you confirm it</span></span></td><td><div class="row"><a class="btn btn-primary" title="Links the pair">Link</a><a class="btn btn-secondary" title="Keeps them as normal transactions">Not a transfer</a></div></td></tr>
             </tbody>
           </table>
@@ -118,12 +305,14 @@
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-d4-s2">D4 · from S2</a>
+      <a href="#desktop-s2-after">S2 · after linking</a>
       <a href="#desktop-s5" aria-current="page">S5 Transactions</a>
-      <a href="#desktop-s6">S6 Categorize</a>
-      <a href="#desktop-d6">D6 Rule</a>
-      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
-      <a href="#desktop-d4">D4 Link transfer</a>
-      <a href="#desktop-s6-linked">S6 Linked</a>
+      <a href="#desktop-s6">S6 · categorize</a>
+      <a href="#desktop-d6">D6 · new rule</a>
+      <a href="#desktop-s6-transfer">S6 · transfer to pick</a>
+      <a href="#desktop-d4">D4 · from S6</a>
+      <a href="#desktop-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s5" aria-current="page">Desktop 1440</a>
@@ -179,19 +368,21 @@
   </div>
 </section>
 
-<!-- ======================= DESKTOP · S6 Categorize ======================= -->
+<!-- ======================= DESKTOP · S6 · categorize ======================= -->
 <section class="wf-screen" id="desktop-s6">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-d4-s2">D4 · from S2</a>
+      <a href="#desktop-s2-after">S2 · after linking</a>
       <a href="#desktop-s5">S5 Transactions</a>
-      <a href="#desktop-s6" aria-current="page">S6 Categorize</a>
-      <a href="#desktop-d6">D6 Rule</a>
-      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
-      <a href="#desktop-d4">D4 Link transfer</a>
-      <a href="#desktop-s6-linked">S6 Linked</a>
+      <a href="#desktop-s6" aria-current="page">S6 · categorize</a>
+      <a href="#desktop-d6">D6 · new rule</a>
+      <a href="#desktop-s6-transfer">S6 · transfer to pick</a>
+      <a href="#desktop-d4">D4 · from S6</a>
+      <a href="#desktop-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s6" aria-current="page">Desktop 1440</a>
@@ -256,19 +447,21 @@
   </div>
 </section>
 
-<!-- ======================= DESKTOP · D6 Rule ======================= -->
+<!-- ======================= DESKTOP · D6 · new rule ======================= -->
 <section class="wf-screen" id="desktop-d6">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-d4-s2">D4 · from S2</a>
+      <a href="#desktop-s2-after">S2 · after linking</a>
       <a href="#desktop-s5">S5 Transactions</a>
-      <a href="#desktop-s6">S6 Categorize</a>
-      <a href="#desktop-d6" aria-current="page">D6 Rule</a>
-      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
-      <a href="#desktop-d4">D4 Link transfer</a>
-      <a href="#desktop-s6-linked">S6 Linked</a>
+      <a href="#desktop-s6">S6 · categorize</a>
+      <a href="#desktop-d6" aria-current="page">D6 · new rule</a>
+      <a href="#desktop-s6-transfer">S6 · transfer to pick</a>
+      <a href="#desktop-d4">D4 · from S6</a>
+      <a href="#desktop-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-d6" aria-current="page">Desktop 1440</a>
@@ -336,19 +529,21 @@
   </div>
 </section>
 
-<!-- ======================= DESKTOP · S6 Transfer to pick ======================= -->
+<!-- ======================= DESKTOP · S6 · transfer to pick ======================= -->
 <section class="wf-screen" id="desktop-s6-transfer">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-d4-s2">D4 · from S2</a>
+      <a href="#desktop-s2-after">S2 · after linking</a>
       <a href="#desktop-s5">S5 Transactions</a>
-      <a href="#desktop-s6">S6 Categorize</a>
-      <a href="#desktop-d6">D6 Rule</a>
-      <a href="#desktop-s6-transfer" aria-current="page">S6 Transfer to pick</a>
-      <a href="#desktop-d4">D4 Link transfer</a>
-      <a href="#desktop-s6-linked">S6 Linked</a>
+      <a href="#desktop-s6">S6 · categorize</a>
+      <a href="#desktop-d6">D6 · new rule</a>
+      <a href="#desktop-s6-transfer" aria-current="page">S6 · transfer to pick</a>
+      <a href="#desktop-d4">D4 · from S6</a>
+      <a href="#desktop-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s6-transfer" aria-current="page">Desktop 1440</a>
@@ -413,19 +608,21 @@
   </div>
 </section>
 
-<!-- ======================= DESKTOP · D4 Link transfer ======================= -->
+<!-- ======================= DESKTOP · D4 · from S6 ======================= -->
 <section class="wf-screen" id="desktop-d4">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-d4-s2">D4 · from S2</a>
+      <a href="#desktop-s2-after">S2 · after linking</a>
       <a href="#desktop-s5">S5 Transactions</a>
-      <a href="#desktop-s6">S6 Categorize</a>
-      <a href="#desktop-d6">D6 Rule</a>
-      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
-      <a href="#desktop-d4" aria-current="page">D4 Link transfer</a>
-      <a href="#desktop-s6-linked">S6 Linked</a>
+      <a href="#desktop-s6">S6 · categorize</a>
+      <a href="#desktop-d6">D6 · new rule</a>
+      <a href="#desktop-s6-transfer">S6 · transfer to pick</a>
+      <a href="#desktop-d4" aria-current="page">D4 · from S6</a>
+      <a href="#desktop-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-d4" aria-current="page">Desktop 1440</a>
@@ -494,19 +691,21 @@
   </div>
 </section>
 
-<!-- ======================= DESKTOP · S6 Linked ======================= -->
+<!-- ======================= DESKTOP · S6 · linked ======================= -->
 <section class="wf-screen" id="desktop-s6-linked">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#desktop-s2">S2 Review</a>
+      <a href="#desktop-d4-s2">D4 · from S2</a>
+      <a href="#desktop-s2-after">S2 · after linking</a>
       <a href="#desktop-s5">S5 Transactions</a>
-      <a href="#desktop-s6">S6 Categorize</a>
-      <a href="#desktop-d6">D6 Rule</a>
-      <a href="#desktop-s6-transfer">S6 Transfer to pick</a>
-      <a href="#desktop-d4">D4 Link transfer</a>
-      <a href="#desktop-s6-linked" aria-current="page">S6 Linked</a>
+      <a href="#desktop-s6">S6 · categorize</a>
+      <a href="#desktop-d6">D6 · new rule</a>
+      <a href="#desktop-s6-transfer">S6 · transfer to pick</a>
+      <a href="#desktop-d4">D4 · from S6</a>
+      <a href="#desktop-s6-linked" aria-current="page">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s6-linked" aria-current="page">Desktop 1440</a>
@@ -580,12 +779,14 @@
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#mobile-s2" aria-current="page">S2 Review</a>
+      <a href="#mobile-d4-s2">D4 · from S2</a>
+      <a href="#mobile-s2-after">S2 · after linking</a>
       <a href="#mobile-s5">S5 Transactions</a>
-      <a href="#mobile-s6">S6 Categorize</a>
-      <a href="#mobile-d6">D6 Rule</a>
-      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
-      <a href="#mobile-d4">D4 Link transfer</a>
-      <a href="#mobile-s6-linked">S6 Linked</a>
+      <a href="#mobile-s6">S6 · categorize</a>
+      <a href="#mobile-d6">D6 · new rule</a>
+      <a href="#mobile-s6-transfer">S6 · transfer to pick</a>
+      <a href="#mobile-d4">D4 · from S6</a>
+      <a href="#mobile-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s2">Desktop 1440</a>
@@ -595,7 +796,7 @@
   <p class="wf-note">State: 12 items in four collapsible groups, one card per item. Review lives under More, so that tab is active.</p>
   <div class="wf-stage">
     <div class="frame frame-mobile">
-      <header class="m-header"><span class="title"><a title="Back to More (not wireframed yet)">←</a>Review</span></header>
+      <header class="m-header"><span class="title"><a href="navigation.html#mobile-more">←</a>Review</span></header>
       <div class="m-content">
         <span class="muted" style="font-size:13px">12 items need your decision</span>
         <details class="m-group" open>
@@ -639,7 +840,7 @@
               <div class="top"><span class="small muted">Main checking · 10/10</span><span class="strong">−500.00 €</span></div>
               <span>TRANSFER TO SAVINGS</span>
               <span class="small muted">2 possible matches in Savings</span>
-              <a class="btn btn-secondary" href="#mobile-d4">Pick the other side</a>
+              <a class="btn btn-secondary" href="#mobile-d4-s2">Pick the other side</a>
             </div>
             <div class="row-card">
               <div class="top"><span class="small muted">Main checking · 28/09</span><span class="strong">−200.00 €</span></div>
@@ -666,7 +867,149 @@
         <a href="#mobile-s5">Transactions</a>
         <a href="reports.html#mobile-s11">Reports</a>
         <a href="budgets.html#mobile-s14">Budgets</a>
-        <a title="Not wireframed yet" aria-current="page">More</a>
+        <a href="navigation.html#mobile-more" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D4 · from S2 ======================== -->
+<section class="wf-screen" id="mobile-d4-s2">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-d4-s2" aria-current="page">D4 · from S2</a>
+      <a href="#mobile-s2-after">S2 · after linking</a>
+      <a href="#mobile-s5">S5 Transactions</a>
+      <a href="#mobile-s6">S6 · categorize</a>
+      <a href="#mobile-d6">D6 · new rule</a>
+      <a href="#mobile-s6-transfer">S6 · transfer to pick</a>
+      <a href="#mobile-d4">D4 · from S6</a>
+      <a href="#mobile-s6-linked">S6 · linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d4-s2">Desktop 1440</a>
+      <a href="#mobile-d4-s2" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D4 opened from Review, as a full-screen sheet. Link returns to Review.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s2">✕</a><span class="title">Link transfer</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <div class="card tinted">
+              <span class="strong">TRANSFER TO SAVINGS</span>
+              <span class="small muted">Main checking · 10/10/2026 · −500.00 €</span>
+            </div>
+            <span class="label">Pick the other side: opposite direction, within 3 days</span>
+            <div class="m-list">
+              <div class="item"><span class="stack" style="gap:4px"><span class="radio selected">Savings · TRANSFER FROM CHECKING</span><span class="small muted" style="padding-left:24px">10/10/2026 · +500.00 €</span></span></div>
+              <div class="item"><span class="stack" style="gap:4px"><span class="radio">Savings · DEPOSIT</span><span class="small muted" style="padding-left:24px">12/10/2026 · +500.00 €</span></span></div>
+            </div>
+            <span class="small muted">Accounts in other currencies are listed too when they have a transaction in the window; their amounts can't be compared.</span>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s2">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s2-after">Link</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S2 · after linking ======================== -->
+<section class="wf-screen" id="mobile-s2-after">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Review &amp; categorize</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-d4-s2">D4 · from S2</a>
+      <a href="#mobile-s2-after" aria-current="page">S2 · after linking</a>
+      <a href="#mobile-s5">S5 Transactions</a>
+      <a href="#mobile-s6">S6 · categorize</a>
+      <a href="#mobile-d6">D6 · new rule</a>
+      <a href="#mobile-s6-transfer">S6 · transfer to pick</a>
+      <a href="#mobile-d4">D4 · from S6</a>
+      <a href="#mobile-s6-linked">S6 · linked</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s2-after">Desktop 1440</a>
+      <a href="#mobile-s2-after" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">Review after linking: 11 items, with an Undo note.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a href="navigation.html#mobile-more">←</a>Review</span></header>
+      <div class="m-content">
+        <span class="muted" style="font-size:13px">11 items need your decision</span>
+        <div class="m-banner"><span style="font-size:13px">✓ Linked TRANSFER TO SAVINGS ⇄ TRANSFER FROM CHECKING. DEPOSIT stays uncategorized.</span><a class="btn btn-secondary" href="#mobile-s2">Undo</a></div>
+        <details class="m-group" open>
+          <summary>Uncategorized (7)</summary>
+          <div class="stack">
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 15/10</span><span class="strong">−18.50 €</span></div>
+              <a class="strong" href="#mobile-s6">PHARMACY 24</a>
+              <div class="dropdown fill">Pick category</div>
+              <a class="small muted" href="#mobile-d6">Create rule</a>
+            </div>
+            <div class="row-card">
+              <div class="top"><span class="small muted">Savings · 12/10</span><span class="strong">+500.00 €</span></div>
+              <span>DEPOSIT</span>
+              <div class="dropdown fill">Pick category</div>
+            </div>
+            <span class="small muted">+ 5 more uncategorized · Show all</span>
+          </div>
+        </details>
+        <details class="m-group" open>
+          <summary>Rule conflicts (2)</summary>
+          <div class="stack">
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 13/10</span><span class="strong">−9.99 €</span></div>
+              <span>AMAZON DIGITAL</span>
+              <span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span>
+              <div class="dropdown fill">Pick category</div>
+            </div>
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 28/09</span><span class="strong">−4.99 €</span></div>
+              <span>AMAZON PRIME</span>
+              <span class="small muted">Matches 2 rules: Shopping, Digital subscriptions</span>
+              <div class="dropdown fill">Pick category</div>
+            </div>
+          </div>
+        </details>
+        <details class="m-group" open>
+          <summary>Transfers to confirm (1)</summary>
+          <div class="stack">
+
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 28/09</span><span class="strong">−200.00 €</span></div>
+              <span>⇄ US account +218.00 $ (29/09)</span>
+              <span class="small muted">Different currencies: the app suggests the pair, you confirm it</span>
+              <div class="split"><a class="btn btn-primary" title="Links the pair">Link</a><a class="btn btn-secondary" title="Keeps them as normal transactions">Not a transfer</a></div>
+            </div>
+          </div>
+        </details>
+        <details class="m-group" open>
+          <summary>Balance mismatches (1)</summary>
+          <div class="stack">
+            <div class="row-card">
+              <div class="top"><span class="small muted">Savings</span><span class="strong">off by 10.00 €</span></div>
+              <span>App 12,505.00 € · bank 12,515.00 €</span>
+              <span class="small muted">They match up to 05/10/2026 and differ from 10/10/2026</span>
+              <a class="btn btn-secondary" href="accounts.html#mobile-s4-savings">Open Savings</a>
+            </div>
+          </div>
+        </details>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a href="navigation.html#mobile-more" aria-current="page">More</a>
       </nav>
     </div>
   </div>
@@ -679,12 +1022,14 @@
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-d4-s2">D4 · from S2</a>
+      <a href="#mobile-s2-after">S2 · after linking</a>
       <a href="#mobile-s5" aria-current="page">S5 Transactions</a>
-      <a href="#mobile-s6">S6 Categorize</a>
-      <a href="#mobile-d6">D6 Rule</a>
-      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
-      <a href="#mobile-d4">D4 Link transfer</a>
-      <a href="#mobile-s6-linked">S6 Linked</a>
+      <a href="#mobile-s6">S6 · categorize</a>
+      <a href="#mobile-d6">D6 · new rule</a>
+      <a href="#mobile-s6-transfer">S6 · transfer to pick</a>
+      <a href="#mobile-d4">D4 · from S6</a>
+      <a href="#mobile-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s5">Desktop 1440</a>
@@ -730,25 +1075,27 @@
         <a href="#mobile-s5" aria-current="page">Transactions</a>
         <a href="reports.html#mobile-s11">Reports</a>
         <a href="budgets.html#mobile-s14">Budgets</a>
-        <a title="Not wireframed yet">More</a>
+        <a href="navigation.html#mobile-more">More</a>
       </nav>
     </div>
   </div>
 </section>
 
-<!-- ======================== MOBILE · S6 Categorize ======================== -->
+<!-- ======================== MOBILE · S6 · categorize ======================== -->
 <section class="wf-screen" id="mobile-s6">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-d4-s2">D4 · from S2</a>
+      <a href="#mobile-s2-after">S2 · after linking</a>
       <a href="#mobile-s5">S5 Transactions</a>
-      <a href="#mobile-s6" aria-current="page">S6 Categorize</a>
-      <a href="#mobile-d6">D6 Rule</a>
-      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
-      <a href="#mobile-d4">D4 Link transfer</a>
-      <a href="#mobile-s6-linked">S6 Linked</a>
+      <a href="#mobile-s6" aria-current="page">S6 · categorize</a>
+      <a href="#mobile-d6">D6 · new rule</a>
+      <a href="#mobile-s6-transfer">S6 · transfer to pick</a>
+      <a href="#mobile-d4">D4 · from S6</a>
+      <a href="#mobile-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s6">Desktop 1440</a>
@@ -779,25 +1126,27 @@
         <a href="#mobile-s5" aria-current="page">Transactions</a>
         <a href="reports.html#mobile-s11">Reports</a>
         <a href="budgets.html#mobile-s14">Budgets</a>
-        <a title="Not wireframed yet">More</a>
+        <a href="navigation.html#mobile-more">More</a>
       </nav>
     </div>
   </div>
 </section>
 
-<!-- ======================== MOBILE · D6 Rule ======================== -->
+<!-- ======================== MOBILE · D6 · new rule ======================== -->
 <section class="wf-screen" id="mobile-d6">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-d4-s2">D4 · from S2</a>
+      <a href="#mobile-s2-after">S2 · after linking</a>
       <a href="#mobile-s5">S5 Transactions</a>
-      <a href="#mobile-s6">S6 Categorize</a>
-      <a href="#mobile-d6" aria-current="page">D6 Rule</a>
-      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
-      <a href="#mobile-d4">D4 Link transfer</a>
-      <a href="#mobile-s6-linked">S6 Linked</a>
+      <a href="#mobile-s6">S6 · categorize</a>
+      <a href="#mobile-d6" aria-current="page">D6 · new rule</a>
+      <a href="#mobile-s6-transfer">S6 · transfer to pick</a>
+      <a href="#mobile-d4">D4 · from S6</a>
+      <a href="#mobile-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-d6">Desktop 1440</a>
@@ -827,19 +1176,21 @@
   </div>
 </section>
 
-<!-- ======================== MOBILE · S6 Transfer to pick ======================== -->
+<!-- ======================== MOBILE · S6 · transfer to pick ======================== -->
 <section class="wf-screen" id="mobile-s6-transfer">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-d4-s2">D4 · from S2</a>
+      <a href="#mobile-s2-after">S2 · after linking</a>
       <a href="#mobile-s5">S5 Transactions</a>
-      <a href="#mobile-s6">S6 Categorize</a>
-      <a href="#mobile-d6">D6 Rule</a>
-      <a href="#mobile-s6-transfer" aria-current="page">S6 Transfer to pick</a>
-      <a href="#mobile-d4">D4 Link transfer</a>
-      <a href="#mobile-s6-linked">S6 Linked</a>
+      <a href="#mobile-s6">S6 · categorize</a>
+      <a href="#mobile-d6">D6 · new rule</a>
+      <a href="#mobile-s6-transfer" aria-current="page">S6 · transfer to pick</a>
+      <a href="#mobile-d4">D4 · from S6</a>
+      <a href="#mobile-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s6-transfer">Desktop 1440</a>
@@ -870,25 +1221,27 @@
         <a href="#mobile-s5" aria-current="page">Transactions</a>
         <a href="reports.html#mobile-s11">Reports</a>
         <a href="budgets.html#mobile-s14">Budgets</a>
-        <a title="Not wireframed yet">More</a>
+        <a href="navigation.html#mobile-more">More</a>
       </nav>
     </div>
   </div>
 </section>
 
-<!-- ======================== MOBILE · D4 Link transfer ======================== -->
+<!-- ======================== MOBILE · D4 · from S6 ======================== -->
 <section class="wf-screen" id="mobile-d4">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-d4-s2">D4 · from S2</a>
+      <a href="#mobile-s2-after">S2 · after linking</a>
       <a href="#mobile-s5">S5 Transactions</a>
-      <a href="#mobile-s6">S6 Categorize</a>
-      <a href="#mobile-d6">D6 Rule</a>
-      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
-      <a href="#mobile-d4" aria-current="page">D4 Link transfer</a>
-      <a href="#mobile-s6-linked">S6 Linked</a>
+      <a href="#mobile-s6">S6 · categorize</a>
+      <a href="#mobile-d6">D6 · new rule</a>
+      <a href="#mobile-s6-transfer">S6 · transfer to pick</a>
+      <a href="#mobile-d4" aria-current="page">D4 · from S6</a>
+      <a href="#mobile-s6-linked">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-d4">Desktop 1440</a>
@@ -919,19 +1272,21 @@
   </div>
 </section>
 
-<!-- ======================== MOBILE · S6 Linked ======================== -->
+<!-- ======================== MOBILE · S6 · linked ======================== -->
 <section class="wf-screen" id="mobile-s6-linked">
   <nav class="wf-toolbar">
     <a href="index.html">← All flows</a>
     <span class="wf-title">Review &amp; categorize</span>
     <span class="wf-group">
       <a href="#mobile-s2">S2 Review</a>
+      <a href="#mobile-d4-s2">D4 · from S2</a>
+      <a href="#mobile-s2-after">S2 · after linking</a>
       <a href="#mobile-s5">S5 Transactions</a>
-      <a href="#mobile-s6">S6 Categorize</a>
-      <a href="#mobile-d6">D6 Rule</a>
-      <a href="#mobile-s6-transfer">S6 Transfer to pick</a>
-      <a href="#mobile-d4">D4 Link transfer</a>
-      <a href="#mobile-s6-linked" aria-current="page">S6 Linked</a>
+      <a href="#mobile-s6">S6 · categorize</a>
+      <a href="#mobile-d6">D6 · new rule</a>
+      <a href="#mobile-s6-transfer">S6 · transfer to pick</a>
+      <a href="#mobile-d4">D4 · from S6</a>
+      <a href="#mobile-s6-linked" aria-current="page">S6 · linked</a>
     </span>
     <span class="wf-group">
       <a href="#desktop-s6-linked">Desktop 1440</a>
@@ -964,7 +1319,7 @@
         <a href="#mobile-s5" aria-current="page">Transactions</a>
         <a href="reports.html#mobile-s11">Reports</a>
         <a href="budgets.html#mobile-s14">Budgets</a>
-        <a title="Not wireframed yet">More</a>
+        <a href="navigation.html#mobile-more">More</a>
       </nav>
     </div>
   </div>
