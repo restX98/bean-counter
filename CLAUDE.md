@@ -50,6 +50,13 @@ Design work happens here, not in Figma.
 - Amounts: income is green, expenses use the normal text colour, transfers and paybacks are muted. Red is only for problems (over budget, errors, deletes).
 - Charts give their own colour to at most 6 categories; the rest are grouped under Other, in gray.
 
+## High-fidelity screens
+
+- They live in `docs/design/screens/`: one HTML file per group of screens, plus `index.html` that tracks what's done. Each file loads only `../tokens.css` and the shared `components.css`; nothing is loaded from the internet.
+- They follow `docs/plan.md` and the approved wireframes, with the same example data. If a screen should differ from the plan, ask first, then update the plan in the same commit.
+- Every screen has a desktop (1440 × 1024) and a mobile (390 × 844) frame. On mobile, every dialog is a full-screen sheet. Check both themes with the viewer's Light/Dark switch before committing.
+- Like the wireframes, they are design reference. Whether the app reuses `components.css` is decided with the stack.
+
 ## Workflow
 
 - When a feature or decision changes, update the relevant section of docs/brief.md and add a dated row to its Feature log, in the same commit as the code.

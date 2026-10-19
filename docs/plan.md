@@ -378,7 +378,7 @@ Each one is defined once in [wireframes/components.css](wireframes/components.cs
    - **Batch 2, insight**: S11–S15, D7, S16, S17, D5, D6, D4.
    - **Batch 3, admin and edge cases**: S18, D3, D8, then the remaining empty and error states.
 2. **Design tokens** as CSS variables, such as colours, type scale and spacing, in [design/tokens.css](design/tokens.css), with a preview in [design/tokens.html](design/tokens.html). They cover a light and a dark theme that follow the system setting.
-3. **High-fidelity HTML screens** built with those tokens.
+3. **High-fidelity HTML screens** built with those tokens, in [design/screens/](design/screens/index.html): desktop and mobile frames, light and dark. The index there tracks which screens are done.
 
 ## 9. Open design questions
 

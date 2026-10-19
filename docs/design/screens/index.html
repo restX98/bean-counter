@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bean Counter · High-fidelity screens</title>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>
+  body.v { background: var(--color-bg); }
+  .index { max-width: 960px; margin: 0 auto; padding: var(--space-6) var(--space-4) var(--space-8); display: flex; flex-direction: column; gap: var(--space-5); }
+  .index h1 { font: var(--type-page-title); }
+  .index > p { max-width: 75ch; color: var(--color-text-muted); }
+  .files { padding: 0; gap: 0; overflow: hidden; }
+  .file { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; align-items: center; gap: var(--space-2) var(--space-4); padding: var(--space-3) var(--space-5); border-top: var(--border-width) solid var(--color-border); font: var(--type-table); }
+  .file.head { border-top: 0; background: var(--color-surface-muted); font: var(--type-label); color: var(--color-text-muted); }
+  .file strong { display: block; font: var(--type-body-strong); }
+  .file .caption { display: block; color: var(--color-text-muted); }
+  .theme-switch { display: flex; align-items: center; gap: var(--space-3); }
+  @media (max-width: 767px) {
+    .file { grid-template-columns: minmax(0, 1fr) auto; }
+    .file > :nth-child(2) { grid-column: 1; grid-row: 2; }
+    .file > :nth-child(3) { grid-row: 1 / span 2; grid-column: 2; }
+  }
+</style>
+</head>
+<body class="v">
+<main class="index">
+  <h1>High-fidelity screens</h1>
+  <p>Step 3 of the design plan (<a class="link" href="../../plan.md">plan.md</a> §8): the screens drawn with the real <a class="link" href="../tokens.html">design tokens</a>, in desktop (1440) and mobile (390) frames, light and dark. They follow the approved <a class="link" href="../../wireframes/index.html">wireframes</a> and use the same example data. Each file has the same viewer bar: screens, states, desktop or mobile, theme, and a link to the matching wireframe.</p>
+  <div class="theme-switch"><span class="label">Theme</span><div class="seg" aria-label="Theme">
+    <a href="#" data-set-theme="auto" aria-current="false">Auto</a><a href="#" data-set-theme="light" aria-current="false">Light</a><a href="#" data-set-theme="dark" aria-current="false">Dark</a></div></div>
+
+  <section class="card files">
+    <div class="file head"><span>File</span><span>Screens</span><span>Status</span></div>
+    <div class="file"><span><a class="link" href="dashboard-review.html"><strong>Dashboard &amp; Review</strong></a><span class="caption">Flows 2–4</span></span><span>S1, S2, D4 · 7 screens and states</span><span class="tag tone-success">Done</span></div>
+    <div class="file"><span><strong>Import</strong><span class="caption">Flows 1, 2, 5, 6 · <a class="link" href="../../wireframes/import.html">wireframe</a></span></span><span>S7–S10</span><span class="tag tone-neutral">Not yet</span></div>
+    <div class="file"><span><strong>Transactions</strong><span class="caption">Flows 3, 4 · <a class="link" href="../../wireframes/review.html#desktop-s5">wireframe</a></span></span><span>S5, S6, D6, D4 from S6</span><span class="tag tone-neutral">Not yet</span></div>
+    <div class="file"><span><strong>Reports &amp; Budgets</strong><span class="caption">Flows 7, 8 · <a class="link" href="../../wireframes/reports.html">wireframes</a></span></span><span>S11–S15, D7</span><span class="tag tone-neutral">Not yet</span></div>
+    <div class="file"><span><strong>Accounts</strong><span class="caption">Flows 1, 9 · <a class="link" href="../../wireframes/accounts.html">wireframe</a></span></span><span>S3, S4, D1–D3</span><span class="tag tone-neutral">Not yet</span></div>
+    <div class="file"><span><strong>Categories &amp; Rules</strong><span class="caption">Flow 11 · <a class="link" href="../../wireframes/organize.html">wireframe</a></span></span><span>S16, S17, D5, D6</span><span class="tag tone-neutral">Not yet</span></div>
+    <div class="file"><span><strong>Settings</strong><span class="caption">Flow 10 · <a class="link" href="../../wireframes/settings.html">wireframe</a></span></span><span>S18, D8, S8 preset edit</span><span class="tag tone-neutral">Not yet</span></div>
+    <div class="file"><span><strong>Split bills</strong><span class="caption">Flow 12 · <a class="link" href="../../wireframes/split.html">wireframe</a></span></span><span>D9, payback states of S2, S5, S6</span><span class="tag tone-neutral">Not yet</span></div>
+  </section>
+  <p class="caption">Links to screens that aren't in high fidelity yet are inactive (hover shows “Not in high fidelity yet”). The mobile More menu still opens its wireframe.</p>
+</main>
+<script>
+// Theme switch: Auto follows the system, Light and Dark force one.
+(function () {
+  var KEY = 'bc-screens-theme';
+  var root = document.documentElement;
+  function set(theme) {
+    if (theme === 'light' || theme === 'dark') root.setAttribute('data-theme', theme);
+    else root.removeAttribute('data-theme');
+    document.querySelectorAll('[data-set-theme]').forEach(function (b) {
+      b.setAttribute('aria-current', String(b.dataset.setTheme === (theme || 'auto')));
+    });
+    try { localStorage.setItem(KEY, theme || 'auto'); } catch (e) {}
+  }
+  var saved = 'auto';
+  try { saved = localStorage.getItem(KEY) || 'auto'; } catch (e) {}
+  set(saved === 'auto' ? '' : saved);
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-set-theme]');
+    if (b) { e.preventDefault(); set(b.dataset.setTheme === 'auto' ? '' : b.dataset.setTheme); }
+  });
+})();
+</script>
+</body>
+</html>
