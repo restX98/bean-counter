@@ -109,7 +109,10 @@ describe("adding an account (D1)", () => {
 
   it("rejects a malformed request before validating it", async () => {
     const res = await call("POST", "/api/accounts", { name: "Main checking" });
-    expect(res.status).toBe(400);
+    expect(res).toEqual({
+      status: 400,
+      body: { error: "body must have required property 'bank'" },
+    });
   });
 });
 

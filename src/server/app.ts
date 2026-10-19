@@ -1,6 +1,6 @@
 import fastifyStatic from "@fastify/static";
 import { sql } from "drizzle-orm";
-import Fastify from "fastify";
+import Fastify, { type FastifyError } from "fastify";
 import { todayIso } from "../domain/dates.ts";
 import { accountRoutes } from "./accounts.ts";
 import type { Db } from "./db/index.ts";
@@ -32,16 +32,31 @@ export function buildApp({
     return { ok: true, sqlite: row.version };
   });
 
-  if (webDir) {
-    app.register(fastifyStatic, { root: webDir });
+  if (webDir) app.register(fastifyStatic, { root: webDir });
+
+  // Every error answers { error: message }, like the routes' own errors, so
+  // the UI reads them all the same way.
+  app.setNotFoundHandler((request, reply) => {
     // The UI has its own routes, so any other page gets index.html.
-    app.setNotFoundHandler((request, reply) => {
-      if (request.method === "GET" && !request.url.startsWith("/api/")) {
-        return reply.sendFile("index.html");
-      }
-      return reply.code(404).send({ error: "Not found" });
-    });
-  }
+    if (
+      webDir &&
+      request.method === "GET" &&
+      !request.url.startsWith("/api/")
+    ) {
+      return reply.sendFile("index.html");
+    }
+    return reply.code(404).send({ error: "Not found" });
+  });
+  app.setErrorHandler<FastifyError>((error, request, reply) => {
+    // Fastify's own errors carry a status; anything else thrown is a 500.
+    const status = error.statusCode ?? 500;
+    // A malformed request: Fastify's message says what's wrong with it.
+    if (status < 500) return reply.code(status).send({ error: error.message });
+    request.log.error(error);
+    return reply
+      .code(500)
+      .send({ error: "Something went wrong on the server." });
+  });
 
   return app;
 }
