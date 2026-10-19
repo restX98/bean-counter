@@ -136,10 +136,6 @@
   font: var(--type-body);
   font-size: var(--text-md);
 }
-span.input {
-  display: inline-flex;
-  align-items: center;
-}
 .input::placeholder {
   color: var(--color-text-subtle);
   opacity: 1;

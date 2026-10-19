@@ -8,15 +8,20 @@ import "./styles/shell.css";
 import "./styles/controls.css";
 import "./styles/content.css";
 import { Shell } from "./components/Shell.tsx";
+import { AccountDetail } from "./pages/AccountDetail.tsx";
+import { Accounts } from "./pages/Accounts.tsx";
+import { Dashboard } from "./pages/Dashboard.tsx";
+import { More } from "./pages/More.tsx";
 import { NotBuilt, NotFound } from "./pages/NotBuilt.tsx";
 
 const router = createBrowserRouter([
   {
     element: <Shell />,
     children: [
-      { index: true, element: <NotBuilt title="Dashboard" /> },
-      { path: "accounts", element: <NotBuilt title="Accounts" inMore /> },
-      { path: "more", element: <NotBuilt title="More" /> },
+      { index: true, element: <Dashboard /> },
+      { path: "accounts", element: <Accounts /> },
+      { path: "accounts/:id", element: <AccountDetail /> },
+      { path: "more", element: <More /> },
       { path: "import", element: <NotBuilt title="Import" inMore /> },
       { path: "review", element: <NotBuilt title="Review" inMore /> },
       { path: "transactions", element: <NotBuilt title="Transactions" /> },
