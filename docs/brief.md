@@ -36,6 +36,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 | Currency | EUR is the main currency. Other currencies live in their own accounts and are never converted. |
 | UI language | English |
 | Layouts | Desktop and mobile |
+| Theme | Light and dark, following the system setting |
 | Tech stack | Not decided. This brief describes behaviour only. |
 
 ## 4. Core concepts
@@ -216,3 +217,4 @@ New features and decisions are added here as we go.
 | 2026-10-19 | Split bills: paybacks from friends are linked to the expense they pay back (one payment can cover several expenses); they aren't income and reduce the expense's category in the expense's month |
 | 2026-10-19 | Resolved the plan's open questions: deleting a category moves its rules with its transactions and deletes its budget; dismissed suggestions (not a transfer, it's income) are remembered |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |
+| 2026-10-19 | Design tokens in [design/tokens.css](design/tokens.css): light and dark themes following the system setting; teal main colour; income in green, expenses in the normal text colour, red only for problems |

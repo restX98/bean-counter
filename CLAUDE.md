@@ -42,6 +42,14 @@ Design work happens here, not in Figma.
 - Low-fidelity gray style, system font, realistic fake data.
 - Wireframes are for design only and are never reused as app code.
 
+## Design tokens
+
+- Tokens live in `docs/design/tokens.css`, previewed in `docs/design/tokens.html`. Unlike the wireframes, the app reuses `tokens.css`.
+- High-fidelity screens and the app use only the meaning tokens (`--color-*`, `--chart-*`, `--type-*`, `--space-*`, …), never the raw palette and never hard-coded colours or sizes.
+- Light and dark themes follow the system setting. Every colour change keeps text at 4.5:1 or more against its background, and borders, icons, bars and chart colours at 3:1 or more, in both themes.
+- Amounts: income is green, expenses use the normal text colour, transfers and paybacks are muted. Red is only for problems (over budget, errors, deletes).
+- Charts give their own colour to at most 6 categories; the rest are grouped under Other, in gray.
+
 ## Workflow
 
 - When a feature or decision changes, update the relevant section of docs/brief.md and add a dated row to its Feature log, in the same commit as the code.

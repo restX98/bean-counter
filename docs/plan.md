@@ -377,7 +377,7 @@ Each one is defined once in [wireframes/components.css](wireframes/components.cs
    - **Batch 1, core loop**: shared components, S1, S3, S4, D1, D2, S7–S10, S5, S6, S2.
    - **Batch 2, insight**: S11–S15, D7, S16, S17, D5, D6, D4.
    - **Batch 3, admin and edge cases**: S18, D3, D8, then the remaining empty and error states.
-2. **Design tokens** as CSS variables, such as colours, type scale and spacing.
+2. **Design tokens** as CSS variables, such as colours, type scale and spacing, in [design/tokens.css](design/tokens.css), with a preview in [design/tokens.html](design/tokens.html). They cover a light and a dark theme that follow the system setting.
 3. **High-fidelity HTML screens** built with those tokens.
 
 ## 9. Open design questions

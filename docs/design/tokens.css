@@ -1,0 +1,448 @@
+/*
+  Bean Counter design tokens.
+
+  Screens use the meaning tokens (--color-*, --chart-*, --type-*, --text-*,
+  --space-*, --radius-*, --shadow-*, layout and motion tokens), never the raw
+  palette below and never hard-coded colours or sizes.
+
+  Themes: light and dark, following the system setting. Setting
+  data-theme="light" or data-theme="dark" on an element forces a theme for it
+  and everything inside it. The dark block is written twice (system setting and
+  forced); keep the two copies identical.
+
+  Contrast (WCAG AA): text at least 4.5:1 against the background it sits on;
+  borders, icons, focus rings, progress fills and chart colours at least 3:1.
+  Preview and contrast figures: tokens.html.
+*/
+
+:root {
+  /* ---------- Palette (raw values; only the theme blocks below use these) ---------- */
+
+  --gray-0: #ffffff;
+  --gray-50: #f6f7f9;
+  --gray-100: #eef0f3;
+  --gray-200: #e1e4e9;
+  --gray-300: #c9cdd4;
+  --gray-350: #a3a9b3;
+  --gray-400: #878d98;
+  --gray-500: #646a75;
+  --gray-600: #525862;
+  --gray-700: #3c4049;
+  --gray-750: #33363e;
+  --gray-800: #2a2d34;
+  --gray-850: #22252b;
+  --gray-900: #1a1c21;
+  --gray-950: #121418;
+
+  --green-50: #edf9f1;
+  --green-100: #d3f1dd;
+  --green-300: #80d39c;
+  --green-400: #4cbf72;
+  --green-600: #1e8a46;
+  --green-700: #18743a;
+  --green-800: #155c30;
+  --green-900: #103d22;
+  --green-950: #0a2615;
+
+  --red-50: #fdf1f1;
+  --red-100: #fbdcdc;
+  --red-300: #f19a9a;
+  --red-400: #ea6f6f;
+  --red-600: #d32f2f;
+  --red-700: #b42525;
+  --red-800: #8f1f1f;
+  --red-900: #5a1717;
+  --red-950: #2e1011;
+
+  --amber-50: #fff7e8;
+  --amber-100: #feebc8;
+  --amber-300: #f5c56a;
+  --amber-400: #eeab3a;
+  --amber-600: #b66d0a;
+  --amber-700: #94560b;
+  --amber-800: #764410;
+  --amber-900: #4d2e0e;
+  --amber-950: #2a1a08;
+
+  --blue-50: #eef4ff;
+  --blue-100: #dbe7fe;
+  --blue-300: #93b8fb;
+  --blue-400: #6a9cf6;
+  --blue-600: #2563d9;
+  --blue-700: #1d4fb5;
+  --blue-800: #1c4290;
+  --blue-900: #182f5e;
+  --blue-950: #0f1c38;
+
+  /* Teal: the main colour */
+  --teal-50: #ebf7f8;
+  --teal-100: #cdeef0;
+  --teal-300: #6ccbd1;
+  --teal-400: #3eb3bb;
+  --teal-600: #0e7c87;
+  --teal-700: #0b6670;
+  --teal-800: #0d5259;
+  --teal-900: #0c363b;
+  --teal-950: #082225;
+
+  /* ---------- Text ---------- */
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 28px;
+  --text-4xl: 32px;
+  --text-body: var(--text-md);         /* 16px on mobile, see the end of the file */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+
+  /* Amounts: use with font-variant-numeric so digits line up in columns. */
+  --numbers: tabular-nums;
+
+  /* Text roles, for the font shorthand: font: var(--type-body); */
+  --type-page-title: var(--weight-semibold) var(--text-3xl)/var(--leading-tight) var(--font-sans);
+  --type-dialog-title: var(--weight-semibold) var(--text-2xl)/var(--leading-tight) var(--font-sans);
+  --type-section-title: var(--weight-semibold) var(--text-lg)/var(--leading-tight) var(--font-sans);
+  --type-big-number: var(--weight-semibold) var(--text-4xl)/var(--leading-tight) var(--font-sans);
+  --type-body: var(--weight-regular) var(--text-body)/var(--leading-normal) var(--font-sans);
+  --type-body-strong: var(--weight-semibold) var(--text-body)/var(--leading-normal) var(--font-sans);
+  --type-table: var(--weight-regular) var(--text-sm)/var(--leading-normal) var(--font-sans);
+  --type-label: var(--weight-semibold) var(--text-xs)/var(--leading-normal) var(--font-sans);
+  --type-caption: var(--weight-regular) var(--text-xs)/var(--leading-normal) var(--font-sans);
+
+  /* ---------- Spacing (4px steps) ---------- */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* ---------- Shape ---------- */
+
+  --radius-sm: 4px;      /* tags, checkboxes */
+  --radius-md: 6px;      /* buttons, inputs, dropdowns */
+  --radius-lg: 10px;     /* cards, charts, banners */
+  --radius-xl: 14px;     /* dialogs, side panel, mobile sheets */
+  --radius-full: 999px;  /* count badges, pills */
+
+  --border-width: 1px;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /* ---------- Layout ---------- */
+
+  --sidebar-width: 240px;
+  --content-max: 1120px;
+  --panel-width: 440px;          /* S6 transaction detail */
+  --dialog-width: 560px;
+  --dialog-width-sm: 440px;      /* confirmations: D3, D8 */
+  --control-height: 36px;        /* buttons, inputs, dropdowns on desktop */
+  --row-height: 44px;            /* table rows on desktop */
+  --touch-target: 44px;          /* minimum tap size on mobile */
+  --topbar-height: 56px;         /* mobile header */
+  --tabbar-height: 64px;         /* mobile bottom tabs */
+  /* The mobile layout applies below 768px. Media queries can't read
+     variables, so write 767px there; this copy is for scripts. */
+  --breakpoint-mobile: 768px;
+
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-panel: 30;
+  --z-dialog: 40;
+  --z-toast: 50;
+
+  /* ---------- Motion ---------- */
+
+  --duration-fast: 120ms;      /* hover, press */
+  --duration-normal: 200ms;    /* panels, dialogs, toasts */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---------- Light theme ---------- */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces */
+  --color-bg: var(--gray-50);
+  --color-surface: var(--gray-0);
+  --color-surface-muted: var(--gray-100);
+  --color-surface-overlay: var(--gray-0);
+  --color-hover: var(--gray-100);
+  --color-scrim: rgba(18, 20, 24, 0.45);
+
+  /* Lines */
+  --color-border: var(--gray-200);
+  --color-border-strong: var(--gray-400);
+  --color-focus: var(--teal-600);
+
+  /* Text */
+  --color-text: var(--gray-900);
+  --color-text-muted: var(--gray-600);
+  --color-text-subtle: var(--gray-500);
+  --color-text-disabled: var(--gray-400);
+  --color-inverse-bg: var(--gray-900);
+  --color-inverse-text: var(--gray-50);
+
+  /* Main colour */
+  --color-accent: var(--teal-600);
+  --color-accent-hover: var(--teal-700);
+  --color-on-accent: var(--gray-0);
+  --color-accent-text: var(--teal-700);
+  --color-accent-subtle: var(--teal-50);
+
+  /* Money. Expenses use the normal text colour; red is only for problems. */
+  --color-income: var(--green-700);
+  --color-expense: var(--color-text);
+  --color-transfer: var(--color-text-muted);
+  --color-payback: var(--color-text-muted);
+
+  /* Tones: tags, banners, icons */
+  --color-success-text: var(--green-800);
+  --color-success-bg: var(--green-50);
+  --color-success-border: var(--green-100);
+  --color-success-solid: var(--green-600);
+  --color-warning-text: var(--amber-800);
+  --color-warning-bg: var(--amber-50);
+  --color-warning-border: var(--amber-100);
+  --color-warning-solid: var(--amber-600);
+  --color-danger-text: var(--red-700);
+  --color-danger-bg: var(--red-50);
+  --color-danger-border: var(--red-100);
+  --color-danger-solid: var(--red-600);
+  --color-on-danger: var(--gray-0);
+  --color-info-text: var(--blue-800);
+  --color-info-bg: var(--blue-50);
+  --color-info-border: var(--blue-100);
+  --color-info-solid: var(--blue-600);
+  --color-neutral-text: var(--gray-700);
+  --color-neutral-bg: var(--gray-100);
+  --color-neutral-border: var(--gray-200);
+  --color-neutral-solid: var(--gray-500);
+
+  /* Budget bars */
+  --color-track: var(--gray-200);
+  --color-progress: var(--color-accent);
+  --color-progress-over: var(--color-danger-solid);
+
+  /* Charts: categories in rank order, then Other. Show at most 6 categories
+     in a chart and group the rest as Other; the list next to it shows all. */
+  --chart-1: #3571b6;
+  --chart-2: #925e2a;
+  --chart-3: #2e9e9a;
+  --chart-4: #a8245b;
+  --chart-5: #9e8b2e;
+  --chart-6: #672a92;
+  --chart-other: var(--gray-500);
+  --chart-income: var(--color-success-solid);
+  --chart-expense: var(--gray-400);
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(18, 20, 24, 0.06);
+  --shadow-md: 0 4px 12px rgba(18, 20, 24, 0.10);
+  --shadow-lg: 0 12px 32px rgba(18, 20, 24, 0.18);
+}
+
+/* ---------- Dark theme: system setting ---------- */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    /* Surfaces */
+    --color-bg: var(--gray-950);
+    --color-surface: var(--gray-900);
+    --color-surface-muted: var(--gray-850);
+    --color-surface-overlay: var(--gray-850);
+    --color-hover: var(--gray-800);
+    --color-scrim: rgba(0, 0, 0, 0.6);
+
+    /* Lines */
+    --color-border: var(--gray-750);
+    --color-border-strong: var(--gray-400);
+    --color-focus: var(--teal-400);
+
+    /* Text */
+    --color-text: var(--gray-50);
+    --color-text-muted: var(--gray-300);
+    --color-text-subtle: var(--gray-350);
+    --color-text-disabled: var(--gray-600);
+    --color-inverse-bg: var(--gray-100);
+    --color-inverse-text: var(--gray-900);
+
+    /* Main colour */
+    --color-accent: var(--teal-400);
+    --color-accent-hover: var(--teal-300);
+    --color-on-accent: var(--gray-950);
+    --color-accent-text: var(--teal-300);
+    --color-accent-subtle: var(--teal-900);
+
+    /* Money */
+    --color-income: var(--green-400);
+    --color-expense: var(--color-text);
+    --color-transfer: var(--color-text-muted);
+    --color-payback: var(--color-text-muted);
+
+    /* Tones */
+    --color-success-text: var(--green-300);
+    --color-success-bg: var(--green-950);
+    --color-success-border: var(--green-900);
+    --color-success-solid: var(--green-400);
+    --color-warning-text: var(--amber-300);
+    --color-warning-bg: var(--amber-950);
+    --color-warning-border: var(--amber-900);
+    --color-warning-solid: var(--amber-400);
+    --color-danger-text: var(--red-300);
+    --color-danger-bg: var(--red-950);
+    --color-danger-border: var(--red-900);
+    --color-danger-solid: var(--red-400);
+    --color-on-danger: var(--gray-950);
+    --color-info-text: var(--blue-300);
+    --color-info-bg: var(--blue-950);
+    --color-info-border: var(--blue-900);
+    --color-info-solid: var(--blue-400);
+    --color-neutral-text: var(--gray-300);
+    --color-neutral-bg: var(--gray-800);
+    --color-neutral-border: var(--gray-750);
+    --color-neutral-solid: var(--gray-400);
+
+    /* Budget bars */
+    --color-track: var(--gray-750);
+    --color-progress: var(--color-accent);
+    --color-progress-over: var(--color-danger-solid);
+
+    /* Charts */
+    --chart-1: #81a6cf;
+    --chart-2: #d5a16d;
+    --chart-3: #6dd5d1;
+    --chart-4: #d63d7d;
+    --chart-5: #e7d05a;
+    --chart-6: #ab63de;
+    --chart-other: var(--gray-400);
+    --chart-income: var(--color-success-solid);
+    --chart-expense: var(--gray-500);
+
+    /* Elevation */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ---------- Dark theme: forced (keep identical to the block above) ---------- */
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --color-bg: var(--gray-950);
+  --color-surface: var(--gray-900);
+  --color-surface-muted: var(--gray-850);
+  --color-surface-overlay: var(--gray-850);
+  --color-hover: var(--gray-800);
+  --color-scrim: rgba(0, 0, 0, 0.6);
+
+  /* Lines */
+  --color-border: var(--gray-750);
+  --color-border-strong: var(--gray-400);
+  --color-focus: var(--teal-400);
+
+  /* Text */
+  --color-text: var(--gray-50);
+  --color-text-muted: var(--gray-300);
+  --color-text-subtle: var(--gray-350);
+  --color-text-disabled: var(--gray-600);
+  --color-inverse-bg: var(--gray-100);
+  --color-inverse-text: var(--gray-900);
+
+  /* Main colour */
+  --color-accent: var(--teal-400);
+  --color-accent-hover: var(--teal-300);
+  --color-on-accent: var(--gray-950);
+  --color-accent-text: var(--teal-300);
+  --color-accent-subtle: var(--teal-900);
+
+  /* Money */
+  --color-income: var(--green-400);
+  --color-expense: var(--color-text);
+  --color-transfer: var(--color-text-muted);
+  --color-payback: var(--color-text-muted);
+
+  /* Tones */
+  --color-success-text: var(--green-300);
+  --color-success-bg: var(--green-950);
+  --color-success-border: var(--green-900);
+  --color-success-solid: var(--green-400);
+  --color-warning-text: var(--amber-300);
+  --color-warning-bg: var(--amber-950);
+  --color-warning-border: var(--amber-900);
+  --color-warning-solid: var(--amber-400);
+  --color-danger-text: var(--red-300);
+  --color-danger-bg: var(--red-950);
+  --color-danger-border: var(--red-900);
+  --color-danger-solid: var(--red-400);
+  --color-on-danger: var(--gray-950);
+  --color-info-text: var(--blue-300);
+  --color-info-bg: var(--blue-950);
+  --color-info-border: var(--blue-900);
+  --color-info-solid: var(--blue-400);
+  --color-neutral-text: var(--gray-300);
+  --color-neutral-bg: var(--gray-800);
+  --color-neutral-border: var(--gray-750);
+  --color-neutral-solid: var(--gray-400);
+
+  /* Budget bars */
+  --color-track: var(--gray-750);
+  --color-progress: var(--color-accent);
+  --color-progress-over: var(--color-danger-solid);
+
+  /* Charts */
+  --chart-1: #81a6cf;
+  --chart-2: #d5a16d;
+  --chart-3: #6dd5d1;
+  --chart-4: #d63d7d;
+  --chart-5: #e7d05a;
+  --chart-6: #ab63de;
+  --chart-other: var(--gray-400);
+  --chart-income: var(--color-success-solid);
+  --chart-expense: var(--gray-500);
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 767px) {
+  :root {
+    --text-body: var(--text-lg);   /* 16px also stops iOS zooming into inputs */
+    --type-page-title: var(--weight-semibold) var(--text-xl)/var(--leading-tight) var(--font-sans);
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+  }
+}
