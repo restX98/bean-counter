@@ -182,7 +182,7 @@ export function accountRoutes(
         );
         if (moved === undefined) {
           return invalid(reply, {
-            currency: `The balance anchor, ${formatAmount(anchorAmount, row.currency)}, has more decimals than ${account.value.currency} allows. Set the balance again first.`,
+            currency: `The balance anchor, ${formatAmount(anchorAmount, row.currency)}, can't be written exactly in ${account.value.currency}. Set the balance again first.`,
           });
         }
         anchorAmount = moved;

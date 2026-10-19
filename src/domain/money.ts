@@ -146,7 +146,8 @@ export function parseAmount(text: string, currency: string): ParseResult {
 /**
  * The same written amount in a currency with a different number of decimals:
  * 1,120.50 in EUR (112050) is 1,120.500 in KWD (1120500). Returns undefined
- * when the amount can't be written in the new currency (1,120.50 in JPY).
+ * when the amount can't be written exactly in the new currency: it has too
+ * many decimals (1,120.50 in JPY), or more decimals make it too large.
  */
 export function rescale(
   minor: number,
@@ -154,7 +155,10 @@ export function rescale(
   to: string,
 ): number | undefined {
   const diff = digitsOf(to) - digitsOf(from);
-  if (diff >= 0) return minor * 10 ** diff;
+  if (diff >= 0) {
+    const moved = minor * 10 ** diff;
+    return Number.isSafeInteger(moved) ? moved : undefined;
+  }
   const factor = 10 ** -diff;
   return minor % factor === 0 ? minor / factor : undefined;
 }

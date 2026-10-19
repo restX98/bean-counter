@@ -149,4 +149,10 @@ describe("rescale", () => {
   it("refuses when the decimals would be lost", () => {
     expect(rescale(112050, "EUR", "JPY")).toBeUndefined();
   });
+
+  it("refuses when more decimals would make it too large to be exact", () => {
+    expect(rescale(Number.MAX_SAFE_INTEGER, "EUR", "KWD")).toBeUndefined();
+    expect(rescale(-Number.MAX_SAFE_INTEGER, "EUR", "KWD")).toBeUndefined();
+    expect(rescale(900719925474099, "EUR", "KWD")).toBe(9007199254740990);
+  });
 });

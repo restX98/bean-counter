@@ -189,7 +189,7 @@ describe("editing an account (D1)", () => {
       body: {
         errors: {
           currency:
-            "The balance anchor, 1,120.50 €, has more decimals than JPY allows. Set the balance again first.",
+            "The balance anchor, 1,120.50 €, can't be written exactly in JPY. Set the balance again first.",
         },
       },
     });
