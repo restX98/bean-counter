@@ -6,13 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Bean Counter is a single-user web app, reachable only on localhost, that tracks cashflow across my bank accounts using CSV/Excel statements I import. The spec is [docs/brief.md](docs/brief.md). Read it before working on a feature.
 
-## Status
+## Stack
 
-There's no code yet and no tech stack has been chosen. If you're asked to write code before a stack exists, propose one with its trade-offs and wait for approval. Don't scaffold anything or add dependencies first. Once a stack is approved, fill in **Commands** below.
+TypeScript everywhere: one Node process, with the data in one SQLite file. Approved on 2026-10-19.
+
+- **UI** (`src/web/`): React and Vite. React Router and TanStack Query come with the app shell. Styling is plain CSS on `docs/design/tokens.css`, imported from there and never copied. Components are ported from `docs/design/screens/components.css`, without the viewer chrome. No Tailwind or UI kit. Charts are our own SVG components.
+- **Server** (`src/server/`): Fastify, listening on 127.0.0.1 only. It serves the JSON API under `/api` and, after a build, the UI.
+- **Database**: SQLite through better-sqlite3, with Drizzle for the schema and migrations. The file lives in `data/` (gitignored). Backup and restore work on a copy of that file.
+- **Domain logic** (`src/domain/`): plain functions that never import the database, the server or React, so they can be unit tested directly.
+- **Import**: Papa Parse for CSV, ExcelJS for .xlsx. The old .xls format isn't supported.
+- **Money**: integer minor units (cents) plus a currency code. Parse text straight to cents, never through `parseFloat`.
+- **Tests**: Vitest, with `*.test.ts` files next to the code they test.
+- **TypeScript 6.0, not 7**: typescript-eslint doesn't support 7 yet.
+- Add a dependency only when a feature needs it.
 
 ## Commands
 
-_To be added once the stack is chosen: run, test, run a single test, lint._
+_Added with the project setup._
 
 ## Domain rules
 
@@ -55,7 +65,7 @@ Design work happens here, not in Figma.
 - They live in `docs/design/screens/`: one HTML file per group of screens, plus `index.html` that tracks what's done. Each file loads only `../tokens.css` and the shared `components.css`; nothing is loaded from the internet.
 - They follow `docs/plan.md` and the approved wireframes, with the same example data. If a screen should differ from the plan, ask first, then update the plan in the same commit.
 - Every screen has a desktop (1440 × 1024) and a mobile (390 × 844) frame. On mobile, every dialog is a full-screen sheet. Check both themes with the viewer's Light/Dark switch before committing.
-- Like the wireframes, they are design reference. Whether the app reuses `components.css` is decided with the stack.
+- Like the wireframes, they are design reference. The app ports their components into its own CSS (see **Stack**) and never loads `components.css`.
 
 ## Workflow
 

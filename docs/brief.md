@@ -31,13 +31,13 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 | Users | Single user (me). |
 | Hosting | Runs locally, reachable only from localhost. The data stays on my machine. |
 | Access | No login. |
-| Data input | CSV/Excel import of bank statements |
+| Data input | CSV/Excel (.xlsx) import of bank statements |
 | Account types | Checking, savings |
 | Currency | EUR is the main currency. Other currencies live in their own accounts and are never converted. |
 | UI language | English |
 | Layouts | Desktop and mobile |
 | Theme | Light and dark, following the system setting |
-| Tech stack | Not decided. This brief describes behaviour only. |
+| Tech stack | TypeScript: a React UI and a Fastify server on Node, with the data in one SQLite file. Details in CLAUDE.md; this brief describes behaviour only. |
 
 ## 4. Core concepts
 
@@ -218,3 +218,4 @@ New features and decisions are added here as we go.
 | 2026-10-19 | Resolved the plan's open questions: deleting a category moves its rules with its transactions and deletes its budget; dismissed suggestions (not a transfer, it's income) are remembered |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |
 | 2026-10-19 | Design tokens in [design/tokens.css](design/tokens.css): light and dark themes following the system setting; teal main colour; income in green, expenses in the normal text colour, red only for problems |
+| 2026-10-19 | Tech stack: TypeScript, React and Vite, Fastify on 127.0.0.1, SQLite (better-sqlite3 and Drizzle), Papa Parse and ExcelJS (.xlsx only, no old .xls), Vitest; money stored as integer cents |
