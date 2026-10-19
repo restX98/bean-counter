@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split a bill · Bean Counter wireframes</title>
+<link rel="stylesheet" href="components.css">
+<style>
+  /* Split-a-bill flow only. Shared pieces live in components.css. */
+  .table td a, .m-list a.item { text-decoration: none; }
+  .m-list .item .checkbox::before { flex: none; }
+  .m-group > summary .tag { margin-left: 6px; font-weight: 400; }
+</style>
+</head>
+<body class="wf">
+
+<!-- =====================================================================
+     Flow 12 in docs/plan.md §6 (brief §5.10). Two days after the other files:
+     a new import on 19/10 into Main checking brought
+       16/10 PIZZERIA DA GINO     −48.00 €  (Marco's part 24.00 €)
+       17/10 RISTORANTE DA MARIO −305.00 €  (Marco's part 150.00 €)
+       19/10 BONIFICO DA MARCO   +174.00 €  = 150.00 + 24.00
+     Review: 12 + 1 possible payback = 13; after linking, back to 12.
+     Your shares: dinner 155.00 €, pizzeria 24.00 €, both in October's Eating out.
+     ===================================================================== -->
+
+<!-- ======================= DESKTOP · S2 Possible payback ======================= -->
+<section class="wf-screen" id="desktop-s2">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#desktop-s2" aria-current="page">S2 Possible payback</a>
+      <a href="#desktop-d9">D9 Link payback</a>
+      <a href="#desktop-s5">S5 After linking</a>
+      <a href="#desktop-s6-expense">S6 Expense with paybacks</a>
+      <a href="#desktop-s6-payback">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s2" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s2">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">Two days later (19/10), a new import brought the pizzeria (16/10), the dinner (17/10) and Marco's +174.00 €. The payment matched no rule and isn't a possible transfer, so Review suggests it as a possible payback (13 items). The other groups are collapsed here; they're the same as in review.html.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="#desktop-s2">Review <span class="tag">13</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="#desktop-s5">Transactions</a>
+          <a href="reports.html#desktop-s11">Reports</a>
+          <a href="budgets.html#desktop-s14">Budgets</a>
+          <a href="organize.html#desktop-s16">Categories</a>
+          <a href="organize.html#desktop-s17">Rules</a>
+          <a href="settings.html#desktop-s18">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><div class="stack"><h1 class="h1">Review</h1><span class="muted">13 items need your decision</span></div></div>
+        <div class="stack" style="gap:8px">
+          <div class="row"><span class="h2">Possible paybacks (1)</span><span class="tag">New</span></div>
+          <table class="table">
+            <colgroup><col style="width:110px"><col style="width:150px"><col><col style="width:120px"><col style="width:300px"></colgroup>
+            <tbody>
+              <tr>
+                <td>19/10/2026</td><td>Main checking</td>
+                <td><span class="stack" style="gap:2px"><span class="strong">BONIFICO DA MARCO</span><span class="small muted">Money in that no rule matched. It could pay back RISTORANTE DA MARIO −305.00 € (17/10) or PIZZERIA DA GINO −48.00 € (16/10).</span></span></td>
+                <td class="strong">+174.00 €</td>
+                <td><div class="row"><a class="btn btn-primary" href="#desktop-d9">Link…</a><a class="btn btn-secondary" title="Counts it as income instead; it then needs a category">It's income</a></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:360px"><col></colgroup>
+          <tbody>
+            <tr class="dim"><td><a href="review.html#desktop-s2">▸ Uncategorized (7)</a></td><td>Same as in review.html</td></tr>
+            <tr class="dim"><td><a href="review.html#desktop-s2">▸ Rule conflicts (2)</a></td><td>Same as in review.html</td></tr>
+            <tr class="dim"><td><a href="review.html#desktop-s2">▸ Transfers to confirm (2)</a></td><td>Same as in review.html</td></tr>
+            <tr class="dim"><td><a href="review.html#desktop-s2">▸ Balance mismatches (1)</a></td><td>Same as in review.html</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Until you decide, reports leave the +174.00 € out, like a possible transfer.</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · D9 Link payback ======================= -->
+<section class="wf-screen" id="desktop-d9">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Possible payback</a>
+      <a href="#desktop-d9" aria-current="page">D9 Link payback</a>
+      <a href="#desktop-s5">S5 After linking</a>
+      <a href="#desktop-s6-expense">S6 Expense with paybacks</a>
+      <a href="#desktop-s6-payback">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d9" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-d9">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D9 over S2. Marco's 174.00 € is split across two expenses: 150.00 € for the dinner and 24.00 € for the pizzeria. Amounts are prefilled (newest expense first) and adjusted by hand; a payback can't exceed what's left on an expense.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">13</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><div class="stack"><h1 class="h1">Review</h1><span class="muted">13 items need your decision</span></div></div>
+        <div class="stack" style="gap:8px">
+          <div class="row"><span class="h2">Possible paybacks (1)</span><span class="tag">New</span></div>
+          <table class="table">
+            <colgroup><col style="width:110px"><col style="width:150px"><col><col style="width:120px"><col style="width:300px"></colgroup>
+            <tbody>
+              <tr>
+                <td>19/10/2026</td><td>Main checking</td>
+                <td><span class="stack" style="gap:2px"><span class="strong">BONIFICO DA MARCO</span><span class="small muted">Money in that no rule matched. It could pay back RISTORANTE DA MARIO −305.00 € (17/10) or PIZZERIA DA GINO −48.00 € (16/10).</span></span></td>
+                <td class="strong">+174.00 €</td>
+                <td><div class="row"><a class="btn btn-primary">Link…</a><a class="btn btn-secondary" title="Counts it as income instead; it then needs a category">It's income</a></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:360px"><col></colgroup>
+          <tbody>
+            <tr class="dim"><td><a>▸ Uncategorized (7)</a></td><td>Same as in review.html</td></tr>
+            <tr class="dim"><td><a>▸ Rule conflicts (2)</a></td><td>Same as in review.html</td></tr>
+            <tr class="dim"><td><a>▸ Transfers to confirm (2)</a></td><td>Same as in review.html</td></tr>
+            <tr class="dim"><td><a>▸ Balance mismatches (1)</a></td><td>Same as in review.html</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Until you decide, reports leave the +174.00 € out, like a possible transfer.</span>
+      </main>
+      <div class="overlay">
+        <div class="dialog" style="width:620px">
+          <div class="dialog-title"><span>Link payback</span><a href="#desktop-s2">✕</a></div>
+          <div class="dialog-body">
+            <div class="card tinted">
+              <span class="strong">BONIFICO DA MARCO · +174.00 €</span>
+              <span class="small muted">Main checking · 19/10/2026</span>
+            </div>
+            <span class="label">Which expenses does it pay back? (last 30 days, not fully paid back)</span>
+            <div class="m-list">
+              <div class="item"><span class="checkbox checked"></span><span class="stack" style="gap:2px; flex:1"><span class="strong">RISTORANTE DA MARIO</span><span class="small muted">17/10/2026 · Eating out · −305.00 €</span></span><span class="small muted">payback</span><div class="input" style="width:120px">150.00 €</div></div>
+              <div class="item"><span class="checkbox checked"></span><span class="stack" style="gap:2px; flex:1"><span class="strong">PIZZERIA DA GINO</span><span class="small muted">16/10/2026 · Eating out · −48.00 €</span></span><span class="small muted">payback</span><div class="input" style="width:120px">24.00 €</div></div>
+              <div class="item"><span class="checkbox"></span><span class="stack" style="gap:2px; flex:1"><span class="strong">PHARMACY 24</span><span class="small muted">15/10/2026 · Uncategorized · −18.50 €</span></span><span class="small muted">payback</span><div class="input placeholder" style="width:120px">—</div></div>
+              <div class="item"><span class="checkbox"></span><span class="stack" style="gap:2px; flex:1"><span class="strong">AMAZON EU SARL</span><span class="small muted">14/10/2026 · Shopping · −34.90 €</span></span><span class="small muted">payback</span><div class="input placeholder" style="width:120px">—</div></div>
+            </div>
+            <div class="input placeholder fill">Search older expenses…</div>
+            <div class="kv strong"><span>Linked</span><span>174.00 € of 174.00 € ✓</span></div>
+            <span class="small muted">Amounts are prefilled with what's left, newest expense first; adjust them. A payback can't be more than what's left on an expense. Any part you don't link needs a category.</span>
+          </div>
+          <div class="dialog-actions">
+            <a class="btn btn-secondary" href="#desktop-s2">Cancel</a>
+            <a class="btn btn-primary" href="#desktop-s5">Link payback</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S5 After linking ======================= -->
+<section class="wf-screen" id="desktop-s5">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Possible payback</a>
+      <a href="#desktop-d9">D9 Link payback</a>
+      <a href="#desktop-s5" aria-current="page">S5 After linking</a>
+      <a href="#desktop-s6-expense">S6 Expense with paybacks</a>
+      <a href="#desktop-s6-payback">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s5" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s5">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">After linking (Review is back to 12). The payback shows ↩ with the expenses it pays back; each expense shows your share. Click a row to open it.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary" href="import.html#desktop-s7">Import</a>
+        <nav class="nav">
+          <a href="first-run.html#desktop-s1">Dashboard</a>
+          <a href="#desktop-s2">Review <span class="tag">12</span></a>
+          <a href="accounts.html#desktop-s3">Accounts</a>
+          <a href="#desktop-s5">Transactions</a>
+          <a href="reports.html#desktop-s11">Reports</a>
+          <a href="budgets.html#desktop-s14">Budgets</a>
+          <a href="organize.html#desktop-s16">Categories</a>
+          <a href="organize.html#desktop-s17">Rules</a>
+          <a href="settings.html#desktop-s18">Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:320px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>19/10/2026</td><td>Main checking</td><td><a class="strong" href="#desktop-s6-payback">BONIFICO DA MARCO</a></td><td><span class="tag">↩ payback · 2 expenses</span></td><td>+174.00 €</td></tr>
+            <tr><td>17/10/2026</td><td>Main checking</td><td><a class="strong" href="#desktop-s6-expense">RISTORANTE DA MARIO</a></td><td>Eating out <span class="tag">↩ your share 155.00 €</span></td><td>−305.00 €</td></tr>
+            <tr><td>16/10/2026</td><td>Main checking</td><td>PIZZERIA DA GINO</td><td>Eating out <span class="tag">↩ your share 24.00 €</span></td><td>−48.00 €</td></tr>
+            <tr><td>15/10/2026</td><td>Main checking</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing the 5 most recent · Load more</span>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S6 Expense with paybacks ======================= -->
+<section class="wf-screen" id="desktop-s6-expense">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Possible payback</a>
+      <a href="#desktop-d9">D9 Link payback</a>
+      <a href="#desktop-s5">S5 After linking</a>
+      <a href="#desktop-s6-expense" aria-current="page">S6 Expense with paybacks</a>
+      <a href="#desktop-s6-payback">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6-expense" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s6-expense">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 for the dinner: −305.00 € with 150.00 € paid back, so your share is 155.00 €. Reports and the Eating out budget count 155.00 €, in October.</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:320px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>19/10/2026</td><td>Main checking</td><td>BONIFICO DA MARCO</td><td><span class="tag">↩ payback · 2 expenses</span></td><td>+174.00 €</td></tr>
+            <tr class="selected"><td>17/10/2026</td><td>Main checking</td><td>RISTORANTE DA MARIO</td><td>Eating out <span class="tag">↩ your share 155.00 €</span></td><td>−305.00 €</td></tr>
+            <tr><td>16/10/2026</td><td>Main checking</td><td>PIZZERIA DA GINO</td><td>Eating out <span class="tag">↩ your share 24.00 €</span></td><td>−48.00 €</td></tr>
+            <tr><td>15/10/2026</td><td>Main checking</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing the 5 most recent · Load more</span>
+      </main>
+      <div class="scrim"></div>
+      <div class="side-panel">
+        <div class="panel-head"><span>Transaction</span><a href="#desktop-s5">✕</a></div>
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>17/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>−305.00 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">RISTORANTE DA MARIO</span></div>
+        <div class="field"><span class="label">Category</span><div class="dropdown fill">Eating out</div><span class="small muted">Its paybacks follow if you change it.</span></div>
+        <div class="divider"></div>
+        <span class="h2">Paid back</span>
+        <div class="card tinted">
+          <div class="kv strong"><span>Your share</span><span>155.00 €</span></div>
+          <span class="small muted">305.00 € paid − 150.00 € paid back</span>
+        </div>
+        <div class="m-list">
+          <a class="item" href="#desktop-s6-payback"><span class="stack" style="gap:2px"><span>↩ BONIFICO DA MARCO</span><span class="small muted">19/10/2026 · part of +174.00 €</span></span><span class="strong">150.00 €</span></a>
+        </div>
+        <a class="btn btn-secondary" title="Opens D9 from the expense side: pick the incoming payment" style="align-self:flex-start">Link a payback…</a>
+        <div class="divider push"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets" style="align-self:flex-start">Exclude transaction</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DESKTOP · S6 Linked payback ======================= -->
+<section class="wf-screen" id="desktop-s6-payback">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#desktop-s2">S2 Possible payback</a>
+      <a href="#desktop-d9">D9 Link payback</a>
+      <a href="#desktop-s5">S5 After linking</a>
+      <a href="#desktop-s6-expense">S6 Expense with paybacks</a>
+      <a href="#desktop-s6-payback" aria-current="page">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6-payback" aria-current="page">Desktop 1440</a>
+      <a href="#mobile-s6-payback">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 for Marco's payment. A linked payback has no category and isn't income: it lowers Eating out in October by 174.00 € in total (150.00 € + 24.00 €).</p>
+  <div class="wf-stage">
+    <div class="frame frame-desktop">
+      <aside class="sidebar">
+        <div class="brand">Bean Counter</div>
+        <a class="btn btn-primary">Import</a>
+        <nav class="nav">
+          <a>Dashboard</a><a>Review <span class="tag">12</span></a><a>Accounts</a><a>Transactions</a><a>Reports</a><a>Budgets</a><a>Categories</a><a>Rules</a><a>Settings</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <div class="title-row"><h1 class="h1">Transactions</h1></div>
+        <div class="row">
+          <div class="dropdown" style="width:180px">All accounts</div>
+          <div class="dropdown" style="width:180px">October 2026</div>
+          <div class="dropdown" style="width:180px">All categories</div>
+          <div class="dropdown" style="width:180px">All types</div>
+          <div class="input placeholder" style="flex:1; width:auto">Search description…</div>
+        </div>
+        <table class="table">
+          <colgroup><col style="width:110px"><col style="width:160px"><col><col style="width:320px"><col style="width:140px"></colgroup>
+          <thead><tr><th>Date</th><th>Account</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr class="selected"><td>19/10/2026</td><td>Main checking</td><td>BONIFICO DA MARCO</td><td><span class="tag">↩ payback · 2 expenses</span></td><td>+174.00 €</td></tr>
+            <tr><td>17/10/2026</td><td>Main checking</td><td>RISTORANTE DA MARIO</td><td>Eating out <span class="tag">↩ your share 155.00 €</span></td><td>−305.00 €</td></tr>
+            <tr><td>16/10/2026</td><td>Main checking</td><td>PIZZERIA DA GINO</td><td>Eating out <span class="tag">↩ your share 24.00 €</span></td><td>−48.00 €</td></tr>
+            <tr><td>15/10/2026</td><td>Main checking</td><td>PHARMACY 24</td><td><span class="tag">Uncategorized</span></td><td>−18.50 €</td></tr>
+            <tr><td>14/10/2026</td><td>Main checking</td><td>AMAZON EU SARL</td><td>Shopping</td><td>−34.90 €</td></tr>
+          </tbody>
+        </table>
+        <span class="small muted">Showing the 5 most recent · Load more</span>
+      </main>
+      <div class="scrim"></div>
+      <div class="side-panel">
+        <div class="panel-head"><span>Transaction</span><a href="#desktop-s5">✕</a></div>
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>19/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>+174.00 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">BONIFICO DA MARCO</span></div>
+        <div class="divider"></div>
+        <div class="row"><span class="h2">Payback</span><span class="tag">↩ 2 expenses</span></div>
+        <div class="m-list">
+          <a class="item" href="#desktop-s6-expense"><span class="stack" style="gap:2px"><span>RISTORANTE DA MARIO</span><span class="small muted">17/10/2026 · Eating out · −305.00 €</span></span><span class="strong">150.00 €</span></a>
+          <div class="item"><span class="stack" style="gap:2px"><span>PIZZERIA DA GINO</span><span class="small muted">16/10/2026 · Eating out · −48.00 €</span></span><span class="strong">24.00 €</span></div>
+        </div>
+        <div class="kv"><span>Left unlinked</span><span>0.00 €</span></div>
+        <div class="row"><a class="btn btn-secondary" href="#desktop-d9">Edit split…</a><a class="btn btn-secondary" title="Makes it a normal transaction again; it then needs a category">Unlink</a></div>
+        <span class="small muted">A payback isn't income and has no category: it lowers Eating out in October by 174.00 €.</span>
+        <div class="divider push"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets" style="align-self:flex-start">Exclude transaction</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S2 Possible payback ======================== -->
+<section class="wf-screen" id="mobile-s2">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#mobile-s2" aria-current="page">S2 Possible payback</a>
+      <a href="#mobile-d9">D9 Link payback</a>
+      <a href="#mobile-s5">S5 After linking</a>
+      <a href="#mobile-s6-expense">S6 Expense with paybacks</a>
+      <a href="#mobile-s6-payback">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s2">Desktop 1440</a>
+      <a href="#mobile-s2" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">Review with the new Possible paybacks group open; the other groups are collapsed.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a title="Back to More (not wireframed yet)">←</a>Review</span></header>
+      <div class="m-content">
+        <span class="muted" style="font-size:13px">13 items need your decision</span>
+        <details class="m-group" open>
+          <summary>Possible paybacks (1) <span class="tag">New</span></summary>
+          <div class="stack">
+            <div class="row-card">
+              <div class="top"><span class="small muted">Main checking · 19/10</span><span class="strong">+174.00 €</span></div>
+              <span class="strong">BONIFICO DA MARCO</span>
+              <span class="small muted">It could pay back RISTORANTE DA MARIO −305.00 € (17/10) or PIZZERIA DA GINO −48.00 € (16/10).</span>
+              <div class="split"><a class="btn btn-primary" href="#mobile-d9">Link…</a><a class="btn btn-secondary" title="Counts it as income instead">It's income</a></div>
+            </div>
+          </div>
+        </details>
+        <details class="m-group"><summary>Uncategorized (7)</summary><span class="small muted">Same as in <a href="review.html#mobile-s2">review.html</a>.</span></details>
+        <details class="m-group"><summary>Rule conflicts (2)</summary><span class="small muted">Same as in <a href="review.html#mobile-s2">review.html</a>.</span></details>
+        <details class="m-group"><summary>Transfers to confirm (2)</summary><span class="small muted">Same as in <a href="review.html#mobile-s2">review.html</a>.</span></details>
+        <details class="m-group"><summary>Balance mismatches (1)</summary><span class="small muted">Same as in <a href="review.html#mobile-s2">review.html</a>.</span></details>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a title="Not wireframed yet" aria-current="page">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · D9 Link payback ======================== -->
+<section class="wf-screen" id="mobile-d9">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Possible payback</a>
+      <a href="#mobile-d9" aria-current="page">D9 Link payback</a>
+      <a href="#mobile-s5">S5 After linking</a>
+      <a href="#mobile-s6-expense">S6 Expense with paybacks</a>
+      <a href="#mobile-s6-payback">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-d9">Desktop 1440</a>
+      <a href="#mobile-d9" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">D9 as a full-screen sheet: one card per expense, with the amount to link.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-topbar"><a class="close" href="#mobile-s2">✕</a><span class="title">Link payback</span><span class="spacer"></span></header>
+      <div class="m-content">
+            <div class="card tinted">
+              <span class="strong">BONIFICO DA MARCO · +174.00 €</span>
+              <span class="small muted">Main checking · 19/10/2026</span>
+            </div>
+            <span class="label">Which expenses does it pay back? (last 30 days, not fully paid back)</span>
+          <div class="row-card">
+            <div class="top"><span class="row" style="gap:8px"><span class="checkbox checked"></span><span class="strong">RISTORANTE DA MARIO</span></span><span class="strong">−305.00 €</span></div>
+            <span class="small muted">17/10/2026 · Eating out</span>
+            <div class="kv"><span>Payback</span><div class="input" style="width:120px">150.00 €</div></div>
+          </div>
+          <div class="row-card">
+            <div class="top"><span class="row" style="gap:8px"><span class="checkbox checked"></span><span class="strong">PIZZERIA DA GINO</span></span><span class="strong">−48.00 €</span></div>
+            <span class="small muted">16/10/2026 · Eating out</span>
+            <div class="kv"><span>Payback</span><div class="input" style="width:120px">24.00 €</div></div>
+          </div>
+          <div class="row-card">
+            <div class="top"><span class="row" style="gap:8px"><span class="checkbox"></span><span class="strong">PHARMACY 24</span></span><span class="strong">−18.50 €</span></div>
+            <span class="small muted">15/10/2026 · Uncategorized</span>
+            <div class="kv"><span>Payback</span><div class="input placeholder" style="width:120px">—</div></div>
+          </div>
+          <div class="row-card">
+            <div class="top"><span class="row" style="gap:8px"><span class="checkbox"></span><span class="strong">AMAZON EU SARL</span></span><span class="strong">−34.90 €</span></div>
+            <span class="small muted">14/10/2026 · Shopping</span>
+            <div class="kv"><span>Payback</span><div class="input placeholder" style="width:120px">—</div></div>
+          </div>
+          <div class="input placeholder fill">Search older expenses…</div>
+            <div class="kv strong"><span>Linked</span><span>174.00 € of 174.00 € ✓</span></div>
+            <span class="small muted">Amounts are prefilled with what's left, newest expense first; adjust them. A payback can't be more than what's left on an expense. Any part you don't link needs a category.</span>
+      </div>
+      <div class="action-bar">
+        <a class="btn btn-secondary" href="#mobile-s2">Cancel</a>
+        <a class="btn btn-primary" href="#mobile-s5">Link payback</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S5 After linking ======================== -->
+<section class="wf-screen" id="mobile-s5">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Possible payback</a>
+      <a href="#mobile-d9">D9 Link payback</a>
+      <a href="#mobile-s5" aria-current="page">S5 After linking</a>
+      <a href="#mobile-s6-expense">S6 Expense with paybacks</a>
+      <a href="#mobile-s6-payback">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s5">Desktop 1440</a>
+      <a href="#mobile-s5" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">After linking: ↩ on the payback and on each expense.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title">Transactions</span><a class="action" title="Opens the filters in a sheet">Filter</a></header>
+      <div class="m-content">
+        <div class="input placeholder fill">Search description…</div>
+        <span class="label">19/10/2026</span>
+        <div class="m-list">
+            <div class="item"><span class="stack" style="gap:2px"><a class="strong" href="#mobile-s6-payback">BONIFICO DA MARCO</a><span class="small muted">Main checking · <span class="tag">↩ payback · 2 expenses</span></span></span><span class="strong">+174.00 €</span></div>
+        </div>
+        <span class="label">17/10/2026</span>
+        <div class="m-list">
+            <div class="item"><span class="stack" style="gap:2px"><a class="strong" href="#mobile-s6-expense">RISTORANTE DA MARIO</a><span class="small muted">Eating out · <span class="tag">↩ your share 155.00 €</span></span></span><span class="strong">−305.00 €</span></div>
+        </div>
+        <span class="label">16/10/2026</span>
+        <div class="m-list">
+            <div class="item"><span class="stack" style="gap:2px"><span>PIZZERIA DA GINO</span><span class="small muted">Eating out · <span class="tag">↩ your share 24.00 €</span></span></span><span class="strong">−48.00 €</span></div>
+        </div>
+        <span class="small muted">Load more</span>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5" aria-current="page">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S6 Expense with paybacks ======================== -->
+<section class="wf-screen" id="mobile-s6-expense">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Possible payback</a>
+      <a href="#mobile-d9">D9 Link payback</a>
+      <a href="#mobile-s5">S5 After linking</a>
+      <a href="#mobile-s6-expense" aria-current="page">S6 Expense with paybacks</a>
+      <a href="#mobile-s6-payback">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6-expense">Desktop 1440</a>
+      <a href="#mobile-s6-expense" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 for the dinner: your share is 155.00 €.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a href="#mobile-s5">←</a>Transaction</span></header>
+      <div class="m-content">
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>17/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>−305.00 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">RISTORANTE DA MARIO</span></div>
+        <div class="field"><span class="label">Category</span><div class="dropdown fill">Eating out</div><span class="small muted">Its paybacks follow if you change it.</span></div>
+        <div class="divider"></div>
+        <span class="h2">Paid back</span>
+        <div class="card tinted">
+          <div class="kv strong"><span>Your share</span><span>155.00 €</span></div>
+          <span class="small muted">305.00 € paid − 150.00 € paid back</span>
+        </div>
+        <div class="m-list">
+          <a class="item" href="#mobile-s6-payback"><span class="stack" style="gap:2px"><span>↩ BONIFICO DA MARCO</span><span class="small muted">19/10/2026 · part of +174.00 €</span></span><span class="strong">150.00 €</span></a>
+        </div>
+        <a class="btn btn-secondary" title="Opens D9 from the expense side: pick the incoming payment" style="align-self:flex-start">Link a payback…</a>
+        <div class="divider"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets">Exclude transaction</a>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5" aria-current="page">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== MOBILE · S6 Linked payback ======================== -->
+<section class="wf-screen" id="mobile-s6-payback">
+  <nav class="wf-toolbar">
+    <a href="index.html">← All flows</a>
+    <span class="wf-title">Split a bill</span>
+    <span class="wf-group">
+      <a href="#mobile-s2">S2 Possible payback</a>
+      <a href="#mobile-d9">D9 Link payback</a>
+      <a href="#mobile-s5">S5 After linking</a>
+      <a href="#mobile-s6-expense">S6 Expense with paybacks</a>
+      <a href="#mobile-s6-payback" aria-current="page">S6 Linked payback</a>
+    </span>
+    <span class="wf-group">
+      <a href="#desktop-s6-payback">Desktop 1440</a>
+      <a href="#mobile-s6-payback" aria-current="page">Mobile 390</a>
+    </span>
+  </nav>
+  <p class="wf-note">S6 for Marco's payment: linked to two expenses, no category.</p>
+  <div class="wf-stage">
+    <div class="frame frame-mobile">
+      <header class="m-header"><span class="title"><a href="#mobile-s5">←</a>Transaction</span></header>
+      <div class="m-content">
+        <div class="kv"><span>Account</span><span>Main checking</span></div>
+        <div class="kv"><span>Date</span><span>19/10/2026</span></div>
+        <div class="kv strong"><span>Amount</span><span>+174.00 €</span></div>
+        <div class="field"><span class="label">Description as imported</span><span style="color:var(--wf-ink-2)">BONIFICO DA MARCO</span></div>
+        <div class="divider"></div>
+        <div class="row"><span class="h2">Payback</span><span class="tag">↩ 2 expenses</span></div>
+        <div class="m-list">
+          <a class="item" href="#mobile-s6-expense"><span class="stack" style="gap:2px"><span>RISTORANTE DA MARIO</span><span class="small muted">17/10/2026 · Eating out · −305.00 €</span></span><span class="strong">150.00 €</span></a>
+          <div class="item"><span class="stack" style="gap:2px"><span>PIZZERIA DA GINO</span><span class="small muted">16/10/2026 · Eating out · −48.00 €</span></span><span class="strong">24.00 €</span></div>
+        </div>
+        <div class="kv"><span>Left unlinked</span><span>0.00 €</span></div>
+        <div class="row"><a class="btn btn-secondary" href="#mobile-d9">Edit split…</a><a class="btn btn-secondary" title="Makes it a normal transaction again; it then needs a category">Unlink</a></div>
+        <span class="small muted">A payback isn't income and has no category: it lowers Eating out in October by 174.00 €.</span>
+        <div class="divider"></div>
+        <a class="btn btn-secondary" title="Excludes it from balances, reports and budgets">Exclude transaction</a>
+      </div>
+      <nav class="tabbar">
+        <a href="first-run.html#mobile-s1">Home</a>
+        <a href="#mobile-s5" aria-current="page">Transactions</a>
+        <a href="reports.html#mobile-s11">Reports</a>
+        <a href="budgets.html#mobile-s14">Budgets</a>
+        <a title="Not wireframed yet">More</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
