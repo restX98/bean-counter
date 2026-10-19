@@ -1,7 +1,9 @@
 import fastifyStatic from "@fastify/static";
 import { sql } from "drizzle-orm";
 import Fastify from "fastify";
-import type { Db } from "./db.ts";
+import { todayIso } from "../domain/dates.ts";
+import { accountRoutes } from "./accounts.ts";
+import type { Db } from "./db/index.ts";
 
 export interface AppOptions {
   db: Db;
@@ -9,10 +11,19 @@ export interface AppOptions {
   webDir?: string;
   /** Log warnings and errors (off in tests). */
   log?: boolean;
+  /** Today's date, YYYY-MM-DD. Tests fix it. */
+  today?: () => string;
 }
 
-export function buildApp({ db, webDir, log = false }: AppOptions) {
+export function buildApp({
+  db,
+  webDir,
+  log = false,
+  today = () => todayIso(),
+}: AppOptions) {
   const app = Fastify({ logger: log ? { level: "warn" } : false });
+
+  accountRoutes(app, { db, today });
 
   app.get("/api/health", () => {
     const row = db.get<{ version: string }>(

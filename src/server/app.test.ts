@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { buildApp } from "./app.ts";
-import { openDatabase } from "./db.ts";
+import { openDatabase } from "./db/index.ts";
 
 describe("GET /api/health", () => {
   it("answers with the SQLite version", async () => {

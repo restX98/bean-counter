@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { buildApp } from "./app.ts";
-import { openDatabase } from "./db.ts";
+import { openDatabase } from "./db/index.ts";
 
 const root = resolve(import.meta.dirname, "../..");
 const dbFile =
