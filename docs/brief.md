@@ -1,6 +1,6 @@
 # Bean Counter — Project Brief
 
-_Status: draft · Last updated: 2026-10-17_
+_Status: draft · Last updated: 2026-10-19_
 
 ## 1. Summary
 
@@ -20,6 +20,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 - Automatic bank sync (open-banking APIs).
 - Adding transactions by hand.
 - Credit cards, cash, e-wallets, investments.
+- Tracking who owes what between friends (only paybacks that have arrived get linked, see §5.10).
 - Currency conversion and exchange-rate feeds.
 - Native mobile app.
 
@@ -105,7 +106,7 @@ Amounts in different currencies are never added together. Every report is shown 
   - savings rate (net cashflow ÷ income);
   - a separate **Moved to savings** line: net transfers from checking into savings accounts (withdrawals from savings reduce it).
 - **Spending by category**: for any period, with drill-down to the individual transactions.
-- **Transactions still in Review**: uncategorized ones (including rule conflicts) count under an "Uncategorized" line. Possible transfers (a transfer to pick or a cross-currency suggestion, with their candidate matches) are left out of income, expenses and Moved to savings until I link or dismiss them. While items are waiting, reports say the numbers can still change.
+- **Transactions still in Review**: uncategorized ones (including rule conflicts) count under an "Uncategorized" line. Possible transfers (a transfer to pick or a cross-currency suggestion, with their candidate matches) and possible paybacks (§5.10) are left out of income, expenses and Moved to savings until I link or dismiss them. While items are waiting, reports say the numbers can still change.
 
 ### 5.6 Budgets
 
@@ -132,10 +133,22 @@ Amounts in different currencies are never added together. Every report is shown 
 ### 5.9 Dashboard & Review
 
 - The app opens on a dashboard showing balances, this month's income and expenses, budgets at a glance, and how many items are waiting for review.
-- A Review inbox gathers everything waiting for my decision: uncategorized transactions, rule conflicts, transfers to confirm and balance mismatches. During an import, the same items can be settled right away for that file.
+- A Review inbox gathers everything waiting for my decision: uncategorized transactions, rule conflicts, transfers to confirm, possible paybacks and balance mismatches. During an import, the same items can be settled right away for that file.
 - There's no setup wizard. On first launch, empty screens explain the next step (add an account, then import a statement).
 
 The screens and flows are listed in [plan.md](plan.md).
+
+### 5.10 Split bills
+
+- When I pay for friends and they pay me back, I link their payment (a **payback**) to the expense it pays back. My share of the expense is its amount minus the paybacks linked to it.
+- A payback isn't income. It reduces the expense's category, in the expense's month, in reports and budgets (including the running balance), even if it arrives in a later month.
+- Amounts don't have to match: an expense can have several paybacks (one per friend), and one payment can be split across several expenses, choosing how much goes to each.
+- The paybacks linked to an expense can't add up to more than the expense. The part of a payment that isn't linked counts as a normal transaction and needs a category.
+- A payback and its expenses must be in the same currency. The payback can arrive in any of my accounts.
+- I can link a payback by hand from either transaction. The app also suggests possible paybacks in Review: money coming in that no rule categorized and that isn't a possible transfer, together with my expenses from the previous 30 days that aren't fully paid back yet. I link it or mark it as income. Unlinking makes it a normal transaction again.
+- If I change the expense's category, its paybacks follow it.
+- Until a friend pays, the expense counts in full: the app doesn't track who owes what.
+- When a friend pays the bill and I send them my share, my payment is simply my expense: I categorize it, and no link is needed.
 
 ## 6. Examples
 
@@ -198,4 +211,5 @@ New features and decisions are added here as we go.
 | 2026-10-17 | Budgets: the first month counts in full; the running balance never resets on its own but can be started over from a chosen month |
 | 2026-10-17 | Categories and rules: categories show what uses them; overlapping rules are flagged with a link to their conflicts in Review |
 | 2026-10-17 | Settings: import presets are per export format (a bank can have several); restore offers to back up the current data first |
+| 2026-10-19 | Split bills: paybacks from friends are linked to the expense they pay back (one payment can cover several expenses); they aren't income and reduce the expense's category in the expense's month |
 | 2026-10-17 | Design moves to HTML wireframes in [wireframes/](wireframes/): one file per flow, shared components, desktop and mobile layouts |

@@ -28,7 +28,8 @@ These are easy to get wrong. The brief has the details.
 - An excluded transaction is ignored by balances, reports and budgets, but it still counts for duplicate detection, so a re-import doesn't bring it back.
 - When more than one rule matches a transaction, never pick one: send the transaction to Review.
 - A budget's running balance adds each month's limit in force and subtracts that month's spending, from the start month (or the last start-over). The first month counts in full, even if the budget was created mid-month.
-- In reports, transactions waiting in Review count under "Uncategorized", except possible transfers and their candidate matches, which are left out until linked or dismissed.
+- A payback linked to an expense isn't income: it reduces the expense's category in the expense's month. The paybacks linked to an expense never add up to more than it; the unlinked part of a payment counts normally.
+- In reports, transactions waiting in Review count under "Uncategorized", except possible transfers (with their candidate matches) and possible paybacks, which are left out until linked or dismissed.
 
 ## Wireframes
 

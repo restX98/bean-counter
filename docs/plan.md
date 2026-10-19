@@ -1,6 +1,6 @@
 # Bean Counter — Screens & Flows
 
-_Status: draft · Last updated: 2026-10-17 · Source: [brief.md](brief.md)_
+_Status: draft · Last updated: 2026-10-19 · Source: [brief.md](brief.md)_
 
 These are the screens to design and the flows that connect them. Each entry covers what a screen shows and lets me do, not how it's built. The design work happens in HTML, in [wireframes/](wireframes/) (see §8).
 
@@ -26,6 +26,7 @@ These are the screens to design and the flows that connect them. Each entry cove
 | 5.7 Multiple currencies | S3 (grouped by currency), currency switcher on S1 and S11–S14, D4 |
 | 5.8 Backup & restore | S18, D8 |
 | 5.9 Dashboard & Review | S1, S2 |
+| 5.10 Split bills | S2, S4, S5, S6, D9 (and the numbers in S1, S12–S15) |
 
 ## 3. Navigation
 
@@ -80,6 +81,7 @@ These are the screens to design and the flows that connect them. Each entry cove
   - categorize a transaction, with a shortcut to create a rule (D6);
   - pick the category for a rule conflict;
   - link or dismiss a transfer;
+  - link a possible payback (D9), or mark it as income;
   - open a mismatch in S4.
 - **States**: all caught up, or normal.
 - **Mobile**: groups are collapsible sections, and each item is a card.
@@ -127,17 +129,22 @@ These are the screens to design and the flows that connect them. Each entry cove
   - account, date and amount;
   - the description as imported and as edited;
   - the category;
-  - a transfer section: the linked counterpart, or "not linked".
+  - a transfer section: the linked counterpart, or "not linked";
+  - for an expense friends paid back: your share and the paybacks linked to it;
+  - for a payback: the expense or expenses it pays back.
 - **Actions**:
   - edit the description;
   - set the category;
   - create a rule from this transaction (D6, prefilled);
   - link a transfer (D4), or unlink one;
+  - link a payment as a payback (D9), or unlink it;
   - exclude the transaction, or restore it.
 - **States**:
   - categorized;
   - uncategorized;
   - linked transfer (the category is hidden; shows the counterpart's account and amount instead);
+  - expense with paybacks (shows your share);
+  - linked payback (the category is hidden; shows the expenses it pays back);
   - excluded (greyed out, with Restore).
 - **Desktop**: a side panel over S2, S4 or S5. **Mobile**: full screen.
 
@@ -290,6 +297,7 @@ On mobile, every dialog opens as a full-screen sheet.
 - **D6 Rule form**: description match (contains / regex), optional amount and account, category. Prefilled when opened from S6 or S2. An "Also apply to N uncategorized transactions that match" option is ticked by default. Transactions that already have a category are never changed. When an edit removes an overlap, D6 offers to re-check the rule conflicts in Review.
 - **D7 Budget form**: category, currency, monthly limit, start month. Edit variant: the new limit and the month it applies from. Start-over variant: the month the running balance counts from.
 - **D8 Restore backup**: warns that all current data will be replaced, offers to download the current data first, then asks to confirm.
+- **D9 Link payback**: pick the expense or expenses this incoming payment pays back (same currency; suggestions from the previous 30 days, with a search for older ones) and how much goes to each. The amounts are prefilled and a check shows what's left; the part that isn't linked needs a category.
 
 ## 6. User flows
 
@@ -339,6 +347,11 @@ On mobile, every dialog opens as a full-screen sheet.
 11. **Organize categories and rules**
     1. S16 → D5 to add, rename or delete (reassigning transactions).
     2. S17 → D6 to edit or delete a rule.
+12. **Split a bill**
+    1. You pay the whole bill: it shows in S4 and S5 as a normal expense.
+    2. A friend pays you back. After the import, S2 lists the payment under Possible paybacks.
+    3. Link it there (D9), or open it in S6 → Link payback… (D9). One payment can be split across several expenses.
+    4. The expense shows your share (S6). Reports and budgets count only your share, in the expense's month.
 
 ## 7. Shared components
 
@@ -350,7 +363,8 @@ Each one is defined once in [wireframes/components.css](wireframes/components.cs
 - **Month / period picker**.
 - **Category chip**.
 - **Transfer badge** (⇄), showing the counterpart account.
-- **Row status tag**: new / duplicate / near-match / auto-categorized / rule conflict / needs review / excluded.
+- **Payback badge** (↩), showing the expense paid back, or your share on the expense.
+- **Row status tag**: new / duplicate / near-match / auto-categorized / rule conflict / possible payback / needs review / excluded.
 - **Budget progress bar**: under, near and over the limit.
 - **Chart card**: a chart with a title, legend and empty state.
 - **Empty state**: illustration or icon, a message and one primary action.
@@ -369,4 +383,4 @@ Each one is defined once in [wireframes/components.css](wireframes/components.cs
 ## 9. Open design questions
 
 1. Deleting a category that a budget or a rule uses: what happens to the budget and the rule? Move them along with the transactions, or delete them? (D5 currently shows only the simple case: Gifts, used by neither.)
-2. "Not a transfer" on a suggested pair: should the app remember the dismissal, so the same pair isn't suggested again on the next import?
+2. "Not a transfer" on a suggested pair, or "It's income" on a suggested payback: should the app remember the dismissal, so the same suggestion doesn't come back on the next import?
