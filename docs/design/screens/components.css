@@ -671,6 +671,21 @@ a.br:hover { background: var(--color-hover); }
 .more-row .chev { color: var(--color-text-subtle); }
 .btn.danger-link { color: var(--color-danger-text); }
 
+/* ---------- Split bills (possible paybacks, D9) ---------- */
+
+a.card.collapsed { color: var(--color-text); text-decoration: none; }
+a.card.collapsed:hover { background: var(--color-hover); }
+.card.collapsed .group-head { border-bottom: 0; }
+.group-head .push { margin-left: auto; font-weight: var(--weight-regular); }
+.group-head .chev { color: var(--color-text-subtle); }
+.choice.pb { align-items: center; }
+.choice .check { flex: none; }
+.pb-amount { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.pb-amount .input { width: 108px; justify-content: flex-end; font-variant-numeric: var(--numbers); }
+.linked-total { display: flex; align-items: center; gap: var(--space-2); color: var(--color-success-text); font: var(--type-table); }
+.linked-total .icon { color: var(--color-success-solid); }
+.dialog .link .icon, .dialog-page .link .icon { width: 16px; height: 16px; }
+
 /* ---------- Empty states ---------- */
 
 .empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-8) var(--space-5); text-align: center; }
