@@ -307,9 +307,30 @@ describe("leaving rows out", () => {
     // A pending payment has no date yet: it's left out, not unreadable.
     expect(result.errors).toEqual([]);
     expect(result.leftOut).toEqual([
-      { line: 3, reason: "currency", value: "USD" },
-      { line: 4, reason: "status", value: "PENDING" },
-      { line: 5, reason: "status", value: "REVERTED" },
+      {
+        line: 3,
+        reason: "currency",
+        value: "USD",
+        date: "2026-06-13",
+        amount: -8000,
+        description: "Hotel",
+      },
+      {
+        line: 4,
+        reason: "status",
+        value: "PENDING",
+        date: null,
+        amount: -1600,
+        description: "Pizza",
+      },
+      {
+        line: 5,
+        reason: "status",
+        value: "REVERTED",
+        date: "2026-06-14",
+        amount: 500,
+        description: "Refund",
+      },
     ]);
   });
 

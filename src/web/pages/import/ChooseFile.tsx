@@ -12,6 +12,8 @@ interface Props {
   accounts: Account[];
   account: Account;
   onAccount: (account: Account) => void;
+  /** Opens S8 with a recognised format's saved mapping, to change it. */
+  onChangeMapping: () => void;
   /** Opens D1, for a statement of an account not added yet. */
   onAddAccount: (currency?: string) => void;
   /** Other currencies in the file's first rows, and whether any are the account's. */
@@ -30,6 +32,7 @@ export function ChooseFile({
   account,
   onAccount,
   onAddAccount,
+  onChangeMapping,
   currencies,
   file,
   onFile,
@@ -163,7 +166,9 @@ export function ChooseFile({
         </div>
       )}
       {file && !reading && !unreadable && <FormError error={error} />}
-      {file && !reading && uploaded && <Recognised uploaded={uploaded} />}
+      {file && !reading && uploaded && (
+        <Recognised uploaded={uploaded} onChange={onChangeMapping} />
+      )}
       {file && !reading && uploaded && currencies && (
         <OtherCurrencies
           account={account}
@@ -175,7 +180,13 @@ export function ChooseFile({
   );
 }
 
-function Recognised({ uploaded: { preset } }: { uploaded: UploadedFile }) {
+function Recognised({
+  uploaded: { preset },
+  onChange,
+}: {
+  uploaded: UploadedFile;
+  onChange: () => void;
+}) {
   if (!preset) {
     return (
       <div className="banner tone-info">
@@ -196,6 +207,13 @@ function Recognised({ uploaded: { preset } }: { uploaded: UploadedFile }) {
         The columns match this saved preset, so the mapping step is skipped.
         {preset.mapping.roles.includes("balance") &&
           " This export has a balance column: the balance check runs after the import."}
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={onChange}
+        >
+          Change the mapping
+        </button>
       </span>
     </div>
   );

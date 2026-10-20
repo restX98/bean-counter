@@ -111,6 +111,10 @@ export interface LeftOutRow {
   reason: "currency" | "status";
   /** The row's currency or status, as the file writes it. */
   value: string;
+  /** What can be read of the row, to show it. */
+  date: string | null;
+  amount: number | null;
+  description: string;
 }
 
 /** One row, read with as much of the mapping as there is. */
@@ -126,7 +130,7 @@ export interface RowReading {
   /** What can't be read, each starting with its column's name. */
   problems: string[];
   /** Why the row isn't imported, even if it can be read. */
-  leftOut: Omit<LeftOutRow, "line"> | null;
+  leftOut: Pick<LeftOutRow, "reason" | "value"> | null;
 }
 
 // The statuses of transactions that went through, in the languages banks
@@ -254,8 +258,9 @@ export function readRows(
   for (const { line, cells } of table.rows) {
     const read = readRow(table.columns, cells, mapping, currency);
     const { date, time, amount, description, reference, balance } = read;
-    if (read.leftOut) leftOut.push({ line, ...read.leftOut });
-    else if (read.problems.length > 0 || date === null || amount === null) {
+    if (read.leftOut) {
+      leftOut.push({ line, ...read.leftOut, date, amount, description });
+    } else if (read.problems.length > 0 || date === null || amount === null) {
       errors.push({ line, problems: read.problems });
     } else {
       rows.push({ line, date, time, amount, description, reference, balance });

@@ -15,10 +15,10 @@ interface FlowProps {
   /** Steps passed over, such as the mapping when a preset matched. */
   skipped?: number[];
   onClose: () => void;
-  /** Cancel or Back. */
-  back: ReactNode;
+  /** Cancel or Back. Without buttons there's no footer, as in S10. */
+  back?: ReactNode;
   /** Continue or Import. */
-  next: ReactNode;
+  next?: ReactNode;
   /** Why the next button is disabled (desktop). */
   hint?: string;
   children: ReactNode;
@@ -81,10 +81,12 @@ export function Flow({
         <div className="m-scroll">
           <div className="m-page">{children}</div>
         </div>
-        <div className="action-bar">
-          {back}
-          {next}
-        </div>
+        {(back || next) && (
+          <div className="action-bar">
+            {back}
+            {next}
+          </div>
+        )}
       </div>
     );
   }
@@ -111,11 +113,13 @@ export function Flow({
         </div>
         {children}
       </div>
-      <footer className="flow-foot">
-        {back}
-        {hint && <span className="hint">{hint}</span>}
-        {next}
-      </footer>
+      {(back || next) && (
+        <footer className="flow-foot">
+          {back}
+          {hint && <span className="hint">{hint}</span>}
+          {next}
+        </footer>
+      )}
     </div>
   );
 }

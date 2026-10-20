@@ -2,10 +2,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   Account,
   AccountFields,
+  Anchor,
   AnchorFields,
   FieldErrors,
 } from "../domain/accounts.ts";
-import type { Mapping } from "../domain/import/mapping.ts";
+import type {
+  LeftOutRow,
+  Mapping,
+  RowError,
+} from "../domain/import/mapping.ts";
+import type { Decision, PlanGap, PlannedRow } from "../domain/import/plan.ts";
 import type { TableRow } from "../domain/import/table.ts";
 
 export class ApiError extends Error {
@@ -72,7 +78,7 @@ export function useAccounts() {
   });
 }
 
-function useAccountChange<V>(change: (vars: V) => Promise<Account>) {
+function useAccountChange<V, R = Account>(change: (vars: V) => Promise<R>) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: change,
@@ -125,3 +131,47 @@ export const useUpload = () =>
         file,
       ),
   });
+
+/** S9: what the import would do with a mapping. */
+export interface ImportPreview {
+  rows: PlannedRow[];
+  unreadable: RowError[];
+  leftOut: LeftOutRow[];
+  /** No anchor yet and no balances in the file: I enter the balance. */
+  needsBalance: boolean;
+  anchor: Anchor | null;
+  gaps: PlanGap[] | null;
+}
+
+/** S10: what the import did. */
+export interface ImportResult {
+  importId: number;
+  imported: number;
+  skipped: number;
+  unreadable: number;
+  leftOut: number;
+  anchor: Anchor | null;
+  gaps: PlanGap[] | null;
+}
+
+export const usePreview = (upload: string, mapping: Mapping) =>
+  useQuery({
+    queryKey: ["import-preview", upload, mapping],
+    queryFn: () =>
+      request<ImportPreview>("POST", `/api/imports/${upload}/preview`, {
+        mapping,
+      }),
+    // The file doesn't change while it's open; a failed preview won't either.
+    staleTime: Infinity,
+    retry: false,
+  });
+
+export const useSaveImport = (upload: string) =>
+  useAccountChange(
+    (body: {
+      mapping: Mapping;
+      decisions: Record<number, Decision>;
+      balance?: AnchorFields;
+      presetName: string | null;
+    }) => request<ImportResult>("POST", `/api/imports/${upload}/save`, body),
+  );

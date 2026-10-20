@@ -338,6 +338,12 @@
   display: block;
   font-weight: var(--weight-semibold);
 }
+/* A button in a banner goes on its own line, under the text. */
+.banner .text > .btn {
+  display: flex;
+  width: fit-content;
+  margin-top: var(--space-2);
+}
 
 /* ---------- Mobile: bigger touch targets, 16px text in fields ---------- */
 

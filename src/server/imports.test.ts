@@ -391,9 +391,15 @@ describe("times, currencies and statuses", () => {
       mapping: cardMapping,
     });
     expect(body.rows).toHaveLength(1);
-    expect(body.leftOut).toEqual([
-      { line: 3, reason: "currency", value: "USD" },
-      { line: 4, reason: "status", value: "PENDING" },
+    expect(
+      body.leftOut.map((r: { line: number; reason: string; value: string }) => [
+        r.line,
+        r.reason,
+        r.value,
+      ]),
+    ).toEqual([
+      [3, "currency", "USD"],
+      [4, "status", "PENDING"],
     ]);
   });
 

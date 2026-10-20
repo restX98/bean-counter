@@ -63,6 +63,8 @@ interface Props {
   /** The first rows, read with the draft (see readSample). */
   readings: (RowReading & { line: number })[];
   presetName: string;
+  /** The format was recognised: S8 changes its saved preset. */
+  saved: boolean;
   savePreset: boolean;
   onSavePreset: (save: boolean) => void;
 }
@@ -76,6 +78,7 @@ export function MapColumns({
   problems,
   readings,
   presetName,
+  saved,
   savePreset,
   onSavePreset,
 }: Props) {
@@ -168,11 +171,19 @@ export function MapColumns({
 
   return (
     <>
-      <p className="muted">
-        <strong>{account.bank} · new format.</strong> Tell the app what each
-        column holds. The mapping is saved as a preset, so the next file with
-        these columns skips this step.
-      </p>
+      {saved ? (
+        <p className="muted">
+          <strong>{presetName} · saved format.</strong> Change what you need.
+          Updating the preset applies the change to the next files with these
+          columns too.
+        </p>
+      ) : (
+        <p className="muted">
+          <strong>{account.bank} · new format.</strong> Tell the app what each
+          column holds. The mapping is saved as a preset, so the next file with
+          these columns skips this step.
+        </p>
+      )}
 
       <div className="settings-row">
         <Field id={`${id}-dates`} label="Date format">
@@ -387,7 +398,9 @@ export function MapColumns({
           onChange={(e) => onSavePreset(e.target.checked)}
         />
         <span className="box">{savePreset && <Icon name="check" />}</span>
-        <span>Save as preset “{presetName}”</span>
+        <span>
+          {saved ? "Update the preset" : "Save as preset"} “{presetName}”
+        </span>
       </label>
       <p className="caption">
         {hasBalance

@@ -150,7 +150,7 @@ These are the screens to design and the flows that connect them. Each entry cove
 
 ### Import
 
-The import is a four-step wizard. S8 is skipped when the bank already has a saved preset.
+The import is a four-step wizard. S8 is skipped when the bank already has a saved preset, unless I choose to change its mapping.
 
 #### S7 Import · Choose file
 
@@ -158,7 +158,7 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
   - an account picker;
   - a drop zone or file picker for CSV or Excel;
   - once a file is chosen, the detected bank preset, or "new format".
-- **Actions**: continue, change the account, or add a new one (D1) when the statement belongs to an account not added yet.
+- **Actions**: continue, change the account, or add a new one (D1) when the statement belongs to an account not added yet. With a recognised format, "Change the mapping" opens S8 with the saved mapping.
 - **States**:
   - no accounts yet (→ D1);
   - unreadable or unsupported file.
@@ -175,7 +175,7 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
 - **States**:
   - mapping incomplete (Continue is disabled and the missing fields are named);
   - valid.
-- Also opened from S18 to edit a saved preset.
+- Also opened from S7 to change a recognised format's mapping (updating its preset is optional), and from S18 to edit a saved preset.
 - **Mobile**: one card per column, top to bottom.
 
 #### S9 Import · Preview & resolve
@@ -186,7 +186,9 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
   - rule conflict (more than one rule matches; pick a category);
   - duplicate (will be skipped);
   - near-match (keep or skip; must be decided);
-  - transfer linked, or transfer to pick (choose the counterpart, including cross-currency suggestions).
+  - transfer linked, or transfer to pick (choose the counterpart, including cross-currency suggestions);
+  - left out (in another currency than the account's, or not completed), with the reason;
+  - can't read, with what's wrong with it.
 - If the account has no balance anchor and the file has no balance column, a field asks for the current balance and its date.
 - **Actions**:
   - filter by tag;
@@ -202,7 +204,7 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
 #### S10 Import · Done
 
 - **Shows**:
-  - how many transactions were imported, skipped as duplicates, and sent to Review;
+  - how many transactions were imported, skipped as duplicates, left out or unreadable, and sent to Review;
   - the balance check: matches the bank, or a mismatch with its difference.
 - **Actions**: go to Review, go to the account, or import another file.
 - **States**:

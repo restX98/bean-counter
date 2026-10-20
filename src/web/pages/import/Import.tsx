@@ -1,23 +1,30 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import type { Account } from "../../../domain/accounts.ts";
+import type { Account, Anchor } from "../../../domain/accounts.ts";
 import {
   guessMapping,
   toMapping,
   type MappingDraft,
 } from "../../../domain/import/guess.ts";
 import { checkMapping, type Mapping } from "../../../domain/import/mapping.ts";
-import { useAccounts, useUpload, type UploadedFile } from "../../api.ts";
+import {
+  useAccounts,
+  useUpload,
+  type ImportResult,
+  type UploadedFile,
+} from "../../api.ts";
 import { EmptyState } from "../../components/EmptyState.tsx";
 import { Icon } from "../../components/Icon.tsx";
 import { Loading } from "../../components/Page.tsx";
 import { AccountForm } from "../../dialogs/AccountForm.tsx";
 import { TYPE_LABELS } from "../../labels.ts";
 import { ChooseFile } from "./ChooseFile.tsx";
+import { DoneStep } from "./Done.tsx";
 import { Flow } from "./Flow.tsx";
 import { isReadable, MapColumns, readSample } from "./MapColumns.tsx";
+import { PreviewStep } from "./Preview.tsx";
 
-type Step = "file" | "columns" | "preview";
+type Step = "file" | "columns" | "preview" | "done";
 
 /**
  * The import, S7 to S10, on one page: its state lives here until it's
@@ -35,7 +42,15 @@ export function Import() {
   // Kept per set of columns, so going back and forth keeps my changes.
   const [draft, setDraft] = useState<{ key: string; draft: MappingDraft }>();
   const [mapping, setMapping] = useState<Mapping>();
+  const [done, setDone] = useState<{
+    result: ImportResult;
+    before: Anchor | null;
+    fileName: string;
+    skipped: number[];
+  }>();
   const [savePreset, setSavePreset] = useState(true);
+  // A recognised format opened in S8 anyway, to change its mapping.
+  const [changing, setChanging] = useState(false);
   // Adding an account from S7, possibly for a currency the file is in.
   const [adding, setAdding] = useState<{ currency?: string } | null>(null);
 
@@ -103,12 +118,30 @@ export function Import() {
     else upload.reset();
   };
   const uploaded = file && !upload.isPending ? upload.data : undefined;
+  const another = () => {
+    send(account, null);
+    setDone(undefined);
+    setStep("file");
+  };
+
+  if (step === "done" && done) {
+    return (
+      <DoneStep
+        {...done}
+        account={account}
+        onAnother={another}
+        onOpen={() => navigate(`/accounts/${account.id}`)}
+        onClose={close}
+      />
+    );
+  }
   const presetName = `${account.bank} · ${TYPE_LABELS[account.type].toLowerCase()}`;
 
   if (step === "file" || !uploaded) {
     const toNext = () => {
       if (!uploaded) return;
       if (uploaded.preset) {
+        setChanging(false);
         setMapping(uploaded.preset.mapping);
         setStep("preview");
         return;
@@ -148,6 +181,15 @@ export function Import() {
             if (file) send(to, file);
           }}
           onAddAccount={(currency) => setAdding({ currency })}
+          onChangeMapping={() => {
+            if (!uploaded?.preset) return;
+            const key = uploaded.columns.join("\n");
+            if (draft?.key !== key) {
+              setDraft({ key, draft: uploaded.preset.mapping });
+            }
+            setChanging(true);
+            setStep("columns");
+          }}
           currencies={uploaded ? otherCurrencies(uploaded, account) : null}
           file={file}
           onFile={(chosenFile) => send(account, chosenFile)}
@@ -169,7 +211,7 @@ export function Import() {
     );
   }
 
-  const skipped = uploaded.preset ? [2] : [];
+  const skipped = uploaded.preset && !changing ? [2] : [];
   if (step === "columns" && draft) {
     const mapped = toMapping(draft.draft);
     const problems = checkMapping(mapped);
@@ -204,7 +246,8 @@ export function Import() {
           onDraft={(changed) => setDraft({ ...draft, draft: changed })}
           problems={problems}
           readings={readings}
-          presetName={presetName}
+          presetName={uploaded.preset?.name ?? presetName}
+          saved={uploaded.preset !== null}
           savePreset={savePreset}
           onSavePreset={setSavePreset}
         />
@@ -212,28 +255,26 @@ export function Import() {
     );
   }
 
-  // S9 and S10 come with the next slice.
+  if (!mapping) return null;
   return (
-    <Flow
-      step={3}
+    <PreviewStep
+      account={account}
+      file={uploaded}
+      mapping={mapping}
+      presetName={
+        // Unticked in S8: this file's mapping only, the saved one stays.
+        !savePreset && (changing || !uploaded.preset)
+          ? null
+          : (uploaded.preset?.name ?? presetName)
+      }
       skipped={skipped}
+      onBack={() => setStep(uploaded.preset && !changing ? "file" : "columns")}
       onClose={close}
-      back={button(
-        "← Back",
-        () => setStep(uploaded.preset ? "file" : "columns"),
-        false,
-      )}
-      next={button("Import")}
-      hint="The preview comes in the next step of building the app."
-    >
-      <div className="narrow">
-        <EmptyState icon="list" title="Preview not built yet">
-          {mapping
-            ? `${uploaded.fileName} is ready to preview with ${mapping.roles.filter((r) => r !== "ignore").length} mapped columns.`
-            : "This step shows what the import will do."}
-        </EmptyState>
-      </div>
-    </Flow>
+      onDone={(result, before) => {
+        setDone({ result, before, fileName: uploaded.fileName, skipped });
+        setStep("done");
+      }}
+    />
   );
 }
 
