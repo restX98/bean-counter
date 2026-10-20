@@ -46,7 +46,7 @@ export function findCurrency(code: string): Currency | undefined {
   return currencies().find((c) => c.code === code);
 }
 
-function digitsOf(code: string): number {
+export function digitsOf(code: string): number {
   const currency = findCurrency(code);
   if (!currency) throw new Error(`Unknown currency ${code}`);
   return currency.digits;
@@ -93,7 +93,7 @@ const POINT_DECIMALS = /^(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?$/;
 const COMMA_DECIMALS = /^(\d+),(\d{1,2})$/;
 
 /** Removes the currency's symbol or code from either end: "3,240.50 €", "EUR 12". */
-function stripCurrency(text: string, currency: string): string {
+export function stripCurrency(text: string, currency: string): string {
   let rest = text;
   for (const token of [currencySymbol(currency), currency]) {
     const upper = rest.toUpperCase();

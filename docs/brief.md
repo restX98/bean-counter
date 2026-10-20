@@ -1,6 +1,6 @@
 # Bean Counter — Project Brief
 
-_Status: draft · Last updated: 2026-10-19_
+_Status: draft · Last updated: 2026-10-20_
 
 ## 1. Summary
 
@@ -71,6 +71,16 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 
 - Upload a CSV or Excel export into a chosen account.
 - The first import from a bank asks me to map its format: date, amount (or separate debit/credit columns), description, optional balance column, date format, decimal separator. The mapping is saved as a preset (e.g. "Bank A · checking") and reused automatically for any file with the same columns. A bank can have more than one preset, for example one for its checking export and one for its savings export.
+- How files are read:
+  - **Files**: CSV, separated by commas, semicolons, tabs or bars, in UTF-8 or older Windows text; or .xlsx, from its first sheet with data. Old .xls files, password-protected Excel files and PDFs are refused, with a hint on how to get a CSV or .xlsx.
+  - **Missing line breaks**: some exports glue records together without line breaks; the app puts them back.
+  - **Header**: lines above the column names (account number, period) are skipped. A file without column names gets "Column 1", "Column 2"…
+  - **Dates**: day/month/year, month/day/year or year-month-day, with /, . or - between the parts. A two-digit year is in the 2000s, and a time after the date is ignored.
+  - **Amounts**: the other mark (or a space or an apostrophe) can only group thousands in threes. So with the wrong decimal separator set, 56,30 is refused instead of being read as 5,630. A minus at the end (56,30-) and the currency's symbol or code are accepted. Excel number cells don't depend on the separator.
+  - **Debit and credit**: the amount is the credit minus the debit, whether or not the bank writes debits with a minus. A row with both is refused.
+  - **Fees**: a separate fee column is taken off the amount, so a 16.00 payment with a 0.50 fee is −16.50.
+  - **Description**: several columns can make it up (payee and reference text, for example), joined with " · ".
+  - **Errors**: a row that can't be read is reported with its line number and the reason, never guessed.
 - Show a preview before saving anything.
 - Duplicate handling:
   - each transaction gets a fingerprint made from date + amount + description, or from the bank reference when the export has one;
@@ -224,3 +234,4 @@ New features and decisions are added here as we go.
 | 2026-10-19 | Design tokens in [design/tokens.css](design/tokens.css): light and dark themes following the system setting; teal main colour; income in green, expenses in the normal text colour, red only for problems |
 | 2026-10-19 | Tech stack: TypeScript, React and Vite, Fastify on 127.0.0.1, SQLite (better-sqlite3 and Drizzle), Papa Parse and ExcelJS (.xlsx only, no old .xls), Vitest; money stored as integer cents |
 | 2026-10-19 | Account rules: unique names, a currency change keeps the anchor's written amount, hand-entered balances can't be dated in the future, per-currency totals hidden while an account has no balance, how typed amounts are read |
+| 2026-10-20 | Reading statements: CSV and .xlsx with lines above the header skipped, missing line breaks put back, three date orders, the decimal separator checked against thousands groups, debit and credit columns, a fee column, a description from several columns, unreadable rows reported, not guessed |
