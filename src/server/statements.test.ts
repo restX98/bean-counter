@@ -70,6 +70,22 @@ describe("readStatementFile: CSV", () => {
     ]);
   });
 
+  it("puts back a single missing line break", async () => {
+    const table = await read(
+      utf8(
+        "Date,Description,Amount,Currency\n" +
+          '"01/10/2026","SALARY","2000.00",EUR\n' +
+          '"02/10/2026","TESCO","-57.00",EUR' +
+          '"03/10/2026","ATM","-100.00",EUR',
+      ),
+    );
+    expect(table.rows.map((r) => r.cells[1])).toEqual([
+      "SALARY",
+      "TESCO",
+      "ATM",
+    ]);
+  });
+
   it("leaves a stray quote alone when the rows are fine", async () => {
     const table = await read(
       utf8('Date,Description,Amount\n01/10/2026,TABLET 5" SCREEN,12.00\n'),

@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { Link, NavLink, Outlet, useLocation, useMatches } from "react-router";
 import { useAccounts } from "../api.ts";
 import { useIsMobile } from "../useIsMobile.ts";
 import { Icon, Logo } from "./Icon.tsx";
@@ -31,16 +31,24 @@ const TABS: NavItem[] = [
   { to: "/more", icon: "more", label: "More" },
 ];
 
+/** A route's handle: full-screen pages hide the tab bar on mobile. */
+export interface RouteHandle {
+  fullScreen?: boolean;
+}
+
 /** Desktop: sidebar and page. Mobile: page and bottom tabs. */
 export function Shell() {
   const isMobile = useIsMobile();
+  const fullScreen = useMatches().some(
+    (match) => (match.handle as RouteHandle | undefined)?.fullScreen,
+  );
   return (
     <div className={isMobile ? "app is-mobile" : "app"}>
       {!isMobile && <Sidebar />}
       <main className="main">
         <Outlet />
       </main>
-      {isMobile && <TabBar />}
+      {isMobile && !fullScreen && <TabBar />}
     </div>
   );
 }

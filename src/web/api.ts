@@ -5,6 +5,8 @@ import type {
   AnchorFields,
   FieldErrors,
 } from "../domain/accounts.ts";
+import type { Mapping } from "../domain/import/mapping.ts";
+import type { TableRow } from "../domain/import/table.ts";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -23,13 +25,22 @@ async function request<T>(
   url: string,
   body?: unknown,
 ): Promise<T> {
+  // A file goes as it is; anything else as JSON. Fastify refuses an empty
+  // body sent as JSON, so the header goes only with a body.
+  const file = body instanceof Blob;
   let res: Response;
   try {
     res = await fetch(url, {
       method,
-      // Fastify refuses an empty body sent as JSON, so the header goes only with a body.
-      headers: body === undefined ? {} : { "content-type": "application/json" },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers:
+        body === undefined
+          ? {}
+          : {
+              "content-type": file
+                ? "application/octet-stream"
+                : "application/json",
+            },
+      body: body === undefined ? undefined : file ? body : JSON.stringify(body),
     });
   } catch {
     throw new ApiError(0, "Can't reach the server. Is it running?");
@@ -91,3 +102,26 @@ export const useArchive = (id: number) =>
       `/api/accounts/${id}/${archive ? "archive" : "unarchive"}`,
     ),
   );
+
+/** A statement read by the server, waiting for the import's next steps. */
+export interface UploadedFile {
+  id: string;
+  fileName: string;
+  columns: string[];
+  rowCount: number;
+  /** The first rows, for S8's samples and preview. */
+  sample: TableRow[];
+  /** The saved format with the same columns, if there is one. */
+  preset: { id: number; name: string; mapping: Mapping } | null;
+}
+
+/** S7: sends a file to read for an import into an account. */
+export const useUpload = () =>
+  useMutation({
+    mutationFn: ({ account, file }: { account: number; file: File }) =>
+      request<UploadedFile>(
+        "POST",
+        `/api/imports?account=${account}&file=${encodeURIComponent(file.name)}`,
+        file,
+      ),
+  });

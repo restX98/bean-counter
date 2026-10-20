@@ -62,8 +62,9 @@ function parseCsv(text: string): string[][] {
     }
   }
   const { rows, columns, delimiter } = best;
-  // Records glued together by missing line breaks make a row many times wider.
-  if (columns > 1 && rows.some((row) => row.length >= 2 * columns)) {
+  // Records glued together by missing line breaks make a wider row: two
+  // records share the field where they meet, so two make 2 × columns − 1.
+  if (columns > 1 && rows.some((row) => row.length >= 2 * columns - 1)) {
     return Papa.parse<string[]>(restoreLineBreaks(text, delimiter), {
       delimiter,
     }).data;

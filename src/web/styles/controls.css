@@ -182,6 +182,8 @@
   border-radius: var(--radius-md);
 }
 .seg label {
+  /* Holds its hidden radio, which would otherwise stretch the page. */
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -212,6 +214,8 @@
 
 /* Checkbox: a real input, hidden, with the drawn box next to it. */
 .check {
+  /* Holds its hidden checkbox, which would otherwise stretch the page. */
+  position: relative;
   display: inline-flex;
   align-items: flex-start;
   align-self: flex-start;

@@ -1,4 +1,4 @@
-import { cellText, type Table } from "./table.ts";
+import { cellText, type Cell, type Table } from "./table.ts";
 import {
   parseStatementAmount,
   parseStatementDate,
@@ -94,17 +94,31 @@ export interface RowError {
   problems: string[];
 }
 
+/** One row, read with as much of the mapping as there is. */
+export interface RowReading {
+  /** Null without a date column, or when the date can't be read. */
+  date: string | null;
+  /** Null without amount columns, or when the amount can't be read. */
+  amount: number | null;
+  description: string;
+  reference: string | null;
+  balance: number | null;
+  /** What can't be read, each starting with its column's name. */
+  problems: string[];
+}
+
 /**
- * Reads every row of the table with a complete mapping (see checkMapping).
- * Rows that can't be read come back as errors; nothing is guessed.
+ * Reads one row. The mapping can still be incomplete, as in S8's live
+ * preview: a role without a column gives null rather than a problem.
  */
-export function readRows(
-  table: Table,
+export function readRow(
+  columns: string[],
+  cells: Cell[],
   { roles, dateFormat, decimalMark }: Mapping,
   currency: string,
-): { rows: StatementRow[]; errors: RowError[] } {
+): RowReading {
   const columnsFor = (role: ColumnRole) =>
-    table.columns.flatMap((_, i) => (roles[i] === role ? [i] : []));
+    columns.flatMap((_, i) => (roles[i] === role ? [i] : []));
   const [date] = columnsFor("date");
   const [amount] = columnsFor("amount");
   const [debit] = columnsFor("debit");
@@ -112,78 +126,97 @@ export function readRows(
   const [fee] = columnsFor("fee");
   const [balance] = columnsFor("balance");
   const [reference] = columnsFor("reference");
-  const descriptions = columnsFor("description");
-  if (date === undefined) throw new Error("The mapping has no date column.");
 
-  const rows: StatementRow[] = [];
-  const errors: RowError[] = [];
-  for (const { line, cells } of table.rows) {
-    const problems: string[] = [];
-    const name = (i: number) => table.columns[i]!;
-    const cell = (i: number) => cells[i] ?? "";
+  const problems: string[] = [];
+  const name = (i: number) => columns[i]!;
+  const cell = (i: number) => cells[i] ?? "";
 
-    /** An amount column's value, or null if the cell is empty or unreadable. */
-    const amountIn = (i: number | undefined): number | null => {
-      if (i === undefined || cell(i) === "") return null;
-      const result = parseStatementAmount(cell(i), decimalMark, currency);
-      if (result.ok) return result.minor;
-      problems.push(`${name(i)}: ${result.error}`);
-      return null;
-    };
+  /** An amount column's value, or null if the cell is empty or unreadable. */
+  const amountIn = (i: number | undefined): number | null => {
+    if (i === undefined || cell(i) === "") return null;
+    const result = parseStatementAmount(cell(i), decimalMark, currency);
+    if (result.ok) return result.minor;
+    problems.push(`${name(i)}: ${result.error}`);
+    return null;
+  };
 
-    let day: string | undefined;
+  let day: string | null = null;
+  if (date !== undefined) {
     if (cell(date) === "") problems.push(`${name(date)} is empty.`);
     else {
-      day = parseStatementDate(cell(date), dateFormat);
+      day = parseStatementDate(cell(date), dateFormat) ?? null;
       if (!day) {
         problems.push(
           `${name(date)}: "${cellText(cell(date))}" isn't a ${dateFormat} date.`,
         );
       }
     }
+  }
 
-    let value: number | null;
-    if (amount !== undefined) {
-      value = amountIn(amount);
-      if (cell(amount) === "") problems.push(`${name(amount)} is empty.`);
-    } else if (debit !== undefined && credit !== undefined) {
-      // Banks write debits with or without a minus, so only the size counts.
-      const out = amountIn(debit);
-      const into = amountIn(credit);
-      value = Math.abs(into ?? 0) - Math.abs(out ?? 0);
-      if (cell(debit) === "" && cell(credit) === "") {
-        problems.push(`${name(debit)} and ${name(credit)} are both empty.`);
-      } else if (out && into) {
-        problems.push(
-          `${name(debit)} and ${name(credit)} both have an amount.`,
-        );
-      }
-    } else {
-      throw new Error("The mapping has no amount columns.");
+  let value: number | null = null;
+  if (amount !== undefined) {
+    value = amountIn(amount);
+    if (cell(amount) === "") problems.push(`${name(amount)} is empty.`);
+  } else if (debit !== undefined && credit !== undefined) {
+    // Banks write debits with or without a minus, so only the size counts.
+    const out = amountIn(debit);
+    const into = amountIn(credit);
+    value = Math.abs(into ?? 0) - Math.abs(out ?? 0);
+    if (cell(debit) === "" && cell(credit) === "") {
+      problems.push(`${name(debit)} and ${name(credit)} are both empty.`);
+    } else if (out && into) {
+      problems.push(`${name(debit)} and ${name(credit)} both have an amount.`);
     }
-    // A fee is charged on top of the amount, as some banks write it.
-    const charged = amountIn(fee);
-    if (value !== null && charged) value -= Math.abs(charged);
+  }
+  // A fee is charged on top of the amount, as some banks write it.
+  const charged = amountIn(fee);
+  if (value !== null && charged) value -= Math.abs(charged);
 
-    const balanceAfter = amountIn(balance);
-    if (problems.length > 0 || day === undefined || value === null) {
+  return {
+    date: day,
+    amount: value,
+    description: columnsFor("description")
+      .map((i) => cellText(cell(i)).replace(/\s+/g, " "))
+      .filter((text) => text !== "")
+      .join(" · "),
+    reference:
+      reference === undefined || cell(reference) === ""
+        ? null
+        : cellText(cell(reference)),
+    balance: amountIn(balance),
+    problems,
+  };
+}
+
+/**
+ * Reads every row of the table with a complete mapping (see checkMapping).
+ * Rows that can't be read come back as errors; nothing is guessed.
+ */
+export function readRows(
+  table: Table,
+  mapping: Mapping,
+  currency: string,
+): { rows: StatementRow[]; errors: RowError[] } {
+  const has = (role: ColumnRole) => mapping.roles.includes(role);
+  if (!has("date")) throw new Error("The mapping has no date column.");
+  if (!has("amount") && !(has("debit") && has("credit"))) {
+    throw new Error("The mapping has no amount columns.");
+  }
+
+  const rows: StatementRow[] = [];
+  const errors: RowError[] = [];
+  for (const { line, cells } of table.rows) {
+    const { problems, date, amount, ...rest } = readRow(
+      table.columns,
+      cells,
+      mapping,
+      currency,
+    );
+    if (problems.length > 0 || date === null || amount === null) {
       errors.push({ line, problems });
-      continue;
+    } else {
+      rows.push({ line, date, amount, ...rest });
     }
-    rows.push({
-      line,
-      date: day,
-      amount: value,
-      description: descriptions
-        .map((i) => cellText(cell(i)).replace(/\s+/g, " "))
-        .filter((text) => text !== "")
-        .join(" · "),
-      reference:
-        reference === undefined || cell(reference) === ""
-          ? null
-          : cellText(cell(reference)),
-      balance: balanceAfter,
-    });
   }
   return { rows, errors };
 }

@@ -158,7 +158,7 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
   - an account picker;
   - a drop zone or file picker for CSV or Excel;
   - once a file is chosen, the detected bank preset, or "new format".
-- **Actions**: continue, or change the account.
+- **Actions**: continue, change the account, or add a new one (D1) when the statement belongs to an account not added yet.
 - **States**:
   - no accounts yet (→ D1);
   - unreadable or unsupported file.
@@ -168,7 +168,7 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
 - **Purpose**: teach the app a bank's export format, once per bank.
 - **Shows**:
   - the first rows of the file;
-  - for each column, a choice of what it holds: date, amount, debit, credit, description, balance, bank reference or ignore;
+  - for each column, a choice of what it holds: date, amount, debit, credit, fee, description, balance, bank reference or ignore;
   - date format and decimal separator;
   - a live preview of how the rows will be read.
 - **Actions**: save as the preset for this bank and continue.

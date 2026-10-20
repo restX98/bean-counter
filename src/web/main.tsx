@@ -7,10 +7,12 @@ import "./styles/base.css";
 import "./styles/shell.css";
 import "./styles/controls.css";
 import "./styles/content.css";
-import { Shell } from "./components/Shell.tsx";
+import "./styles/flow.css";
+import { Shell, type RouteHandle } from "./components/Shell.tsx";
 import { AccountDetail } from "./pages/AccountDetail.tsx";
 import { Accounts } from "./pages/Accounts.tsx";
 import { Dashboard } from "./pages/Dashboard.tsx";
+import { Import } from "./pages/import/Import.tsx";
 import { More } from "./pages/More.tsx";
 import { NotBuilt, NotFound } from "./pages/NotBuilt.tsx";
 
@@ -22,7 +24,11 @@ const router = createBrowserRouter([
       { path: "accounts", element: <Accounts /> },
       { path: "accounts/:id", element: <AccountDetail /> },
       { path: "more", element: <More /> },
-      { path: "import", element: <NotBuilt title="Import" inMore /> },
+      {
+        path: "import",
+        element: <Import />,
+        handle: { fullScreen: true } satisfies RouteHandle,
+      },
       { path: "review", element: <NotBuilt title="Review" inMore /> },
       { path: "transactions", element: <NotBuilt title="Transactions" /> },
       { path: "reports", element: <NotBuilt title="Reports" /> },

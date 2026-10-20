@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   checkMapping,
+  readRow,
   readRows,
   type ColumnRole,
   type Mapping,
@@ -230,5 +231,38 @@ describe("readRows", () => {
         balance: null,
       },
     ]);
+  });
+});
+
+describe("readRow", () => {
+  it("reads what an incomplete mapping has, without complaining about the rest", () => {
+    const columns = ["Data", "Descrizione", "Importo"];
+    expect(
+      readRow(
+        columns,
+        ["01/10/2026", "SALARY", "2.000,00"],
+        mapping(["date", "description", "ignore"]),
+        "EUR",
+      ),
+    ).toEqual({
+      date: "2026-10-01",
+      amount: null,
+      description: "SALARY",
+      reference: null,
+      balance: null,
+      problems: [],
+    });
+    expect(
+      readRow(
+        columns,
+        ["2026-10-01", "SALARY", "2.000,00"],
+        mapping(["date", "ignore", "amount"]),
+        "EUR",
+      ),
+    ).toMatchObject({
+      date: null,
+      amount: 200000,
+      problems: [`Data: "2026-10-01" isn't a DD/MM/YYYY date.`],
+    });
   });
 });
