@@ -4,6 +4,7 @@ import Fastify, { type FastifyError } from "fastify";
 import { todayIso } from "../domain/dates.ts";
 import { accountRoutes } from "./accounts.ts";
 import type { Db } from "./db/index.ts";
+import { importRoutes } from "./imports.ts";
 
 export interface AppOptions {
   db: Db;
@@ -24,6 +25,7 @@ export function buildApp({
   const app = Fastify({ logger: log ? { level: "warn" } : false });
 
   accountRoutes(app, { db, today });
+  importRoutes(app, { db, today });
 
   app.get("/api/health", () => {
     const row = db.get<{ version: string }>(

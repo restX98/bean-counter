@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { balanceHistory, bankBalances, checkBalances } from "./balances.ts";
+import {
+  balanceHistory,
+  bankBalances,
+  checkBalances,
+  currentBalance,
+} from "./balances.ts";
 
 // October: salary on the 1st, groceries on the 2nd, 500.00 to savings on the
 // 5th. The bank's balances that month: 3,240.50, 3,184.20, then 2,684.20.
@@ -63,6 +68,30 @@ describe("balanceHistory", () => {
     const history = balanceHistory({ date: "2026-10-16", amount: 324050 }, []);
     expect(history.opening).toBe(324050);
     expect(history.on("2020-01-01")).toBe(324050);
+  });
+});
+
+describe("currentBalance", () => {
+  it("is the balance after the last transaction, or the anchor if later", () => {
+    expect(
+      currentBalance({ date: "2026-09-30", amount: 124050 }, october),
+    ).toEqual({ date: "2026-10-05", balance: 268420 });
+    expect(
+      currentBalance({ date: "2026-10-16", amount: 268420 }, october),
+    ).toEqual({ date: "2026-10-16", balance: 268420 });
+    expect(currentBalance({ date: "2026-10-16", amount: 1000 }, [])).toEqual({
+      date: "2026-10-16",
+      balance: 1000,
+    });
+  });
+
+  it("ignores an excluded last transaction", () => {
+    expect(
+      currentBalance({ date: "2026-09-30", amount: 124050 }, [
+        ...october,
+        tx("2026-10-09", -999, true),
+      ]),
+    ).toEqual({ date: "2026-10-05", balance: 268420 });
   });
 });
 

@@ -58,7 +58,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
   - Two accounts can't share a name, ignoring case and including archived accounts.
   - The currency can change until the account has transactions. The balance anchor keeps its written amount (1,120.00 € becomes 1,120.00 $). The change is refused if the new currency can't write it, for example 1,120.50 € to JPY, which has no decimals.
 - Each account needs one known balance (the anchor):
-  - if the export has a balance column, the app takes it from there;
+  - if the export has a balance column, the app takes it from there. After later imports whose balances all agree with the app's, it moves to the file's latest balance, so it stays recent; if they disagree, it stays where it is;
   - otherwise I enter the current balance and its date, which can't be in the future.
 - The app works the opening balance out backwards from the anchor and the transactions, so I never need to know it.
 - When the export has a balance column, each import compares the app's end-of-day balance with the bank's, for every day that has rows in the file. If they differ, the app flags a balance mismatch and shows where it is: between two consecutive days with bank balances, one where they match and one where they don't. It can't be more precise than that, because the bank only reports a balance on days with rows.
@@ -77,7 +77,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 ### 5.2 Import
 
 - Upload a CSV or Excel export into a chosen account.
-- The first import from a bank asks me to map its format: date, amount (or separate debit/credit columns), description, optional balance column, date format, decimal separator. The mapping is saved as a preset (e.g. "Bank A · checking") and reused automatically for any file with the same columns. A bank can have more than one preset, for example one for its checking export and one for its savings export.
+- The first import from a bank asks me to map its format: date, amount (or separate debit/credit columns), description, optional balance column, date format, decimal separator. The mapping is saved as a preset (e.g. "Bank A · checking") and reused automatically for any file with the same columns. Saving it is optional; saving one for columns that already have a preset updates it. A bank can have more than one preset, for example one for its checking export and one for its savings export.
 - How files are read:
   - **Files**: CSV, separated by commas, semicolons, tabs or bars, in UTF-8 or older Windows text; or .xlsx, from its first sheet with data. Old .xls files, password-protected Excel files and PDFs are refused, with a hint on how to get a CSV or .xlsx.
   - **Missing line breaks**: some exports glue records together without line breaks; the app puts them back.
@@ -87,7 +87,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
   - **Debit and credit**: the amount is the credit minus the debit, whether or not the bank writes debits with a minus. A row with both is refused.
   - **Fees**: a separate fee column is taken off the amount, so a 16.00 payment with a 0.50 fee is −16.50.
   - **Description**: several columns can make it up (payee and reference text, for example), joined with " · ".
-  - **Errors**: a row that can't be read is reported with its line number and the reason, never guessed.
+  - **Errors**: a row that can't be read is reported with its line number and the reason, never guessed. It's left out, and the rest of the file can still be imported.
 - Show a preview before saving anything.
 - Duplicate handling:
   - each transaction gets a fingerprint: its bank reference when the export has one, otherwise date + amount + description. Two different references are never the same transaction;
@@ -243,3 +243,4 @@ New features and decisions are added here as we go.
 | 2026-10-19 | Account rules: unique names, a currency change keeps the anchor's written amount, hand-entered balances can't be dated in the future, per-currency totals hidden while an account has no balance, how typed amounts are read |
 | 2026-10-20 | Reading statements: CSV and .xlsx with lines above the header skipped, missing line breaks put back, three date orders, the decimal separator checked against thousands groups, debit and credit columns, a fee column, a description from several columns, unreadable rows reported, not guessed |
 | 2026-10-20 | Duplicates and the balance check: bank references decide when both sides have one, near-matches share date and amount; each change in the difference with the bank is its own mismatch, placed between two days with bank balances, the anchor counting as a day that matches; what could explain it, most likely first: skipped or excluded transactions, kept near-matches, then any transaction of the right amount as a guess |
+| 2026-10-20 | Saving an import: the anchor follows the file's latest balance while everything agrees, unreadable rows are left out, one preset per set of columns, the account's currency is locked once it has transactions |

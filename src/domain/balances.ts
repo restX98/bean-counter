@@ -62,6 +62,20 @@ export function balanceHistory(
 }
 
 /**
+ * The account's latest balance: at the end of its last day with a
+ * transaction, or of the anchor's day if that's later.
+ */
+export function currentBalance(
+  anchor: Pick<Anchor, "amount" | "date">,
+  transactions: Posted[],
+): DayBalance {
+  const history = balanceHistory(anchor, transactions);
+  const last = history.days.at(-1)?.date;
+  const date = last !== undefined && last > anchor.date ? last : anchor.date;
+  return { date, balance: history.on(date) };
+}
+
+/**
  * The bank's balance at the end of each day, oldest first, from statement
  * rows that carry one. Each row moves the balance from (balance − amount) to
  * its balance, so the day ends at the balance that no row of that day starts
