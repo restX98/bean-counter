@@ -1,8 +1,10 @@
+import { currencySymbol } from "../money.ts";
 import { cellText, type Cell, type Table } from "./table.ts";
 import {
   parseStatementAmount,
   parseStatementDate,
   type DateFormat,
+  type StatementDate,
   type DecimalMark,
 } from "./values.ts";
 
@@ -18,6 +20,8 @@ export const COLUMN_ROLES = [
   "description",
   "balance",
   "reference",
+  "currency",
+  "status",
   "ignore",
 ] as const;
 export type ColumnRole = (typeof COLUMN_ROLES)[number];
@@ -31,6 +35,8 @@ export const ROLE_LABELS: Record<ColumnRole, string> = {
   description: "Description",
   balance: "Balance",
   reference: "Bank reference",
+  currency: "Currency",
+  status: "Status",
   ignore: "Ignore",
 };
 
@@ -49,6 +55,8 @@ const SINGLE_ROLES = [
   "fee",
   "balance",
   "reference",
+  "currency",
+  "status",
 ] as const;
 
 /** What's missing or doubled in a mapping; empty when it's complete. */
@@ -78,6 +86,8 @@ export interface StatementRow {
   /** The row's number in the file. */
   line: number;
   date: string;
+  /** "14:32:05", when the file has times. */
+  time: string | null;
   /** In minor units, after any fee: negative for money going out. */
   amount: number;
   /** The description columns, joined with " · ". */
@@ -94,10 +104,20 @@ export interface RowError {
   problems: string[];
 }
 
+/** A row that is read but not imported, and why. */
+export interface LeftOutRow {
+  line: number;
+  /** In another currency than the account's, or not completed. */
+  reason: "currency" | "status";
+  /** The row's currency or status, as the file writes it. */
+  value: string;
+}
+
 /** One row, read with as much of the mapping as there is. */
 export interface RowReading {
   /** Null without a date column, or when the date can't be read. */
   date: string | null;
+  time: string | null;
   /** Null without amount columns, or when the amount can't be read. */
   amount: number | null;
   description: string;
@@ -105,7 +125,15 @@ export interface RowReading {
   balance: number | null;
   /** What can't be read, each starting with its column's name. */
   problems: string[];
+  /** Why the row isn't imported, even if it can be read. */
+  leftOut: Omit<LeftOutRow, "line"> | null;
 }
+
+// The statuses of transactions that went through, in the languages banks
+// nearby use. Rows with any other status (pending, reverted, declined) are
+// left out; mapping the status column to Ignore imports every row.
+const DONE =
+  /^(completed?|booked|posted|settled|cleared|executed|done|contabilizzat[oa]|eseguit[oa]|gebucht|ausgef(u|ue|ü)hrt|completad[oa]|realizad[oa])$/i;
 
 /**
  * Reads one row. The mapping can still be incomplete, as in S8's live
@@ -126,10 +154,14 @@ export function readRow(
   const [fee] = columnsFor("fee");
   const [balance] = columnsFor("balance");
   const [reference] = columnsFor("reference");
+  const [rowCurrency] = columnsFor("currency");
+  const [status] = columnsFor("status");
 
   const problems: string[] = [];
   const name = (i: number) => columns[i]!;
   const cell = (i: number) => cells[i] ?? "";
+  const text = (i: number | undefined) =>
+    i === undefined ? "" : cellText(cell(i)).trim();
 
   /** An amount column's value, or null if the cell is empty or unreadable. */
   const amountIn = (i: number | undefined): number | null => {
@@ -140,12 +172,12 @@ export function readRow(
     return null;
   };
 
-  let day: string | null = null;
+  let when: StatementDate | undefined;
   if (date !== undefined) {
     if (cell(date) === "") problems.push(`${name(date)} is empty.`);
     else {
-      day = parseStatementDate(cell(date), dateFormat) ?? null;
-      if (!day) {
+      when = parseStatementDate(cell(date), dateFormat);
+      if (!when) {
         problems.push(
           `${name(date)}: "${cellText(cell(date))}" isn't a ${dateFormat} date.`,
         );
@@ -172,31 +204,44 @@ export function readRow(
   const charged = amountIn(fee);
   if (value !== null && charged) value -= Math.abs(charged);
 
+  // An empty status or currency says nothing, so the row stays.
+  const state = text(status);
+  const code = text(rowCurrency).toUpperCase();
+  const leftOut: RowReading["leftOut"] =
+    state && !DONE.test(state)
+      ? { reason: "status", value: state }
+      : code &&
+          code !== currency &&
+          code !== currencySymbol(currency).toUpperCase()
+        ? { reason: "currency", value: code }
+        : null;
+
   return {
-    date: day,
+    date: when?.date ?? null,
+    time: when?.time ?? null,
     amount: value,
     description: columnsFor("description")
       .map((i) => cellText(cell(i)).replace(/\s+/g, " "))
       .filter((text) => text !== "")
       .join(" · "),
-    reference:
-      reference === undefined || cell(reference) === ""
-        ? null
-        : cellText(cell(reference)),
+    reference: text(reference) || null,
     balance: amountIn(balance),
     problems,
+    leftOut,
   };
 }
 
 /**
  * Reads every row of the table with a complete mapping (see checkMapping).
- * Rows that can't be read come back as errors; nothing is guessed.
+ * Rows that can't be read come back as errors; nothing is guessed. Rows in
+ * another currency or not completed are left out, whether or not they can
+ * be read: a pending payment often has no date yet.
  */
 export function readRows(
   table: Table,
   mapping: Mapping,
   currency: string,
-): { rows: StatementRow[]; errors: RowError[] } {
+): { rows: StatementRow[]; errors: RowError[]; leftOut: LeftOutRow[] } {
   const has = (role: ColumnRole) => mapping.roles.includes(role);
   if (!has("date")) throw new Error("The mapping has no date column.");
   if (!has("amount") && !(has("debit") && has("credit"))) {
@@ -205,18 +250,16 @@ export function readRows(
 
   const rows: StatementRow[] = [];
   const errors: RowError[] = [];
+  const leftOut: LeftOutRow[] = [];
   for (const { line, cells } of table.rows) {
-    const { problems, date, amount, ...rest } = readRow(
-      table.columns,
-      cells,
-      mapping,
-      currency,
-    );
-    if (problems.length > 0 || date === null || amount === null) {
-      errors.push({ line, problems });
+    const read = readRow(table.columns, cells, mapping, currency);
+    const { date, time, amount, description, reference, balance } = read;
+    if (read.leftOut) leftOut.push({ line, ...read.leftOut });
+    else if (read.problems.length > 0 || date === null || amount === null) {
+      errors.push({ line, problems: read.problems });
     } else {
-      rows.push({ line, date, amount, ...rest });
+      rows.push({ line, date, time, amount, description, reference, balance });
     }
   }
-  return { rows, errors };
+  return { rows, errors, leftOut };
 }

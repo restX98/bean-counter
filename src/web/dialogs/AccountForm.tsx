@@ -19,6 +19,8 @@ interface Props {
   onSaved?: (account: Account) => void;
   /** Edit mode: the anchor changes through Set balance. */
   onSetBalance?: () => void;
+  /** Adding: the currency to start with, such as a statement's. */
+  currency?: string;
 }
 
 /** D1: add an account (with an optional balance anchor) or edit one. */
@@ -27,6 +29,7 @@ export function AccountForm({
   onClose,
   onSaved,
   onSetBalance,
+  currency = "EUR",
 }: Props) {
   const id = useId();
   const create = useCreateAccount();
@@ -42,7 +45,7 @@ export function AccountForm({
           type: account.type,
           currency: account.currency,
         }
-      : { name: "", bank: "", type: "checking", currency: "EUR" },
+      : { name: "", bank: "", type: "checking", currency },
   );
   const [anchor, setAnchor] = useState({ amount: "", date: todayIso() });
   const set = (change: Partial<AccountFields>) =>

@@ -183,6 +183,7 @@ describe("saving an import", () => {
         imported: 3,
         skipped: 0,
         unreadable: 1,
+        leftOut: 0,
         anchor: { amount: 268420, date: "2026-10-05", source: "statement" },
         gaps: [],
       },
@@ -336,5 +337,79 @@ describe("accounts with transactions", () => {
         })
       ).status,
     ).toBe(200);
+  });
+});
+
+describe("times, currencies and statuses", () => {
+  const card = (rows: string[]) =>
+    ["Completed Date,Description,Amount,Currency,State,Balance", ...rows].join(
+      "\n",
+    );
+  const cardMapping = {
+    roles: ["date", "description", "amount", "currency", "status", "balance"],
+    dateFormat: "YYYY-MM-DD",
+    decimalMark: "point",
+  };
+  const save = async (account: number, text: string, body: object = {}) => {
+    const { body: file } = await upload(account, text);
+    return call("POST", `/api/imports/${file.id}/save`, {
+      mapping: cardMapping,
+      presetName: null,
+      ...body,
+    });
+  };
+
+  it("keeps times, and a different time is a near-match", async () => {
+    const id = await addAccount();
+    const morning = "2026-10-03 09:10:00,BAR,-1.20,EUR,COMPLETED,98.80";
+    expect((await save(id, card([morning]))).status).toBe(201);
+    const { body: file } = await upload(
+      id,
+      card(["2026-10-03 15:40:00,BAR,-1.20,EUR,COMPLETED,97.60"]),
+    );
+    const { body } = await call("POST", `/api/imports/${file.id}/preview`, {
+      mapping: cardMapping,
+    });
+    expect(body.rows[0]).toMatchObject({
+      time: "15:40:00",
+      status: "near-match",
+      match: { id: 1 },
+    });
+  });
+
+  it("leaves out other currencies and unfinished payments, and lists them", async () => {
+    const id = await addAccount();
+    const { body: file } = await upload(
+      id,
+      card([
+        "2026-10-01 09:00:00,Top-up,100.00,EUR,COMPLETED,100.00",
+        "2026-10-02 10:00:00,Hotel,-80.00,USD,COMPLETED,20.00",
+        ",Pizza,-16.00,EUR,PENDING,",
+      ]),
+    );
+    const { body } = await call("POST", `/api/imports/${file.id}/preview`, {
+      mapping: cardMapping,
+    });
+    expect(body.rows).toHaveLength(1);
+    expect(body.leftOut).toEqual([
+      { line: 3, reason: "currency", value: "USD" },
+      { line: 4, reason: "status", value: "PENDING" },
+    ]);
+  });
+
+  it("refuses a file with nothing in the account's currency", async () => {
+    const id = await addAccount();
+    expect(
+      await save(
+        id,
+        card(["2026-10-02 10:00:00,Hotel,-80.00,USD,COMPLETED,20.00"]),
+      ),
+    ).toEqual({
+      status: 400,
+      body: {
+        error:
+          "None of this file's rows are in EUR: they're in USD. Import it into a USD account.",
+      },
+    });
   });
 });

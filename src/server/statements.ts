@@ -138,10 +138,11 @@ function toCell(value: CellValue): Cell {
   if (typeof value === "string" || typeof value === "number") return value;
   if (typeof value === "boolean") return String(value);
   if (value instanceof Date) {
-    // Excel dates have no time zone; ExcelJS returns them as UTC.
-    return Number.isNaN(value.getTime())
-      ? ""
-      : { date: value.toISOString().slice(0, 10) };
+    // Excel dates have no time zone; ExcelJS returns them as UTC. Midnight
+    // is how Excel writes a date without a time.
+    if (Number.isNaN(value.getTime())) return "";
+    const [date = "", time = ""] = value.toISOString().split(/[T.]/);
+    return time === "00:00:00" ? { date } : { date, time };
   }
   if ("richText" in value) return value.richText.map((r) => r.text).join("");
   if ("hyperlink" in value) return value.text;

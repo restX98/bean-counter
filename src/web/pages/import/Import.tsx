@@ -7,7 +7,7 @@ import {
   type MappingDraft,
 } from "../../../domain/import/guess.ts";
 import { checkMapping, type Mapping } from "../../../domain/import/mapping.ts";
-import { useAccounts, useUpload } from "../../api.ts";
+import { useAccounts, useUpload, type UploadedFile } from "../../api.ts";
 import { EmptyState } from "../../components/EmptyState.tsx";
 import { Icon } from "../../components/Icon.tsx";
 import { Loading } from "../../components/Page.tsx";
@@ -36,7 +36,8 @@ export function Import() {
   const [draft, setDraft] = useState<{ key: string; draft: MappingDraft }>();
   const [mapping, setMapping] = useState<Mapping>();
   const [savePreset, setSavePreset] = useState(true);
-  const [adding, setAdding] = useState(false);
+  // Adding an account from S7, possibly for a currency the file is in.
+  const [adding, setAdding] = useState<{ currency?: string } | null>(null);
 
   const close = () => navigate(from ? `/accounts/${from}` : "/");
   const cancel = (
@@ -76,7 +77,7 @@ export function Import() {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => setAdding(true)}
+                onClick={() => setAdding({})}
               >
                 <Icon name="plus" />
                 Add account
@@ -88,7 +89,7 @@ export function Import() {
         </div>
         {adding && (
           <AccountForm
-            onClose={() => setAdding(false)}
+            onClose={() => setAdding(null)}
             onSaved={(saved) => setChosen(saved.id)}
           />
         )}
@@ -146,7 +147,8 @@ export function Import() {
             setChosen(to.id);
             if (file) send(to, file);
           }}
-          onAddAccount={() => setAdding(true)}
+          onAddAccount={(currency) => setAdding({ currency })}
+          currencies={uploaded ? otherCurrencies(uploaded, account) : null}
           file={file}
           onFile={(chosenFile) => send(account, chosenFile)}
           uploaded={uploaded}
@@ -155,7 +157,8 @@ export function Import() {
         />
         {adding && (
           <AccountForm
-            onClose={() => setAdding(false)}
+            currency={adding.currency}
+            onClose={() => setAdding(null)}
             onSaved={(saved) => {
               setChosen(saved.id);
               if (file) send(saved, file);
@@ -232,4 +235,30 @@ export function Import() {
       </div>
     </Flow>
   );
+}
+
+/**
+ * The currencies in a file's first rows other than the account's, read with
+ * the mapping S8 would start from. Null when there are none.
+ */
+function otherCurrencies(file: UploadedFile, account: Account) {
+  const mapping =
+    file.preset?.mapping ??
+    toMapping(
+      guessMapping(
+        file.columns,
+        file.sample.map((row) => row.cells),
+        account.currency,
+      ),
+    );
+  const readings = readSample(file, mapping, account.currency);
+  const others = [
+    ...new Set(
+      readings.flatMap((r) =>
+        r.leftOut?.reason === "currency" ? [r.leftOut.value] : [],
+      ),
+    ),
+  ];
+  const own = readings.some((r) => !r.leftOut && isReadable(r));
+  return others.length > 0 ? { others, own } : null;
 }

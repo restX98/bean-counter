@@ -13,7 +13,9 @@ interface Props {
   account: Account;
   onAccount: (account: Account) => void;
   /** Opens D1, for a statement of an account not added yet. */
-  onAddAccount: () => void;
+  onAddAccount: (currency?: string) => void;
+  /** Other currencies in the file's first rows, and whether any are the account's. */
+  currencies: { others: string[]; own: boolean } | null;
   file: File | null;
   onFile: (file: File | null) => void;
   /** The file as the server read it, once it has. */
@@ -28,6 +30,7 @@ export function ChooseFile({
   account,
   onAccount,
   onAddAccount,
+  currencies,
   file,
   onFile,
   uploaded,
@@ -44,7 +47,7 @@ export function ChooseFile({
   const addHint = (
     <>
       Not in the list?{" "}
-      <button type="button" className="link" onClick={onAddAccount}>
+      <button type="button" className="link" onClick={() => onAddAccount()}>
         Add an account
       </button>
     </>
@@ -161,6 +164,13 @@ export function ChooseFile({
       )}
       {file && !reading && !unreadable && <FormError error={error} />}
       {file && !reading && uploaded && <Recognised uploaded={uploaded} />}
+      {file && !reading && uploaded && currencies && (
+        <OtherCurrencies
+          account={account}
+          {...currencies}
+          onAdd={() => onAddAccount(currencies.others[0])}
+        />
+      )}
     </div>
   );
 }
@@ -186,6 +196,51 @@ function Recognised({ uploaded: { preset } }: { uploaded: UploadedFile }) {
         The columns match this saved preset, so the mapping step is skipped.
         {preset.mapping.roles.includes("balance") &&
           " This export has a balance column: the balance check runs after the import."}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Rows in another currency are left out. All of them: the file is probably
+ * another account's. Some: the rest go into another account's import.
+ */
+function OtherCurrencies({
+  account,
+  others,
+  own,
+  onAdd,
+}: {
+  account: Account;
+  others: string[];
+  own: boolean;
+  onAdd: () => void;
+}) {
+  const list = others.join(", ");
+  if (own) {
+    return (
+      <div className="banner tone-info">
+        <Icon name="info" />
+        <span className="text">
+          <strong>Rows in {list} are left out</strong>
+          This file also has rows in {list}. To bring them in, import it into a{" "}
+          {others[0]} account too.
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="banner tone-warning" role="status">
+      <Icon name="alert" />
+      <span className="text">
+        <strong>This looks like a {list} statement</strong>
+        Its first rows are in {list}, but {account.name} is in{" "}
+        {account.currency}. Rows in other currencies are left out, so choose a{" "}
+        {others[0]} account, or{" "}
+        <button type="button" className="link" onClick={onAdd}>
+          add a {others[0]} account
+        </button>
+        .
       </span>
     </div>
   );

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { guessMapping, toMapping } from "./guess.ts";
 
 describe("guessMapping", () => {
-  it("maps an export with a fee and two dates", () => {
+  it("maps an export with a fee, two dates, a currency and a status", () => {
     const draft = guessMapping(
       [
         "Type",
@@ -41,8 +41,8 @@ describe("guessMapping", () => {
         "description",
         "amount",
         "fee",
-        "ignore",
-        "ignore",
+        "currency",
+        "status",
         "balance",
       ],
       dateFormat: "YYYY-MM-DD",
@@ -50,7 +50,7 @@ describe("guessMapping", () => {
     });
   });
 
-  it("maps debit and credit columns and several descriptions", () => {
+  it("maps debit and credit, several descriptions and the posted currency", () => {
     const draft = guessMapping(
       [
         "Posted Account",
@@ -108,7 +108,7 @@ describe("guessMapping", () => {
         "debit",
         "credit",
         "balance",
-        "ignore",
+        "currency",
         "ignore",
         "ignore",
         "ignore",

@@ -168,7 +168,7 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
 - **Purpose**: teach the app a bank's export format, once per bank.
 - **Shows**:
   - the first rows of the file;
-  - for each column, a choice of what it holds: date, amount, debit, credit, fee, description, balance, bank reference or ignore;
+  - for each column, a choice of what it holds: date, amount, debit, credit, fee, description, balance, bank reference, currency, status or ignore;
   - date format and decimal separator;
   - a live preview of how the rows will be read.
 - **Actions**: save as the preset for this bank and continue.

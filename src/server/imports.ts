@@ -140,11 +140,16 @@ export function importRoutes(
       entered = checked.value;
     }
 
-    const { rows, errors } = readRows(file.table, mapping, account.currency);
+    const { rows, errors, leftOut } = readRows(
+      file.table,
+      mapping,
+      account.currency,
+    );
     const existing = db
       .select({
         id: transactions.id,
         date: transactions.date,
+        time: transactions.time,
         amount: transactions.amount,
         description: transactions.description,
         reference: transactions.reference,
@@ -167,6 +172,7 @@ export function importRoutes(
     return {
       account,
       unreadable: errors,
+      leftOut,
       ...planImport({ rows, existing, anchor, decisions, balance: entered }),
     };
   }
@@ -260,11 +266,11 @@ export function importRoutes(
       },
     },
     step((req) => {
-      const { rows, unreadable, needsBalance, anchor, gaps } = plan(
+      const { rows, unreadable, leftOut, needsBalance, anchor, gaps } = plan(
         upload(req.params.id),
         req.body,
       );
-      return { rows, unreadable, needsBalance, anchor, gaps };
+      return { rows, unreadable, leftOut, needsBalance, anchor, gaps };
     }),
   );
 
@@ -290,10 +296,20 @@ export function importRoutes(
     },
     step((req, reply) => {
       const file = upload(req.params.id);
-      const { account, unreadable, rows, needsBalance, anchor, gaps } = plan(
-        file,
-        req.body,
-      );
+      const { account, unreadable, leftOut, rows, needsBalance, anchor, gaps } =
+        plan(file, req.body);
+      // A file with nothing in the account's currency belongs to another
+      // account; a multi-currency file is imported once into each.
+      const others = [
+        ...new Set(
+          leftOut.filter((r) => r.reason === "currency").map((r) => r.value),
+        ),
+      ];
+      if (rows.length === 0 && others.length > 0) {
+        throw new Refusal(400, {
+          error: `None of this file's rows are in ${account.currency}: they're in ${others.join(", ")}. Import it into a ${others[0]} account.`,
+        });
+      }
       if (rows.some((r) => r.status === "near-match" && !r.decision)) {
         throw new Refusal(400, {
           error: "Decide whether to keep or skip each near-match first.",
@@ -349,6 +365,7 @@ export function importRoutes(
                 importId: id,
                 line: row.line,
                 date: row.date,
+                time: row.time,
                 amount: row.amount,
                 description: row.description,
                 reference: row.reference,
@@ -379,6 +396,7 @@ export function importRoutes(
         imported: saved.length,
         skipped: rows.length - saved.length,
         unreadable: unreadable.length,
+        leftOut: leftOut.length,
         anchor,
         gaps,
       });

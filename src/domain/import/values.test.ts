@@ -2,49 +2,82 @@ import { describe, expect, it } from "vitest";
 import { parseStatementAmount, parseStatementDate } from "./values.ts";
 
 describe("parseStatementDate", () => {
+  /** Just the date, for the tests about dates. */
+  const day = (
+    text: string,
+    format: Parameters<typeof parseStatementDate>[1],
+  ) => parseStatementDate(text, format)?.date;
+
   it("reads day/month/year with any of / . -", () => {
-    expect(parseStatementDate("01/10/2026", "DD/MM/YYYY")).toBe("2026-10-01");
-    expect(parseStatementDate("1.10.2026", "DD/MM/YYYY")).toBe("2026-10-01");
-    expect(parseStatementDate("31-12-2026", "DD/MM/YYYY")).toBe("2026-12-31");
+    expect(day("01/10/2026", "DD/MM/YYYY")).toBe("2026-10-01");
+    expect(day("1.10.2026", "DD/MM/YYYY")).toBe("2026-10-01");
+    expect(day("31-12-2026", "DD/MM/YYYY")).toBe("2026-12-31");
   });
 
   it("reads month/day/year and year-month-day", () => {
-    expect(parseStatementDate("10/31/2026", "MM/DD/YYYY")).toBe("2026-10-31");
-    expect(parseStatementDate("2026-10-01", "YYYY-MM-DD")).toBe("2026-10-01");
-    expect(parseStatementDate("2026/10/1", "YYYY-MM-DD")).toBe("2026-10-01");
+    expect(day("10/31/2026", "MM/DD/YYYY")).toBe("2026-10-31");
+    expect(day("2026-10-01", "YYYY-MM-DD")).toBe("2026-10-01");
+    expect(day("2026/10/1", "YYYY-MM-DD")).toBe("2026-10-01");
   });
 
   it("puts a two-digit year in the 2000s", () => {
-    expect(parseStatementDate("01/10/26", "DD/MM/YYYY")).toBe("2026-10-01");
-    expect(parseStatementDate("10/01/26", "MM/DD/YYYY")).toBe("2026-10-01");
+    expect(day("01/10/26", "DD/MM/YYYY")).toBe("2026-10-01");
+    expect(day("10/01/26", "MM/DD/YYYY")).toBe("2026-10-01");
   });
 
-  it("ignores a time after the date", () => {
-    expect(parseStatementDate("01/10/2026 14:32", "DD/MM/YYYY")).toBe(
-      "2026-10-01",
+  it("keeps the time after the date, with seconds", () => {
+    expect(parseStatementDate("01/10/2026", "DD/MM/YYYY")).toEqual({
+      date: "2026-10-01",
+      time: null,
+    });
+    expect(parseStatementDate("01/10/2026 14:32", "DD/MM/YYYY")).toEqual({
+      date: "2026-10-01",
+      time: "14:32:00",
+    });
+    expect(
+      parseStatementDate("2026-10-01T09:05:07.123Z", "YYYY-MM-DD"),
+    ).toEqual({ date: "2026-10-01", time: "09:05:07" });
+    expect(parseStatementDate("2026-06-12 21:02:16", "YYYY-MM-DD")).toEqual({
+      date: "2026-06-12",
+      time: "21:02:16",
+    });
+  });
+
+  it("reads 12-hour times", () => {
+    expect(parseStatementDate("10/01/2026 2:32 PM", "MM/DD/YYYY")?.time).toBe(
+      "14:32:00",
     );
-    expect(parseStatementDate("2026-10-01T14:32:05Z", "YYYY-MM-DD")).toBe(
-      "2026-10-01",
+    expect(parseStatementDate("10/01/2026 12:05 am", "MM/DD/YYYY")?.time).toBe(
+      "00:05:00",
     );
-    expect(parseStatementDate("10/01/2026 2:32 PM", "MM/DD/YYYY")).toBe(
-      "2026-10-01",
+    expect(parseStatementDate("10/01/2026 12:05 PM", "MM/DD/YYYY")?.time).toBe(
+      "12:05:00",
     );
   });
 
-  it("refuses dates that don't exist or don't fit the format", () => {
-    expect(parseStatementDate("31/02/2026", "DD/MM/YYYY")).toBeUndefined();
-    expect(parseStatementDate("13/31/2026", "MM/DD/YYYY")).toBeUndefined();
-    expect(parseStatementDate("2026-10-01", "DD/MM/YYYY")).toBeUndefined();
-    expect(parseStatementDate("01/10-2026", "DD/MM/YYYY")).toBeUndefined();
-    expect(parseStatementDate("26-10-01", "YYYY-MM-DD")).toBeUndefined();
-    expect(parseStatementDate("01/10/2026 foo", "DD/MM/YYYY")).toBeUndefined();
-    expect(parseStatementDate("SALARY", "DD/MM/YYYY")).toBeUndefined();
+  it("refuses dates and times that don't exist or don't fit the format", () => {
+    expect(day("31/02/2026", "DD/MM/YYYY")).toBeUndefined();
+    expect(day("13/31/2026", "MM/DD/YYYY")).toBeUndefined();
+    expect(day("2026-10-01", "DD/MM/YYYY")).toBeUndefined();
+    expect(day("01/10-2026", "DD/MM/YYYY")).toBeUndefined();
+    expect(day("26-10-01", "YYYY-MM-DD")).toBeUndefined();
+    expect(day("01/10/2026 foo", "DD/MM/YYYY")).toBeUndefined();
+    expect(day("01/10/2026 25:00", "DD/MM/YYYY")).toBeUndefined();
+    expect(day("01/10/2026 13:00 PM", "DD/MM/YYYY")).toBeUndefined();
+    expect(day("SALARY", "DD/MM/YYYY")).toBeUndefined();
   });
 
   it("takes Excel dates as they are, but not plain numbers", () => {
-    expect(parseStatementDate({ date: "2026-10-01" }, "MM/DD/YYYY")).toBe(
-      "2026-10-01",
-    );
+    expect(parseStatementDate({ date: "2026-10-01" }, "MM/DD/YYYY")).toEqual({
+      date: "2026-10-01",
+      time: null,
+    });
+    expect(
+      parseStatementDate(
+        { date: "2026-10-01", time: "14:32:05" },
+        "DD/MM/YYYY",
+      ),
+    ).toEqual({ date: "2026-10-01", time: "14:32:05" });
     expect(parseStatementDate(46296, "DD/MM/YYYY")).toBeUndefined();
   });
 });

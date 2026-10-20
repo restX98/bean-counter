@@ -40,10 +40,15 @@ const NAMES: [ColumnRole, RegExp][] = [
     /descri|detail|dettagli|payee|beneficiar|causale|memo|narrative|verwendungszweck|merchant/,
   ],
   ["reference", /reference|riferimento|\bref\b|transaction id/],
+  // After the date, so "Data valuta" (value date) is a date.
+  ["currency", /currenc|\bvaluta\b|wahrung|moneda|divisa/],
+  ["status", /\bstate\b|status|\bstato\b|estado|zustand/],
 ];
 // The value date and the day a card payment started come second to the day
 // the money moved.
 const SECOND_DATE = /valu|start/;
+// The shop's currency on a card payment abroad isn't the account's.
+const SECOND_CURRENCY = /local|orig/;
 
 const normalize = (name: string) =>
   name
@@ -74,6 +79,7 @@ export function guessMapping(
   };
 
   keepFirst("date", (i) => !SECOND_DATE.test(normalize(columns[i]!)));
+  keepFirst("currency", (i) => !SECOND_CURRENCY.test(normalize(columns[i]!)));
   if (named.includes("debit") && named.includes("credit")) {
     named.forEach((r, i) => {
       if (r === "amount") roles[i] = "ignore";
@@ -86,6 +92,7 @@ export function guessMapping(
     "fee",
     "balance",
     "reference",
+    "status",
   ] as const) {
     keepFirst(role);
   }

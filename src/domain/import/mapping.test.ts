@@ -86,6 +86,7 @@ describe("readRows", () => {
         {
           line: 2,
           date: "2026-10-01",
+          time: null,
           amount: 200000,
           description: "SALARY ACME SPA",
           reference: "TX88213",
@@ -94,6 +95,7 @@ describe("readRows", () => {
         {
           line: 3,
           date: "2026-10-02",
+          time: null,
           amount: -5630,
           description: "ESSELUNGA MILANO",
           reference: null,
@@ -101,6 +103,7 @@ describe("readRows", () => {
         },
       ],
       errors: [],
+      leftOut: [],
     });
   });
 
@@ -225,6 +228,7 @@ describe("readRows", () => {
       {
         line: 2,
         date: "2026-10-01",
+        time: null,
         amount: 200000,
         description: "SALARY",
         reference: "88213",
@@ -246,11 +250,13 @@ describe("readRow", () => {
       ),
     ).toEqual({
       date: "2026-10-01",
+      time: null,
       amount: null,
       description: "SALARY",
       reference: null,
       balance: null,
       problems: [],
+      leftOut: null,
     });
     expect(
       readRow(
@@ -264,5 +270,63 @@ describe("readRow", () => {
       amount: 200000,
       problems: [`Data: "2026-10-01" isn't a DD/MM/YYYY date.`],
     });
+  });
+});
+
+describe("leaving rows out", () => {
+  const columns = [
+    "Completed Date",
+    "Description",
+    "Amount",
+    "Currency",
+    "State",
+  ];
+  const revolut: Mapping = {
+    roles: ["date", "description", "amount", "currency", "status"],
+    dateFormat: "YYYY-MM-DD",
+    decimalMark: "point",
+  };
+
+  it("leaves out rows in another currency, or not completed", () => {
+    const result = readRows(
+      table(
+        columns,
+        ["2026-06-12 21:02:16", "Top-up", "100.00", "EUR", "COMPLETED"],
+        ["2026-06-13 08:00:00", "Hotel", "-80.00", "USD", "COMPLETED"],
+        ["", "Pizza", "-16.00", "EUR", "PENDING"],
+        ["2026-06-14 10:00:00", "Refund", "5.00", "EUR", "REVERTED"],
+        ["2026-06-15 10:00:00", "Coffee", "-2.00", "€", "completed"],
+      ),
+      revolut,
+      "EUR",
+    );
+    expect(result.rows.map((r) => [r.line, r.time])).toEqual([
+      [2, "21:02:16"],
+      [6, "10:00:00"],
+    ]);
+    // A pending payment has no date yet: it's left out, not unreadable.
+    expect(result.errors).toEqual([]);
+    expect(result.leftOut).toEqual([
+      { line: 3, reason: "currency", value: "USD" },
+      { line: 4, reason: "status", value: "PENDING" },
+      { line: 5, reason: "status", value: "REVERTED" },
+    ]);
+  });
+
+  it("keeps rows with an empty currency or status", () => {
+    const { rows } = readRows(
+      table(columns, ["2026-06-12", "Top-up", "100.00", "", ""]),
+      revolut,
+      "EUR",
+    );
+    expect(rows).toHaveLength(1);
+  });
+
+  it("allows one currency and one status column", () => {
+    expect(
+      checkMapping(
+        mapping(["date", "description", "amount", "currency", "currency"]),
+      ),
+    ).toEqual(["Only one column can be the Currency."]);
   });
 });

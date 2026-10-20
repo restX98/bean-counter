@@ -82,15 +82,17 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
   - **Files**: CSV, separated by commas, semicolons, tabs or bars, in UTF-8 or older Windows text; or .xlsx, from its first sheet with data. Old .xls files, password-protected Excel files and PDFs are refused, with a hint on how to get a CSV or .xlsx.
   - **Missing line breaks**: some exports glue records together without line breaks; the app puts them back.
   - **Header**: lines above the column names (account number, period) are skipped. A file without column names gets "Column 1", "Column 2"…
-  - **Dates**: day/month/year, month/day/year or year-month-day, with /, . or - between the parts. A two-digit year is in the 2000s, and a time after the date is ignored.
+  - **Dates**: day/month/year, month/day/year or year-month-day, with /, . or - between the parts. A two-digit year is in the 2000s. A time after the date is kept (12/06/2026 21:02:16), so transactions on the same day stay in order.
   - **Amounts**: the other mark (or a space or an apostrophe) can only group thousands in threes. So with the wrong decimal separator set, 56,30 is refused instead of being read as 5,630. A minus at the end (56,30-) and the currency's symbol or code are accepted. Excel number cells don't depend on the separator.
   - **Debit and credit**: the amount is the credit minus the debit, whether or not the bank writes debits with a minus. A row with both is refused.
   - **Fees**: a separate fee column is taken off the amount, so a 16.00 payment with a 0.50 fee is −16.50.
+  - **Currency**: when the file has a currency column, rows in another currency than the account's are left out and listed. A file with several currencies is imported once into each currency's account. The import warns as soon as I choose a file that looks like another currency's, and refuses one with no row in the account's currency.
+  - **Status**: when the file has a status column (often called State or Status), only transactions that went through are imported (completed, booked, posted, settled and the like, also in Italian, German and Spanish). Pending, reverted or declined ones are left out and listed. Mapping the column to Ignore imports every row.
   - **Description**: several columns can make it up (payee and reference text, for example), joined with " · ".
   - **Errors**: a row that can't be read is reported with its line number and the reason, never guessed. It's left out, and the rest of the file can still be imported.
 - Show a preview before saving anything.
 - Duplicate handling:
-  - each transaction gets a fingerprint: its bank reference when the export has one, otherwise date + amount + description. Two different references are never the same transaction;
+  - each transaction gets a fingerprint: its bank reference when the export has one, otherwise date + amount + description, and the time when both have one. Two different references are never the same transaction; two different times may be (a bank can change one between exports), so that's a near-match for me to decide;
   - transactions that exactly match one already imported are skipped;
   - near-matches (same date and amount, another description, unless both have bank references) are flagged in the preview for me to decide;
   - counts are respected, so two identical transactions on the same day (two €1.20 coffees) are both kept;
@@ -244,4 +246,5 @@ New features and decisions are added here as we go.
 | 2026-10-20 | Reading statements: CSV and .xlsx with lines above the header skipped, missing line breaks put back, three date orders, the decimal separator checked against thousands groups, debit and credit columns, a fee column, a description from several columns, unreadable rows reported, not guessed |
 | 2026-10-20 | Duplicates and the balance check: bank references decide when both sides have one, near-matches share date and amount; each change in the difference with the bank is its own mismatch, placed between two days with bank balances, the anchor counting as a day that matches; what could explain it, most likely first: skipped or excluded transactions, kept near-matches, then any transaction of the right amount as a guess |
 | 2026-10-20 | Saving an import: the anchor follows the file's latest balance while everything agrees, unreadable rows are left out, one preset per set of columns, the account's currency is locked once it has transactions |
+| 2026-10-20 | Times, currencies and statuses: times are kept and used for duplicates; rows in another currency or not completed are left out and listed; an import with nothing in the account's currency is refused |
 | 2026-10-20 | Import screens S7 and S8: an account can be added while choosing the file; the mapping is proposed from column names and values with a live preview, Fee is a column type, and S8 moves on only once some rows can be read |

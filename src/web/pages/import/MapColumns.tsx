@@ -31,6 +31,8 @@ const ONE_USE: ColumnRole[] = [
   "fee",
   "balance",
   "reference",
+  "currency",
+  "status",
 ];
 const DECIMAL_LABELS: Record<DecimalMark, string> = {
   point: "Point · 1,234.56",
@@ -92,6 +94,8 @@ export function MapColumns({
     "description",
     "balance",
     "reference",
+    "currency",
+    "status",
     "ignore",
   ];
 
@@ -148,8 +152,16 @@ export function MapColumns({
   const read = readings.slice(0, SAMPLES);
   // A complete mapping that reads nothing has the wrong date format or mark.
   const noneReadable = problems.length === 0 && !readings.some(isReadable);
+  // Left-out rows aren't imported, so what can't be read in them doesn't matter.
   const readProblems = read.flatMap((r) =>
-    r.problems.map((problem) => `Line ${r.line} · ${problem}`),
+    r.leftOut ? [] : r.problems.map((problem) => `Line ${r.line} · ${problem}`),
+  );
+  const leftOut = read.flatMap((r) =>
+    r.leftOut
+      ? [
+          `line ${r.line} (${r.leftOut.reason === "currency" ? `in ${r.leftOut.value}` : r.leftOut.value})`,
+        ]
+      : [],
   );
   const unpicked = columns.filter((_, i) => draft.roles[i] === null);
   const hasBalance = draft.roles.includes("balance");
@@ -313,25 +325,44 @@ export function MapColumns({
             </thead>
             <tbody>
               {read.map((row) => (
-                <tr key={row.line}>
+                <tr
+                  key={row.line}
+                  className={row.leftOut ? "is-left-out" : undefined}
+                >
                   <td className={row.date ? undefined : "missing"}>
-                    {row.date ? formatDate(row.date) : "—"}
+                    {row.date
+                      ? `${formatDate(row.date)}${row.time ? ` ${row.time.slice(0, 5)}` : ""}`
+                      : "—"}
                   </td>
                   <td className={row.description ? "wrap" : "wrap missing"}>
                     {row.description || "—"}
                   </td>
-                  <td className={row.amount === null ? "num missing" : "num"}>
-                    {row.amount === null
-                      ? "—"
-                      : formatAmount(row.amount, account.currency, {
-                          signed: true,
-                        })}
+                  <td
+                    className={
+                      row.amount === null || row.leftOut ? "num missing" : "num"
+                    }
+                  >
+                    {row.leftOut
+                      ? row.leftOut.reason === "currency"
+                        ? `In ${row.leftOut.value}: left out`
+                        : `${row.leftOut.value}: left out`
+                      : row.amount === null
+                        ? "—"
+                        : formatAmount(row.amount, account.currency, {
+                            signed: true,
+                          })}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </section>
+        {leftOut.length > 0 && (
+          <p className="caption read-problems">
+            Left out, as they're in another currency or not completed:{" "}
+            {leftOut.join(", ")}.
+          </p>
+        )}
         {readProblems.length > 0 && (
           <ul className="read-problems">
             <li className="caption">

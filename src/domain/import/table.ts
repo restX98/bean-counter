@@ -3,8 +3,11 @@ import { formatDate } from "../dates.ts";
 // A statement file read into a table: its column names and the rows under
 // them. CSV cells are always text; Excel cells can also be numbers and dates.
 
-/** A cell's value. Excel dates come as calendar days, like the rest of the app. */
-export type Cell = string | number | { date: string };
+/**
+ * A cell's value. Excel dates come as calendar days, like the rest of the
+ * app, with the time of day when it isn't midnight ("14:32:05").
+ */
+export type Cell = string | number | { date: string; time?: string };
 
 export interface TableRow {
   /** The row's number in the file, counting from 1, for messages. */
@@ -26,7 +29,9 @@ export type TableResult =
 export function cellText(cell: Cell): string {
   if (typeof cell === "string") return cell;
   if (typeof cell === "number") return String(Number(cell.toPrecision(15)));
-  return formatDate(cell.date);
+  return cell.time
+    ? `${formatDate(cell.date)} ${cell.time.slice(0, 5)}`
+    : formatDate(cell.date);
 }
 
 // Digits with the characters that dates, times and amounts use, no letters.

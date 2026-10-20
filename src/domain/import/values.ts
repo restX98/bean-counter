@@ -9,40 +9,60 @@ import { cellText, type Cell } from "./table.ts";
 export const DATE_FORMATS = ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"] as const;
 export type DateFormat = (typeof DATE_FORMATS)[number];
 
-// A time after the date is ignored: "01/10/2026 14:32", "2026-10-01T14:32:05Z".
-const TIME = String.raw`(?:[ T]\d{1,2}[:.]\d{2}.*)?`;
+// A time can follow the date: "01/10/2026 14:32", "2026-10-01T14:32:05Z",
+// "10/01/2026 2:32 PM". Anything after it, such as a time zone, is ignored.
+const TIME = String.raw`(?:[ T](\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?(?:[.,]\d+)?\s*(am|pm)?.*)?`;
 const YEAR_LAST = new RegExp(
   String.raw`^(\d{1,2})([./-])(\d{1,2})\2(\d{4}|\d{2})${TIME}$`,
+  "i",
 );
 const YEAR_FIRST = new RegExp(
   String.raw`^(\d{4})([./-])(\d{1,2})\2(\d{1,2})${TIME}$`,
+  "i",
 );
 
+/** A statement's date and, when the file has one, its time ("14:32:05"). */
+export interface StatementDate {
+  date: string;
+  time: string | null;
+}
+
 /**
- * A statement's date as an ISO date, or undefined if it isn't one in this
- * format. A two-digit year is in the 2000s. Excel dates need no format.
+ * Reads a statement's date in this format, or gives undefined. A two-digit
+ * year is in the 2000s. Excel dates need no format.
  */
 export function parseStatementDate(
   cell: Cell,
   format: DateFormat,
-): string | undefined {
-  if (typeof cell === "object") return cell.date;
+): StatementDate | undefined {
+  if (typeof cell === "object") {
+    return { date: cell.date, time: cell.time ?? null };
+  }
   if (typeof cell === "number") return undefined;
 
+  const match = (format === "YYYY-MM-DD" ? YEAR_FIRST : YEAR_LAST).exec(cell);
+  if (!match) return undefined;
+  const [, a = "", , b = "", c = "", hours, minutes, seconds, half] = match;
   let year: string, month: string, day: string;
-  if (format === "YYYY-MM-DD") {
-    const match = YEAR_FIRST.exec(cell);
-    if (!match) return undefined;
-    [, year = "", , month = "", day = ""] = match;
-  } else {
-    const match = YEAR_LAST.exec(cell);
-    if (!match) return undefined;
-    const [, first = "", , second = "", y = ""] = match;
-    [day, month] = format === "DD/MM/YYYY" ? [first, second] : [second, first];
-    year = y.length === 2 ? `20${y}` : y;
+  if (format === "YYYY-MM-DD") [year, month, day] = [a, b, c];
+  else {
+    [day, month] = format === "DD/MM/YYYY" ? [a, b] : [b, a];
+    year = c.length === 2 ? `20${c}` : c;
   }
-  const iso = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  return isIsoDate(iso) ? iso : undefined;
+  const date = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  if (!isIsoDate(date)) return undefined;
+  if (hours === undefined || minutes === undefined) return { date, time: null };
+
+  let hour = Number(hours);
+  if (half) {
+    if (hour < 1 || hour > 12) return undefined;
+    hour = (hour % 12) + (half.toLowerCase() === "pm" ? 12 : 0);
+  }
+  if (hour > 23 || Number(minutes) > 59 || Number(seconds ?? 0) > 59) {
+    return undefined;
+  }
+  const pad = (n: number | string) => String(n).padStart(2, "0");
+  return { date, time: `${pad(hour)}:${minutes}:${pad(seconds ?? 0)}` };
 }
 
 /** The character between whole units and decimals: 1,234.56 or 1.234,56. */

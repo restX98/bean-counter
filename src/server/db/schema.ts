@@ -91,6 +91,8 @@ export const transactions = sqliteTable(
     // them. Edits will get their own columns.
     /** YYYY-MM-DD. */
     date: text("date").notNull(),
+    /** HH:MM:SS, when the file had times. */
+    time: text("time"),
     /** Minor units, after any fee: negative for money going out. */
     amount: integer("amount").notNull(),
     description: text("description").notNull(),

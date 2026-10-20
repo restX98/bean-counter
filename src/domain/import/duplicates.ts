@@ -11,6 +11,8 @@ import type { StatementRow } from "./mapping.ts";
 export interface Imported {
   id: number;
   date: string;
+  /** "14:32:05", when the file had times. */
+  time: string | null;
   amount: number;
   description: string;
   reference: string | null;
@@ -22,19 +24,25 @@ export type Match =
   | { status: "duplicate"; of: number }
   | { status: "near-match"; of: number };
 
-type Row = Pick<StatementRow, "date" | "amount" | "description" | "reference">;
+type Row = Pick<
+  StatementRow,
+  "date" | "time" | "amount" | "description" | "reference"
+>;
 
 /**
  * Matches each row of a file with the account's transactions.
  *
  * A row duplicates a transaction with the same bank reference, or, when one
- * of them has none, the same date, amount and description. Two different
- * references are never the same transaction. Each transaction matches one
+ * of them has none, the same date, amount and description, and the same time
+ * if both have one. Two different references are never the same
+ * transaction. Each transaction matches one
  * row at most, so if one of two identical coffees in a file was already
  * imported, the other is still new.
  *
  * A row that isn't a duplicate is a near-match of an unmatched transaction
- * with the same date and amount, unless both have references.
+ * with the same date and amount, unless both have references. So a bank
+ * that changes a time between exports doesn't bring a transaction in twice
+ * unnoticed.
  */
 export function findDuplicates(rows: Row[], imported: Imported[]): Match[] {
   const byReference = new Map<string, Imported[]>();
@@ -71,6 +79,8 @@ export function findDuplicates(rows: Row[], imported: Imported[]): Match[] {
     byDay.get(`${row.date} ${row.amount}`);
   const oneHasNoReference = (row: Row, t: Imported) =>
     row.reference === null || t.reference === null;
+  const sameTime = (row: Row, t: Imported) =>
+    row.time === null || t.time === null || row.time === t.time;
 
   // References first, so a row finds its own transaction before a lookalike.
   match(
@@ -82,7 +92,10 @@ export function findDuplicates(rows: Row[], imported: Imported[]): Match[] {
   match(
     "duplicate",
     sameDateAndAmount,
-    (row, t) => oneHasNoReference(row, t) && row.description === t.description,
+    (row, t) =>
+      oneHasNoReference(row, t) &&
+      row.description === t.description &&
+      sameTime(row, t),
   );
   match("near-match", sameDateAndAmount, oneHasNoReference);
   return result;

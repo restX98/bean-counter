@@ -6,7 +6,8 @@ const row = (
   amount: number,
   description: string,
   reference: string | null = null,
-) => ({ date, amount, description, reference });
+  time: string | null = null,
+) => ({ date, time, amount, description, reference });
 
 const imported = (
   id: number,
@@ -14,7 +15,8 @@ const imported = (
   amount: number,
   description: string,
   reference: string | null = null,
-): Imported => ({ id, date, amount, description, reference });
+  time: string | null = null,
+): Imported => ({ id, date, time, amount, description, reference });
 
 describe("findDuplicates", () => {
   it("finds every row of a statement imported again", () => {
@@ -111,5 +113,35 @@ describe("findDuplicates", () => {
         [imported(4, "2026-10-14", -3490, "AMAZON EU SARL")],
       ),
     ).toEqual([{ status: "duplicate", of: 4 }, { status: "new" }]);
+  });
+
+  it("tells same-day lookalikes apart by their time", () => {
+    // An earlier export, cut at noon, had the morning coffee; this one only
+    // the afternoon's.
+    const morning = imported(1, "2026-10-03", -120, "BAR", null, "09:10:00");
+    expect(
+      findDuplicates(
+        [
+          row("2026-10-03", -120, "BAR", null, "09:10:00"),
+          row("2026-10-03", -120, "BAR", null, "15:40:00"),
+        ],
+        [morning],
+      ),
+    ).toEqual([{ status: "duplicate", of: 1 }, { status: "new" }]);
+    expect(
+      findDuplicates(
+        [row("2026-10-03", -120, "BAR", null, "15:40:00")],
+        [morning],
+      ),
+    ).toEqual([{ status: "near-match", of: 1 }]);
+  });
+
+  it("matches by values when one side has no time", () => {
+    expect(
+      findDuplicates(
+        [row("2026-10-03", -120, "BAR", null, "09:10:00")],
+        [imported(1, "2026-10-03", -120, "BAR")],
+      ),
+    ).toEqual([{ status: "duplicate", of: 1 }]);
   });
 });

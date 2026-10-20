@@ -11,6 +11,7 @@ const row = (
 ): StatementRow => ({
   line,
   date,
+  time: null,
   amount,
   description,
   reference: null,
@@ -33,6 +34,7 @@ const existing = (
 ): Existing => ({
   id,
   date,
+  time: null,
   amount,
   description,
   reference: null,

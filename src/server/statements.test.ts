@@ -159,7 +159,11 @@ describe("readStatementFile: Excel", () => {
         2000,
         3240.5,
       ]);
-      sheet.addRow([new Date(Date.UTC(2026, 9, 2)), "ESSELUNGA", -56.3]);
+      sheet.addRow([
+        new Date(Date.UTC(2026, 9, 2, 14, 32, 5)),
+        "ESSELUNGA",
+        -56.3,
+      ]);
     });
     expect(await read(bytes)).toEqual({
       columns: ["Date", "Description", "Amount", "Balance"],
@@ -168,7 +172,15 @@ describe("readStatementFile: Excel", () => {
           line: 4,
           cells: [{ date: "2026-10-01" }, "SALARY ACME SPA", 2000, 3240.5],
         },
-        { line: 5, cells: [{ date: "2026-10-02" }, "ESSELUNGA", -56.3, ""] },
+        {
+          line: 5,
+          cells: [
+            { date: "2026-10-02", time: "14:32:05" },
+            "ESSELUNGA",
+            -56.3,
+            "",
+          ],
+        },
       ],
     });
   });

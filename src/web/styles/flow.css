@@ -267,6 +267,9 @@
 .grid-table .missing {
   color: var(--color-text-subtle);
 }
+.grid-table tr.is-left-out td {
+  color: var(--color-text-subtle);
+}
 /* S8's preview: descriptions wrap, so it fits a phone. */
 .grid-table td.wrap {
   white-space: normal;
