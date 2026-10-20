@@ -108,4 +108,47 @@ describe("ledger", () => {
     expect(gaps).toEqual([]);
     expect(offDays).toEqual([]);
   });
+
+  describe("with balances I entered", () => {
+    const plain = [
+      entry("2026-10-01", 200000),
+      entry("2026-10-02", -5630),
+      entry("2026-10-05", -50000),
+    ];
+
+    it("places a gap before a balance of mine that differs", () => {
+      // Mine on the 20th: 234.20 less, from October's later transactions.
+      const { gaps, offDays, checks } = ledger(anchor, plain, [
+        { id: 3, date: "2026-10-20", balance: 245000 },
+      ]);
+      expect(gaps).toMatchObject([
+        { after: "2026-10-05", until: "2026-10-20", amount: -23420 },
+      ]);
+      expect(offDays).toEqual([]);
+      expect(checks).toEqual([
+        { id: 3, date: "2026-10-20", balance: 245000, app: 268420 },
+      ]);
+    });
+
+    it("finds nothing when mine agrees", () => {
+      const { gaps } = ledger(anchor, plain, [
+        { date: "2026-10-02", balance: 318420 },
+      ]);
+      expect(gaps).toEqual([]);
+    });
+
+    it("uses mine instead of the file's on the same day", () => {
+      const { gaps, offDays } = ledger(
+        anchor,
+        [salary, groceries, savings],
+        [{ date: "2026-10-02", balance: 318320 }],
+      );
+      // The file agrees on the 1st and the 5th, so mine is off on its own.
+      expect(gaps).toMatchObject([
+        { after: "2026-10-01", until: "2026-10-02", amount: -100 },
+        { after: "2026-10-02", until: "2026-10-05", amount: 100 },
+      ]);
+      expect(offDays).toEqual([]);
+    });
+  });
 });

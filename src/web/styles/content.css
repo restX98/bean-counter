@@ -487,6 +487,10 @@ a.ar:focus-visible {
 .is-excluded .amount {
   text-decoration: line-through;
 }
+.lr.is-check,
+.m-tx.is-check {
+  background: var(--color-surface-muted);
+}
 .gap-row {
   display: flex;
   align-items: flex-start;

@@ -75,6 +75,35 @@ export function currentBalance(
   return { date, balance: history.on(date) };
 }
 
+/** A balance I entered (Set balance), next to the app's on the same day. */
+export interface Comparison {
+  /** The app's balance at the end of that day. */
+  app: number;
+  /** How much more mine is than the app's: negative when it's less. */
+  difference: number;
+  /**
+   * The last day with a transaction, when mine is dated after it: newer
+   * transactions may simply not be imported yet. Null otherwise.
+   */
+  lastDate: string | null;
+}
+
+export function compareBalance(
+  anchor: Pick<Anchor, "amount" | "date">,
+  transactions: Posted[],
+  mine: DayBalance,
+): Comparison {
+  const app = balanceHistory(anchor, transactions).on(mine.date);
+  let last: string | null = null;
+  for (const { date } of transactions)
+    if (last === null || date > last) last = date;
+  return {
+    app,
+    difference: mine.balance - app,
+    lastDate: last !== null && last < mine.date ? last : null,
+  };
+}
+
 /**
  * The bank's balance at the end of each day, oldest first, from statement
  * rows that carry one. Each row moves the balance from (balance − amount) to

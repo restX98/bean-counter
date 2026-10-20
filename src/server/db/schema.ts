@@ -111,3 +111,23 @@ export const transactions = sqliteTable(
   },
   (t) => [index("transactions_account_date").on(t.accountId, t.date)],
 );
+
+/**
+ * A balance I entered (Set balance) that differed from the app's, kept to
+ * look for what's missing. The account page compares it like the bank's.
+ */
+export const balanceChecks = sqliteTable(
+  "balance_checks",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    accountId: integer("account_id")
+      .notNull()
+      .references(() => accounts.id),
+    /** YYYY-MM-DD: the balance is the one at the end of that day. */
+    date: text("date").notNull(),
+    /** Minor units. */
+    amount: integer("amount").notNull(),
+  },
+  // One a day: a newer one for the same day replaces it.
+  (t) => [uniqueIndex("balance_checks_account_date").on(t.accountId, t.date)],
+);

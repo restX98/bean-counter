@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { inOrder, ledger } from "../domain/ledger.ts";
 import type { Db } from "./db/index.ts";
-import { accounts, transactions } from "./db/schema.ts";
+import { accounts, balanceChecks, transactions } from "./db/schema.ts";
 
 const idParams = {
   type: "object",
@@ -46,17 +46,29 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
         .all()
         .map((row) => ({ ...row, keptNearMatch: row.nearMatchOf !== null }));
 
+      const entered = db
+        .select({
+          id: balanceChecks.id,
+          date: balanceChecks.date,
+          balance: balanceChecks.amount,
+        })
+        .from(balanceChecks)
+        .where(eq(balanceChecks.accountId, account.id))
+        .all();
+
       // Every import sets an anchor, so an account with transactions has one.
-      const { entries, gaps, offDays } =
+      const { entries, gaps, offDays, checks } =
         account.anchorAmount !== null && account.anchorDate !== null
           ? ledger(
               { amount: account.anchorAmount, date: account.anchorDate },
               rows,
+              entered,
             )
           : {
               entries: inOrder(rows).map((row) => ({ ...row, balance: null })),
               gaps: [],
               offDays: [],
+              checks: [],
             };
       return {
         transactions: entries.toReversed().map((t) => ({
@@ -82,6 +94,13 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           })),
         })),
         offDays,
+        // The balances I entered, newest first, each with the app's that day.
+        checks: checks.toReversed().map((c) => ({
+          id: c.id,
+          date: c.date,
+          amount: c.balance,
+          app: c.app,
+        })),
       };
     },
   );

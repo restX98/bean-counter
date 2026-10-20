@@ -5,6 +5,7 @@ import {
   checkBalances,
   type BalanceGap,
   type Checked,
+  type DayBalance,
 } from "./balances.ts";
 
 // An account's transactions in the order they happened, each with the
@@ -51,25 +52,30 @@ export function inOrder<T extends Ordering>(entries: T[]): T[] {
   );
 }
 
-export interface Ledger<T> {
+export interface Ledger<T, C> {
   /** Oldest first, each with the balance after it; null when excluded. */
   entries: (T & { balance: number | null })[];
   /** Where the app's balances and the bank's part ways (see checkBalances). */
   gaps: BalanceGap<T>[];
   /** The days, oldest first, whose bank balance differs from the app's. */
   offDays: string[];
+  /** The balances I entered, oldest first, each with the app's that day. */
+  checks: (C & { app: number })[];
 }
 
 /**
  * The account's transactions with their running balance, worked out from
- * the anchor, compared with the bank's balances where the files had them.
+ * the anchor, compared with the bank's balances where the files had them
+ * and with the ones I entered to look for what's missing (`checks`). Mine
+ * are the newer word, so on a day with both they replace the file's.
  * Excluded transactions don't move the balance, but the bank's balances
  * still include them.
  */
-export function ledger<T extends LedgerEntry>(
+export function ledger<T extends LedgerEntry, C extends DayBalance>(
   anchor: Pick<Anchor, "amount" | "date">,
   transactions: T[],
-): Ledger<T> {
+  checks: C[] = [],
+): Ledger<T, C> {
   const ordered = inOrder(transactions);
   const history = balanceHistory(anchor, ordered);
   let running = history.opening;
@@ -86,14 +92,22 @@ export function ledger<T extends LedgerEntry>(
       balance: t.bankBalance,
     })),
   );
+  const mine = new Set(checks.map((c) => c.date));
+  const known = [
+    ...bank.filter(({ date }) => !mine.has(date)),
+    ...checks.map(({ date, balance }) => ({ date, balance })),
+  ];
   return {
     entries,
     gaps:
-      bank.length > 0
-        ? checkBalances({ anchor, transactions: ordered, bank })
+      known.length > 0
+        ? checkBalances({ anchor, transactions: ordered, bank: known })
         : [],
     offDays: bank
       .filter(({ date, balance }) => balance !== history.on(date))
       .map(({ date }) => date),
+    checks: checks
+      .toSorted((a, b) => a.date.localeCompare(b.date))
+      .map((c) => ({ ...c, app: history.on(c.date) })),
   };
 }

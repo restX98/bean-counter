@@ -102,6 +102,17 @@ export const useSetBalance = (id: number) =>
     request<Account>("PUT", `/api/accounts/${id}/anchor`, body),
   );
 
+/** D2, "Look for what's missing": keeps the balance to compare with. */
+export const useAddCheck = (id: number) =>
+  useAccountChange((body: AnchorFields) =>
+    request<BalanceCheck>("POST", `/api/accounts/${id}/balance-checks`, body),
+  );
+
+export const useRemoveCheck = () =>
+  useAccountChange((id: number) =>
+    request<null>("DELETE", `/api/balance-checks/${id}`),
+  );
+
 export const useArchive = (id: number) =>
   useAccountChange((archive: boolean) =>
     request<Account>(
@@ -207,16 +218,26 @@ export interface LedgerGap {
   }[];
 }
 
+/** A balance I entered to look for what's missing. */
+export interface BalanceCheck {
+  id: number;
+  date: string;
+  amount: number;
+}
+
 export interface AccountLedger {
   /** Newest first. */
   transactions: LedgerTransaction[];
   gaps: LedgerGap[];
   /** Days whose bank balance differs from the app's. */
   offDays: string[];
+  /** Newest first, each with the app's balance that day. */
+  checks: (BalanceCheck & { app: number })[];
 }
 
-export const useLedger = (account: number) =>
+export const useLedger = (account: number, enabled = true) =>
   useQuery({
+    enabled,
     queryKey: [...ACCOUNTS, account, "transactions"],
     queryFn: () =>
       request<AccountLedger>("GET", `/api/accounts/${account}/transactions`),

@@ -3,6 +3,7 @@ import {
   balanceHistory,
   bankBalances,
   checkBalances,
+  compareBalance,
   currentBalance,
 } from "./balances.ts";
 
@@ -92,6 +93,38 @@ describe("currentBalance", () => {
         tx("2026-10-09", -999, true),
       ]),
     ).toEqual({ date: "2026-10-05", balance: 268420 });
+  });
+});
+
+describe("compareBalance", () => {
+  const anchor = { date: "2026-10-05", amount: 268420 };
+
+  it("finds no difference when mine is the app's", () => {
+    expect(
+      compareBalance(anchor, october, { date: "2026-10-02", balance: 318420 }),
+    ).toEqual({ app: 318420, difference: 0, lastDate: null });
+  });
+
+  it("says how much more or less mine is", () => {
+    expect(
+      compareBalance(anchor, october, { date: "2026-10-02", balance: 319420 }),
+    ).toMatchObject({ app: 318420, difference: 1000 });
+    expect(
+      compareBalance(anchor, october, { date: "2026-10-01", balance: 300000 }),
+    ).toMatchObject({ app: 324050, difference: -24050 });
+  });
+
+  it("notes when mine is dated after the last transaction", () => {
+    expect(
+      compareBalance(anchor, october, { date: "2026-10-20", balance: 245000 }),
+    ).toEqual({ app: 268420, difference: -23420, lastDate: "2026-10-05" });
+  });
+
+  it("leaves excluded transactions out of the app's balance", () => {
+    const twice = [...october, tx("2026-10-02", -5630, true)];
+    expect(
+      compareBalance(anchor, twice, { date: "2026-10-02", balance: 318420 }),
+    ).toMatchObject({ difference: 0 });
   });
 });
 

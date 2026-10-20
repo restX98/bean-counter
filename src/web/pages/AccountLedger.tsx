@@ -6,6 +6,8 @@ import { formatAmount } from "../../domain/money.ts";
 import {
   useExclude,
   useLedger,
+  useRemoveCheck,
+  type AccountLedger as Ledger,
   type LedgerGap,
   type LedgerTransaction,
 } from "../api.ts";
@@ -24,34 +26,39 @@ const BECAUSE: Record<SuspectReason, string> = {
   "same-amount": "same amount",
 };
 
+type Check = Ledger["checks"][number];
+
 type Line =
   | { kind: "transaction"; transaction: LedgerTransaction }
+  | { kind: "check"; check: Check }
   | { kind: "gap"; gap: LedgerGap; index: number };
 
 /**
- * The newest transactions first, with each gap placed where the balances
- * split: under the rows dated after its window opens.
+ * The newest transactions first. A balance I entered is the one at the end
+ * of its day, so it goes above that day's rows; each gap goes where the
+ * balances split, under what's dated after its window opens.
  */
-function lines(transactions: LedgerTransaction[], gaps: LedgerGap[]): Line[] {
+function lines({ transactions, gaps, checks }: Ledger): Line[] {
   const result: Line[] = transactions.map((transaction) => ({
     kind: "transaction",
     transaction,
   }));
-  gaps.forEach((gap, index) => {
+  const place = (date: string, line: Line) => {
     const at = result.findIndex(
-      (line) =>
-        line.kind === "transaction" && line.transaction.date <= gap.after,
+      (l) =>
+        (l.kind === "transaction" && l.transaction.date <= date) ||
+        (l.kind === "check" && l.check.date <= date),
     );
-    result.splice(at === -1 ? result.length : at, 0, {
-      kind: "gap",
-      gap,
-      index,
-    });
-  });
+    result.splice(at === -1 ? result.length : at, 0, line);
+  };
+  for (const check of checks) place(check.date, { kind: "check", check });
+  gaps.forEach((gap, index) => place(gap.after, { kind: "gap", gap, index }));
   return result;
 }
 
 const gapId = (index: number) => `gap-${index}`;
+const gapDays = ({ after, until }: LedgerGap) =>
+  after === until ? day(after) : `${day(after)} – ${day(until)}`;
 const day = (date: string) => formatDate(date).slice(0, 5);
 
 /** S4's list: the account's transactions and where the bank disagrees. */
@@ -59,17 +66,20 @@ export function AccountLedger({ account }: { account: Account }) {
   const isMobile = useIsMobile();
   const ledger = useLedger(account.id);
   const exclude = useExclude();
+  const removeCheck = useRemoveCheck();
   const [shown, setShown] = useState(PAGE);
   const money = (minor: number, signed = false) =>
     formatAmount(minor, account.currency, { signed });
   const readOnly = account.archivedOn !== null;
 
   if (!ledger.data) return <Loading error={ledger.error} />;
-  const { transactions, gaps, offDays } = ledger.data;
-  const all = lines(transactions, gaps);
+  const { transactions, gaps, offDays, checks } = ledger.data;
+  const all = lines(ledger.data);
   const visible = all.slice(0, shown);
-  const hasBank = transactions.some((t) => t.bankBalance !== null);
+  const hasBank =
+    checks.length > 0 || transactions.some((t) => t.bankBalance !== null);
   const off = new Set(offDays);
+  const last = transactions[0]?.date;
 
   const showGap = (index: number) => {
     const at = all.findIndex((l) => l.kind === "gap" && l.index === index);
@@ -110,13 +120,24 @@ export function AccountLedger({ account }: { account: Account }) {
   );
   const amountClass = (t: LedgerTransaction) =>
     t.amount > 0 && !t.excluded ? "amount income" : "amount";
+  const remove = (c: Check) =>
+    !readOnly && (
+      <button
+        type="button"
+        className={isMobile ? "link" : "btn btn-ghost btn-sm"}
+        disabled={removeCheck.isPending}
+        onClick={() => removeCheck.mutate(c.id)}
+      >
+        Remove
+      </button>
+    );
 
   return (
     <>
       {gaps.length > 0 && (
         <Mismatch gaps={gaps} money={money} onShow={showGap} />
       )}
-      <FormError error={exclude.error} />
+      <FormError error={exclude.error ?? removeCheck.error} />
 
       {isMobile ? (
         <div className="card m-list">
@@ -129,11 +150,36 @@ export function AccountLedger({ account }: { account: Account }) {
               >
                 <Icon name="alert" />
                 <span>
-                  <strong>
-                    {day(line.gap.after)} – {day(line.gap.until)}:
-                  </strong>{" "}
-                  the balances split here.{" "}
-                  <Suspects gap={line.gap} money={money} />
+                  <strong>{gapDays(line.gap)}:</strong>{" "}
+                  {line.gap.after === line.gap.until ? (
+                    "the bank's balance differs from the balance anchor."
+                  ) : (
+                    <>
+                      the balances split here.{" "}
+                      <Suspects gap={line.gap} last={last} money={money} />
+                    </>
+                  )}
+                </span>
+              </div>
+            ) : line.kind === "check" ? (
+              <div
+                key={`check-${line.check.id}`}
+                className="m-tx ledger is-check"
+              >
+                <span className="desc">Balance you entered</span>
+                <span className="meta">
+                  {day(line.check.date)}
+                  {remove(line.check)}
+                </span>
+                <span
+                  className={
+                    line.check.amount === line.check.app
+                      ? "bal wide"
+                      : "bal wide is-off"
+                  }
+                >
+                  Balance {money(line.check.app)} · yours{" "}
+                  {money(line.check.amount)}
                 </span>
               </div>
             ) : (
@@ -194,14 +240,45 @@ export function AccountLedger({ account }: { account: Account }) {
                 key={gapId(line.index)}
               >
                 <Icon name="alert" />
-                <strong>
-                  {day(line.gap.after)} – {day(line.gap.until)}
-                </strong>
-                <span>
-                  The balances split here: something dated in this window is
-                  missing from the app, or counted twice.{" "}
-                  <Suspects gap={line.gap} money={money} />
+                <strong>{gapDays(line.gap)}</strong>
+                {line.gap.after === line.gap.until ? (
+                  <span>
+                    The bank's balance this day differs from the balance anchor.
+                  </span>
+                ) : (
+                  <span>
+                    The balances split here: something dated in this window is
+                    missing from the app, or counted twice.{" "}
+                    <Suspects gap={line.gap} last={last} money={money} />
+                  </span>
+                )}
+              </div>
+            ) : line.kind === "check" ? (
+              <div key={`check-${line.check.id}`} className="lr bank is-check">
+                <span className="date">{formatDate(line.check.date)}</span>
+                <span className="desc">
+                  Balance you entered
+                  <span className="caption">
+                    {line.check.amount === line.check.app
+                      ? "It matches the app's balance now."
+                      : "Kept to look for what's missing."}
+                  </span>
                 </span>
+                <span />
+                <span className="bal">{money(line.check.app)}</span>
+                <span
+                  className={
+                    line.check.amount === line.check.app
+                      ? "bank-bal"
+                      : "bank-bal is-off"
+                  }
+                >
+                  {line.check.amount !== line.check.app && (
+                    <Icon name="alert" />
+                  )}
+                  {money(line.check.amount)}
+                </span>
+                <span className="row-act">{remove(line.check)}</span>
               </div>
             ) : (
               <div
@@ -322,18 +399,29 @@ function Mismatch({
   );
 }
 
-/** What would explain a gap: what's likely, else guesses. */
+/**
+ * What would explain a gap: what's likely, else guesses. `last` is the
+ * newest transaction's date: a gap that ends after it may be newer
+ * transactions that aren't imported yet.
+ */
 function Suspects({
   gap,
+  last,
   money,
 }: {
   gap: LedgerGap;
+  last: string | undefined;
   money: (minor: number, signed?: boolean) => string;
 }) {
   const likely = gap.suspects.filter((s) => s.reason !== "same-amount");
   const listed = likely.length > 0 ? likely : gap.suspects;
   if (listed.length === 0) {
-    return (
+    return last !== undefined && gap.until > last ? (
+      <>
+        Nothing imported is dated after {day(last)}: import the statement that
+        covers these days.
+      </>
+    ) : (
       <>No excluded or kept transaction in this window would explain it.</>
     );
   }

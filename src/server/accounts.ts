@@ -1,4 +1,4 @@
-import { eq, ne } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import {
   validateAccount,
@@ -11,7 +11,7 @@ import {
 import { currentBalance, type Posted } from "../domain/balances.ts";
 import { formatAmount, rescale } from "../domain/money.ts";
 import type { Db } from "./db/index.ts";
-import { accounts, transactions } from "./db/schema.ts";
+import { accounts, balanceChecks, transactions } from "./db/schema.ts";
 
 type Row = typeof accounts.$inferSelect;
 
@@ -222,8 +222,9 @@ export function accountRoutes(
     },
   );
 
-  // D2, Set balance: the new balance becomes the anchor. Comparing it with
-  // the app's own balance first comes with the account's transactions page.
+  // D2, Set balance: the new balance becomes the anchor, and replaces any
+  // balance entered earlier for that day. The dialog compares it with the
+  // app's own balance first.
   app.put<WithId & { Body: AnchorFields }>(
     "/api/accounts/:id/anchor",
     { schema: { params: idParams, body: anchorSchema } },
@@ -234,11 +235,71 @@ export function accountRoutes(
 
       const anchor = validateAnchor(req.body, row.currency, today());
       if (!anchor.ok) return invalid(reply, anchor.errors);
+      db.delete(balanceChecks)
+        .where(
+          and(
+            eq(balanceChecks.accountId, row.id),
+            eq(balanceChecks.date, anchor.value.date),
+          ),
+        )
+        .run();
       return update(row.id, {
         anchorAmount: anchor.value.amount,
         anchorDate: anchor.value.date,
         anchorSource: "manual",
       });
+    },
+  );
+
+  // D2, "Look for what's missing": the anchor stays, and the balance is kept
+  // to compare with, one a day. The account page shows where they part ways.
+  app.post<WithId & { Body: AnchorFields }>(
+    "/api/accounts/:id/balance-checks",
+    { schema: { params: idParams, body: anchorSchema } },
+    (req, reply) => {
+      const row = find(req.params.id);
+      if (!row) return notFound(reply);
+      if (row.archivedOn) return archived(reply);
+      if (row.anchorAmount === null) {
+        return reply.code(409).send({
+          error:
+            "The account has no balance to compare it with yet. Set its balance instead.",
+        });
+      }
+
+      const balance = validateAnchor(req.body, row.currency, today());
+      if (!balance.ok) return invalid(reply, balance.errors);
+      const { amount, date } = balance.value;
+      const check = db
+        .insert(balanceChecks)
+        .values({ accountId: row.id, date, amount })
+        .onConflictDoUpdate({
+          target: [balanceChecks.accountId, balanceChecks.date],
+          set: { amount },
+        })
+        .returning({
+          id: balanceChecks.id,
+          date: balanceChecks.date,
+          amount: balanceChecks.amount,
+        })
+        .get();
+      return reply.code(201).send(check);
+    },
+  );
+
+  app.delete<WithId>(
+    "/api/balance-checks/:id",
+    { schema: { params: idParams } },
+    (req, reply) => {
+      const check = db
+        .select()
+        .from(balanceChecks)
+        .where(eq(balanceChecks.id, req.params.id))
+        .get();
+      if (!check) return notFound(reply);
+      if (find(check.accountId)?.archivedOn) return archived(reply);
+      db.delete(balanceChecks).where(eq(balanceChecks.id, check.id)).run();
+      return reply.code(204).send();
     },
   );
 

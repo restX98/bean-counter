@@ -9,7 +9,11 @@ beforeEach(() => {
   return () => app.close();
 });
 
-async function call(method: "GET" | "POST", url: string, payload?: object) {
+async function call(
+  method: "GET" | "POST" | "PUT" | "DELETE",
+  url: string,
+  payload?: object,
+) {
   const res = await app.inject({ method, url, payload });
   return { status: res.statusCode, body: res.body ? res.json() : null };
 }
@@ -154,5 +158,85 @@ describe("excluding a transaction", () => {
 
   it("refuses an unknown account's list", async () => {
     expect((await ledger(42)).status).toBe(404);
+  });
+});
+
+describe("balances I entered to look for what's missing (D2)", () => {
+  const enter = (account: number, amount: string, date = "2026-10-19") =>
+    call("POST", `/api/accounts/${account}/balance-checks`, { amount, date });
+
+  it("keeps the anchor and shows where the balances part ways", async () => {
+    const id = await setup();
+    const { status, body } = await enter(id, "2,450.00");
+    expect(status).toBe(201);
+    expect(body).toEqual({
+      id: expect.any(Number),
+      date: "2026-10-19",
+      amount: 245000,
+    });
+
+    const after = (await ledger(id)).body;
+    expect(after.checks).toEqual([
+      { id: body.id, date: "2026-10-19", amount: 245000, app: 268420 },
+    ]);
+    // October's later transactions aren't imported yet.
+    expect(after.gaps).toMatchObject([
+      { after: "2026-10-05", until: "2026-10-19", amount: -23420 },
+    ]);
+    expect((await call("GET", `/api/accounts/${id}`)).body.anchor).toEqual({
+      amount: 268420,
+      date: "2026-10-05",
+      source: "statement",
+    });
+  });
+
+  it("keeps one a day, and drops it when that day's balance becomes the anchor", async () => {
+    const id = await setup();
+    await enter(id, "2,450.00");
+    await enter(id, "2,460.00");
+    expect((await ledger(id)).body.checks).toMatchObject([{ amount: 246000 }]);
+
+    await call("PUT", `/api/accounts/${id}/anchor`, {
+      amount: "2,460.00",
+      date: "2026-10-19",
+    });
+    const after = (await ledger(id)).body;
+    expect(after.checks).toEqual([]);
+    // Mine is the anchor now, so the statement's balances are the ones off.
+    expect(after.gaps).toMatchObject([
+      { after: "2026-10-05", until: "2026-10-19", amount: -22420 },
+    ]);
+  });
+
+  it("can be removed", async () => {
+    const id = await setup();
+    const check = (await enter(id, "2,450.00")).body.id;
+    const remove = () => call("DELETE", `/api/balance-checks/${check}`);
+    expect((await remove()).status).toBe(204);
+    expect((await ledger(id)).body).toMatchObject({ checks: [], gaps: [] });
+    expect((await remove()).status).toBe(404);
+  });
+
+  it("refuses wrong balances, archived accounts and accounts without one", async () => {
+    const id = await setup();
+    expect(await enter(id, "2,450.00", "2026-10-20")).toEqual({
+      status: 400,
+      body: { errors: { anchorDate: "The date can't be in the future." } },
+    });
+
+    const check = (await enter(id, "2,450.00")).body.id;
+    await call("POST", `/api/accounts/${id}/archive`);
+    expect((await enter(id, "2,450.00")).status).toBe(409);
+    expect((await call("DELETE", `/api/balance-checks/${check}`)).status).toBe(
+      409,
+    );
+
+    const { body: empty } = await call("POST", "/api/accounts", {
+      name: "Savings",
+      bank: "Bank A",
+      type: "savings",
+      currency: "EUR",
+    });
+    expect(await enter(empty.id, "100.00")).toMatchObject({ status: 409 });
   });
 });
