@@ -64,9 +64,12 @@ export function AccountForm({
       );
   };
 
-  const currencyHint = account
-    ? "You can change it until the account has transactions."
-    : undefined;
+  const locked = (account?.transactionCount ?? 0) > 0;
+  const currencyHint = !account
+    ? undefined
+    : locked
+      ? "It can't change any more: the account has transactions."
+      : "You can change it until the account has transactions.";
   const anchorHint = account ? (
     <>
       To change it, use{" "}
@@ -160,6 +163,7 @@ export function AccountForm({
               id={`${id}-currency`}
               className="select"
               value={fields.currency}
+              disabled={locked}
               onChange={(e) => set({ currency: e.target.value })}
               {...describedBy(`${id}-currency`, errors.currency, currencyHint)}
             >

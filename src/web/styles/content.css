@@ -390,3 +390,150 @@ a.ar:focus-visible {
     flex: 1;
   }
 }
+
+/* ---------- An account's transactions (S4) ---------- */
+
+.card.table {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.table-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+  font: var(--type-table);
+  color: var(--color-text-muted);
+}
+.lr {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) 120px 128px 96px;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--row-height);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+  font: var(--type-table);
+}
+.lr.bank {
+  grid-template-columns: 112px minmax(0, 1fr) 120px 128px 136px 96px;
+}
+.lr.head {
+  min-height: 0;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-top: 0;
+  background: var(--color-surface-muted);
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+.lr .date {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text-muted);
+  font-variant-numeric: var(--numbers);
+}
+.lr .desc {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-weight: var(--weight-medium);
+  overflow-wrap: anywhere;
+}
+.lr .desc .caption {
+  flex-basis: 100%;
+  font-weight: var(--weight-regular);
+}
+.lr > .amount,
+.lr .bal,
+.lr .bank-bal,
+.lr.head > .r {
+  text-align: right;
+}
+.lr .bal {
+  color: var(--color-text-muted);
+  font-variant-numeric: var(--numbers);
+}
+.lr .bank-bal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  font-variant-numeric: var(--numbers);
+}
+.lr .bank-bal.is-off {
+  color: var(--color-warning-text);
+  font-weight: var(--weight-semibold);
+}
+.lr .bank-bal .icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-warning-solid);
+}
+.lr .row-act {
+  justify-self: end;
+}
+.lr.is-excluded,
+.lr.is-excluded .date,
+.lr.is-excluded .amount,
+.lr.is-excluded .bal {
+  color: var(--color-text-subtle);
+}
+.is-excluded .amount {
+  text-decoration: line-through;
+}
+.gap-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-warning-bg);
+  border-top: var(--border-width) solid var(--color-warning-border);
+  color: var(--color-warning-text);
+  font: var(--type-table);
+}
+.gap-row .icon {
+  color: var(--color-warning-solid);
+}
+.gap-row strong {
+  white-space: nowrap;
+}
+
+.m-tx.ledger > .amount {
+  grid-row: 1;
+}
+.m-tx .bal {
+  grid-column: 2;
+  grid-row: 2;
+  font: var(--type-caption);
+  color: var(--color-text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+.m-tx .bal.wide {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  text-align: left;
+}
+.m-tx .bal.is-off {
+  color: var(--color-warning-text);
+  font-weight: var(--weight-semibold);
+}
+.m-gap {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-warning-bg);
+  border-top: var(--border-width) solid var(--color-warning-border);
+  color: var(--color-warning-text);
+  font: var(--type-caption);
+}
+.m-gap .icon {
+  flex: none;
+  color: var(--color-warning-solid);
+}

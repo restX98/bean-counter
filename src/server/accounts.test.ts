@@ -43,6 +43,7 @@ describe("adding an account (D1)", () => {
       anchor: null,
       archivedOn: null,
       balance: null,
+      transactionCount: 0,
     });
   });
 

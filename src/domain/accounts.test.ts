@@ -126,6 +126,7 @@ describe("groupByCurrency", () => {
     anchor: null,
     archivedOn,
     balance: balance === null ? null : { amount: balance, date: "2026-10-16" },
+    transactionCount: 0,
   });
 
   it("puts EUR first, then other currencies by code, never mixing them", () => {

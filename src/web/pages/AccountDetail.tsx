@@ -14,12 +14,13 @@ import { ArchiveAccount } from "../dialogs/ArchiveAccount.tsx";
 import { SetBalance } from "../dialogs/SetBalance.tsx";
 import { TYPE_LABELS } from "../labels.ts";
 import { useIsMobile } from "../useIsMobile.ts";
+import { AccountLedger } from "./AccountLedger.tsx";
 
 type Open = "edit" | "balance" | "archive" | null;
 
 const back = { to: "/accounts", label: "Back to Accounts" };
 
-/** S4. There are no transactions yet, so it shows the balances and the empty state. */
+/** S4: the account's balances and its transactions. */
 export function AccountDetail() {
   const { id } = useParams();
   const { data: accounts, error } = useAccounts();
@@ -129,19 +130,23 @@ function AccountView({ account }: { account: Account }) {
 
       <Balances account={account} />
 
-      <EmptyState
-        icon="list"
-        title={archived ? "No transactions" : "No transactions yet"}
-        action={
-          !archived && (
-            <ImportButton account={account.id} label="Import statement" />
-          )
-        }
-      >
-        {archived
-          ? "Nothing was imported into this account before it was archived."
-          : `Import a statement from ${account.bank} to see this account's history.`}
-      </EmptyState>
+      {account.transactionCount > 0 ? (
+        <AccountLedger account={account} />
+      ) : (
+        <EmptyState
+          icon="list"
+          title={archived ? "No transactions" : "No transactions yet"}
+          action={
+            !archived && (
+              <ImportButton account={account.id} label="Import statement" />
+            )
+          }
+        >
+          {archived
+            ? "Nothing was imported into this account before it was archived."
+            : `Import a statement from ${account.bank} to see this account's history.`}
+        </EmptyState>
+      )}
 
       {open === "edit" && (
         <AccountForm

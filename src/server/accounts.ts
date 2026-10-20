@@ -35,6 +35,7 @@ function toAccount(row: Row, posted: Posted[]): Account {
     anchor,
     archivedOn: row.archivedOn,
     balance: anchor && toBalance(currentBalance(anchor, posted)),
+    transactionCount: posted.length,
   };
 }
 

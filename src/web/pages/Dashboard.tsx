@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAccounts } from "../api.ts";
 import { EmptyState, FirstRunSteps } from "../components/EmptyState.tsx";
 import { Icon } from "../components/Icon.tsx";
@@ -8,8 +8,8 @@ import { ImportButton } from "../components/Shell.tsx";
 import { AccountForm } from "../dialogs/AccountForm.tsx";
 
 /**
- * S1. Without transactions it only shows the first-run states: no accounts
- * (→ Add account) or accounts but nothing imported yet (→ Import).
+ * S1, its first-run states for now: no accounts (→ Add account), accounts
+ * but nothing imported (→ Import), then statements imported (→ Accounts).
  */
 export function Dashboard() {
   const navigate = useNavigate();
@@ -44,6 +44,19 @@ export function Dashboard() {
           after={<FirstRunSteps next={0} />}
         >
           Add an account, then import a statement to see your cashflow.
+        </EmptyState>
+      ) : active.some((a) => a.transactionCount > 0) ? (
+        <EmptyState
+          icon="check"
+          title="Statements imported"
+          action={
+            <Link className="btn btn-primary" to="/accounts">
+              Open Accounts
+            </Link>
+          }
+          after={<FirstRunSteps next={2} />}
+        >
+          Each account's page shows its balance and its transactions.
         </EmptyState>
       ) : (
         <EmptyState

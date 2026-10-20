@@ -5,6 +5,7 @@ import { todayIso } from "../domain/dates.ts";
 import { accountRoutes } from "./accounts.ts";
 import type { Db } from "./db/index.ts";
 import { importRoutes } from "./imports.ts";
+import { transactionRoutes } from "./transactions.ts";
 
 export interface AppOptions {
   db: Db;
@@ -26,6 +27,7 @@ export function buildApp({
 
   accountRoutes(app, { db, today });
   importRoutes(app, { db, today });
+  transactionRoutes(app, { db });
 
   app.get("/api/health", () => {
     const row = db.get<{ version: string }>(

@@ -359,11 +359,6 @@
   color: var(--color-warning-solid);
 }
 
-.card.table {
-  padding: 0;
-  gap: 0;
-  overflow: hidden;
-}
 .ir {
   display: grid;
   grid-template-columns: 148px 120px minmax(0, 1fr) 112px 200px;
@@ -423,16 +418,6 @@
 .ir.is-skipped .amount,
 .m-item.is-skipped .amount {
   color: var(--color-text-subtle);
-}
-.table-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-5);
-  border-top: var(--border-width) solid var(--color-border);
-  font: var(--type-table);
-  color: var(--color-text-muted);
 }
 
 .m-item {

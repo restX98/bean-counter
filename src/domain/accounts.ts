@@ -27,6 +27,8 @@ export interface Account {
   archivedOn: string | null;
   /** The current balance and the day it's for; null while there's no anchor. */
   balance: { amount: number; date: string } | null;
+  /** Imported transactions, excluded ones too. */
+  transactionCount: number;
 }
 
 /** The account form's fields, as typed. */

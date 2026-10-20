@@ -6,6 +6,7 @@ import type {
   AnchorFields,
   FieldErrors,
 } from "../domain/accounts.ts";
+import type { SuspectReason } from "../domain/balances.ts";
 import type {
   LeftOutRow,
   Mapping,
@@ -174,4 +175,58 @@ export const useSaveImport = (upload: string) =>
       balance?: AnchorFields;
       presetName: string | null;
     }) => request<ImportResult>("POST", `/api/imports/${upload}/save`, body),
+  );
+
+/** S4: one of the account's transactions, with the balance after it. */
+export interface LedgerTransaction {
+  id: number;
+  date: string;
+  time: string | null;
+  amount: number;
+  description: string;
+  reference: string | null;
+  /** The bank's balance after it, if its file had one. */
+  bankBalance: number | null;
+  excluded: boolean;
+  /** Kept although the import flagged it as a near-match of this one. */
+  nearMatchOf: number | null;
+  /** Null when it's excluded. */
+  balance: number | null;
+}
+
+export interface LedgerGap {
+  after: string;
+  until: string;
+  amount: number;
+  suspects: {
+    reason: SuspectReason;
+    id: number;
+    date: string;
+    amount: number;
+    description: string;
+  }[];
+}
+
+export interface AccountLedger {
+  /** Newest first. */
+  transactions: LedgerTransaction[];
+  gaps: LedgerGap[];
+  /** Days whose bank balance differs from the app's. */
+  offDays: string[];
+}
+
+export const useLedger = (account: number) =>
+  useQuery({
+    queryKey: [...ACCOUNTS, account, "transactions"],
+    queryFn: () =>
+      request<AccountLedger>("GET", `/api/accounts/${account}/transactions`),
+  });
+
+/** Excludes a transaction, or restores an excluded one. */
+export const useExclude = () =>
+  useAccountChange(({ id, excluded }: { id: number; excluded: boolean }) =>
+    request<null>(
+      "POST",
+      `/api/transactions/${id}/${excluded ? "exclude" : "restore"}`,
+    ),
   );

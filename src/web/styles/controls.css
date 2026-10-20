@@ -149,10 +149,14 @@
 .select[aria-invalid="true"] {
   border-color: var(--color-danger-solid);
 }
-.input.is-readonly {
+.input.is-readonly,
+.select:disabled {
   background: var(--color-surface-muted);
   border-color: var(--color-border);
   color: var(--color-text-muted);
+}
+.select:disabled {
+  cursor: not-allowed;
 }
 .select-wrap {
   position: relative;
