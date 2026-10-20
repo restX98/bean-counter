@@ -53,7 +53,8 @@ export type Validated<T> =
 
 const MAX_LENGTH = 60;
 
-const tidy = (text: string) => text.trim().replace(/\s+/g, " ");
+/** Trims a typed name and collapses its spaces. */
+export const tidy = (text: string) => text.trim().replace(/\s+/g, " ");
 
 function isAccountType(type: string): type is AccountType {
   return (ACCOUNT_TYPES as readonly string[]).includes(type);

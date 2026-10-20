@@ -104,6 +104,47 @@ a.ar:focus-visible {
   color: var(--color-text-subtle);
 }
 
+/* ---------- Categories (S16) ---------- */
+
+.cat-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px 160px;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--row-height);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+  font: var(--type-table);
+}
+.cat-row.head {
+  min-height: 0;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-top: 0;
+  background: var(--color-surface-muted);
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+.cat-row .name {
+  min-width: 0;
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+.cat-row .num,
+.cat-row.head .r {
+  text-align: right;
+  font-variant-numeric: var(--numbers);
+}
+.cat-row .acts {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+.link.danger-link {
+  align-self: flex-start;
+  color: var(--color-danger-text);
+}
+
 .day {
   display: flex;
   flex-direction: column;
@@ -154,6 +195,23 @@ a.ar:focus-visible {
   grid-column: 2;
   grid-row: 1 / span 2;
   text-align: right;
+}
+button.m-tx {
+  width: 100%;
+  background: transparent;
+  border-width: var(--border-width) 0 0;
+  border-style: solid;
+  border-color: var(--color-border);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.m-tx:hover {
+  background: var(--color-hover);
+}
+.m-tx > .count {
+  color: var(--color-text-muted);
+  font: var(--type-caption);
 }
 .m-tx.is-archived,
 .m-tx.is-archived .desc,

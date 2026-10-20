@@ -7,6 +7,7 @@ import type {
   FieldErrors,
 } from "../domain/accounts.ts";
 import type { SuspectReason } from "../domain/balances.ts";
+import type { Category, CategoryFields } from "../domain/categories.ts";
 import type {
   LeftOutRow,
   Mapping,
@@ -250,4 +251,40 @@ export const useExclude = () =>
       "POST",
       `/api/transactions/${id}/${excluded ? "exclude" : "restore"}`,
     ),
+  );
+
+const CATEGORIES = ["categories"];
+
+/** S16: every category, and how many counted transactions have none yet. */
+export const useCategories = () =>
+  useQuery({
+    queryKey: CATEGORIES,
+    queryFn: () =>
+      request<{ categories: Category[]; uncategorized: number }>(
+        "GET",
+        "/api/categories",
+      ),
+  });
+
+function useCategoryChange<V, R>(change: (vars: V) => Promise<R>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: change,
+    onSuccess: () => client.invalidateQueries({ queryKey: CATEGORIES }),
+  });
+}
+
+export const useCreateCategory = () =>
+  useCategoryChange((body: CategoryFields) =>
+    request<Category>("POST", "/api/categories", body),
+  );
+
+export const useUpdateCategory = (id: number) =>
+  useCategoryChange((body: CategoryFields) =>
+    request<Category>("PATCH", `/api/categories/${id}`, body),
+  );
+
+export const useDeleteCategory = () =>
+  useCategoryChange((id: number) =>
+    request<null>("DELETE", `/api/categories/${id}`),
   );

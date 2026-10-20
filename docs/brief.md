@@ -103,7 +103,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 
 ### 5.3 Categorization
 
-- Manage categories (income / expense).
+- Manage categories (income / expense). Two categories can't share a name, ignoring case, even if one is income and the other expense, since lists and pickers show only the name. The Categories page lists income first, then expenses, each by name, with how many transactions use each. Renaming a category or changing its type keeps its transactions. A category nothing uses can be deleted straight away.
 - Rules match on description (contains / regex), optionally narrowed by amount or account, and assign a category. They run automatically on import.
 - Uncategorized transactions are listed for manual review. When I categorize one by hand, I can turn that choice into a new rule.
 - When I save a rule, the app offers to apply it to the existing uncategorized transactions that match. Transactions that already have a category are never changed.
@@ -253,3 +253,4 @@ New features and decisions are added here as we go.
 | 2026-10-20 | Import screens S9 and S10: every row with its tag (new, duplicate, near-match, left out, can't read), Keep or Skip for near-matches, the balance asked for when needed; then the counts and the balance check, with the likely causes of a mismatch. A recognised format's mapping can be changed from S7 |
 | 2026-10-20 | Account page: its transactions with the balance after each, the bank's balance where a file had one, the mismatch and where the balances split; excluding and restoring transactions; the currency is locked once the account has transactions |
 | 2026-10-20 | Set balance compares with the app's balance on that day: a match becomes the anchor; a difference offers Use my balance (new anchor) or Look for what's missing, which keeps my balance on the account's page and compares it like the bank's until I remove it |
+| 2026-10-20 | Categories page and form: unique names across income and expense, counts of the transactions using each, renaming and changing type keep them, unused categories can be deleted |

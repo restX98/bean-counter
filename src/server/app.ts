@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import Fastify, { type FastifyError } from "fastify";
 import { todayIso } from "../domain/dates.ts";
 import { accountRoutes } from "./accounts.ts";
+import { categoryRoutes } from "./categories.ts";
 import type { Db } from "./db/index.ts";
 import { importRoutes } from "./imports.ts";
 import { transactionRoutes } from "./transactions.ts";
@@ -26,6 +27,7 @@ export function buildApp({
   const app = Fastify({ logger: log ? { level: "warn" } : false });
 
   accountRoutes(app, { db, today });
+  categoryRoutes(app, { db });
   importRoutes(app, { db, today });
   transactionRoutes(app, { db });
 

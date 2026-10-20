@@ -44,6 +44,17 @@ export const accounts = sqliteTable(
   ],
 );
 
+/** Groups income or expenses, such as Salary or Groceries. */
+export const categories = sqliteTable(
+  "categories",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    type: text("type", { enum: ["income", "expense"] }).notNull(),
+  },
+  (t) => [check("categories_type", sql`${t.type} in ('income', 'expense')`)],
+);
+
 /** A bank's export format, saved so the next file like it skips the mapping. */
 export const importPresets = sqliteTable(
   "import_presets",
@@ -108,6 +119,8 @@ export const transactions = sqliteTable(
       (): AnySQLiteColumn => transactions.id,
       { onDelete: "set null" },
     ),
+    /** Null while it's uncategorized. */
+    categoryId: integer("category_id").references(() => categories.id),
   },
   (t) => [index("transactions_account_date").on(t.accountId, t.date)],
 );
