@@ -61,7 +61,14 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
   - if the export has a balance column, the app takes it from there;
   - otherwise I enter the current balance and its date, which can't be in the future.
 - The app works the opening balance out backwards from the anchor and the transactions, so I never need to know it.
-- When the export has a balance column, each import compares the app's end-of-day balance with the bank's, for every day that has rows in the file. If they differ, the app flags a balance mismatch and shows where it starts: the last day the balances match and the first day they don't. It can't be more precise than that, because the bank only reports a balance on days with rows. If a skipped or excluded transaction in that window would explain the difference, the app points to it.
+- When the export has a balance column, each import compares the app's end-of-day balance with the bank's, for every day that has rows in the file. If they differ, the app flags a balance mismatch and shows where it is: between two consecutive days with bank balances, one where they match and one where they don't. It can't be more precise than that, because the bank only reports a balance on days with rows.
+  - The anchor counts as a day where they match. So with a balance entered on 20/10 and only September imported, the difference falls between 30/09 and 20/10, where October's transactions are missing.
+  - Each place where the difference changes is a separate mismatch, so two problems in one file show as two.
+  - The bank's balance at the end of a day comes from that day's rows, whatever order the file lists them in.
+  - The app points to the transactions in that window that would explain the difference, most likely first:
+    - a skipped or excluded transaction of that amount, missing from the app;
+    - a near-match I kept although the import flagged it, so the app has it twice;
+    - only as a guess, any other transaction that would explain it by being there, such as a payment the bank reversed but still listed.
 - Accounts without a balance column are only checked when I enter a balance by hand (Set balance). If it differs from the app's balance, the app shows the difference first and lets me choose: use my balance as the new anchor, or keep the anchor and look for what's missing. In the second case the difference shows as a balance mismatch until it's resolved.
 - Each account shows its current balance and its list of transactions.
 - The accounts list shows a total for each currency. While an account in that currency has no balance yet, the total isn't shown, rather than showing a partial sum.
@@ -83,9 +90,9 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
   - **Errors**: a row that can't be read is reported with its line number and the reason, never guessed.
 - Show a preview before saving anything.
 - Duplicate handling:
-  - each transaction gets a fingerprint made from date + amount + description, or from the bank reference when the export has one;
+  - each transaction gets a fingerprint: its bank reference when the export has one, otherwise date + amount + description. Two different references are never the same transaction;
   - transactions that exactly match one already imported are skipped;
-  - near-matches (e.g. same date and amount, slightly different description) are flagged in the preview for me to decide;
+  - near-matches (same date and amount, another description, unless both have bank references) are flagged in the preview for me to decide;
   - counts are respected, so two identical transactions on the same day (two €1.20 coffees) are both kept;
   - fingerprints use the values as originally imported, so editing a transaction later doesn't break duplicate detection.
 - Transactions can't be added or deleted by hand: all data comes from files. Instead, I can **exclude** a transaction (e.g. a duplicate that slipped through). An excluded transaction is ignored by balances, reports and budgets, stays visible greyed out, and can be restored. A re-import still recognizes it, so it doesn't come back.
@@ -235,3 +242,4 @@ New features and decisions are added here as we go.
 | 2026-10-19 | Tech stack: TypeScript, React and Vite, Fastify on 127.0.0.1, SQLite (better-sqlite3 and Drizzle), Papa Parse and ExcelJS (.xlsx only, no old .xls), Vitest; money stored as integer cents |
 | 2026-10-19 | Account rules: unique names, a currency change keeps the anchor's written amount, hand-entered balances can't be dated in the future, per-currency totals hidden while an account has no balance, how typed amounts are read |
 | 2026-10-20 | Reading statements: CSV and .xlsx with lines above the header skipped, missing line breaks put back, three date orders, the decimal separator checked against thousands groups, debit and credit columns, a fee column, a description from several columns, unreadable rows reported, not guessed |
+| 2026-10-20 | Duplicates and the balance check: bank references decide when both sides have one, near-matches share date and amount; each change in the difference with the bank is its own mismatch, placed between two days with bank balances, the anchor counting as a day that matches; what could explain it, most likely first: skipped or excluded transactions, kept near-matches, then any transaction of the right amount as a guess |
