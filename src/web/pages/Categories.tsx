@@ -21,6 +21,14 @@ type Open =
 
 const GROUP_TITLES = { income: "Income", expense: "Expenses" };
 
+/** "3 income and 8 expense categories", leaving out a type that has none. */
+function summary(income: number, expense: number): string {
+  const word = (n: number) => (n === 1 ? "category" : "categories");
+  if (expense === 0) return `${income} income ${word(income)}`;
+  if (income === 0) return `${expense} expense ${word(expense)}`;
+  return `${income} income and ${expense} expense ${word(expense)}`;
+}
+
 /** S16: income and expense categories, with how many transactions use each. */
 export function Categories() {
   const isMobile = useIsMobile();
@@ -61,8 +69,7 @@ export function Categories() {
     <Page
       {...page}
       subtitle={
-        categories.length > 0 &&
-        `${count("income")} income and ${plural(count("expense"), "expense category", "expense categories")}`
+        categories.length > 0 && summary(count("income"), count("expense"))
       }
       actions={categories.length > 0 && add}
       mobileActions={add}
@@ -148,16 +155,14 @@ function DesktopGroup({ group, onEdit, onDelete }: GroupProps) {
             >
               Edit
             </button>
-            {c.transactionCount === 0 && (
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                aria-label={`Delete ${c.name}`}
-                onClick={() => onDelete(c)}
-              >
-                Delete
-              </button>
-            )}
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              aria-label={`Delete ${c.name}`}
+              onClick={() => onDelete(c)}
+            >
+              Delete
+            </button>
           </span>
         </div>
       ))}

@@ -16,7 +16,7 @@ interface Props {
   category?: Category;
   onClose: () => void;
   onSaved?: (category: Category) => void;
-  /** Edit mode, for a category nothing uses yet. */
+  /** Edit mode: opens the delete dialog. */
   onDelete?: () => void;
   /** Adding: the type to start with, such as a transaction's. */
   type?: CategoryType;
@@ -117,7 +117,7 @@ export function CategoryForm({
             </span>
           </div>
         )}
-        {category && used === 0 && onDelete && (
+        {category && onDelete && (
           <button type="button" className="link danger-link" onClick={onDelete}>
             Delete this category…
           </button>

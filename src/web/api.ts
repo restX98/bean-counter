@@ -286,10 +286,27 @@ export const useUpdateCategory = (id: number) =>
     request<Category>("PATCH", `/api/categories/${id}`, body),
   );
 
-export const useDeleteCategory = () =>
-  useCategoryChange((id: number) =>
-    request<null>("DELETE", `/api/categories/${id}`),
-  );
+/**
+ * D5, deleting. `moveTo` is where its transactions go, null to leave them
+ * uncategorized; left out for a category nothing uses.
+ */
+export function useDeleteCategory() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, moveTo }: { id: number; moveTo?: number | null }) =>
+      request<null>(
+        "DELETE",
+        `/api/categories/${id}`,
+        moveTo === undefined ? undefined : { moveTo },
+      ),
+    // The transactions it had change too.
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: CATEGORIES }),
+        client.invalidateQueries({ queryKey: ACCOUNTS }),
+      ]),
+  });
+}
 
 /** S6: sets a transaction's category, or takes it away (null). */
 export function useSetCategory() {

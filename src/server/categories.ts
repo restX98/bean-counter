@@ -110,20 +110,42 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
     },
   );
 
-  // D5, deleting one that no transaction uses.
-  app.delete<WithId>(
+  // D5, deleting. Its transactions move to `moveTo`, or become uncategorized
+  // when it's null. Left out, a category in use isn't deleted: the choice
+  // must be explicit.
+  app.delete<WithId & { Body: { moveTo?: number | null } | undefined }>(
     "/api/categories/:id",
-    { schema: { params: idParams } },
+    {
+      schema: {
+        params: idParams,
+        body: {
+          type: ["object", "null"],
+          properties: { moveTo: { type: ["integer", "null"] } },
+        },
+      },
+    },
     (req, reply) => {
       const row = find(req.params.id);
       if (!row) return notFound(reply);
+      const moveTo = req.body?.moveTo;
       const used = counts().get(row.id) ?? 0;
-      if (used > 0) {
+      if (used > 0 && moveTo === undefined) {
         return reply.code(409).send({
-          error: `${used === 1 ? "1 transaction uses" : `${used} transactions use`} this category. Give ${used === 1 ? "it" : "them"} another category first.`,
+          error: `${used === 1 ? "1 transaction uses" : `${used} transactions use`} this category. Say where ${used === 1 ? "it goes" : "they go"} first.`,
         });
       }
-      db.delete(categories).where(eq(categories.id, row.id)).run();
+      if (moveTo != null && (moveTo === row.id || !find(moveTo))) {
+        return reply
+          .code(400)
+          .send({ error: "Pick another category to move them to." });
+      }
+      db.transaction((tx) => {
+        tx.update(transactions)
+          .set({ categoryId: moveTo ?? null })
+          .where(eq(transactions.categoryId, row.id))
+          .run();
+        tx.delete(categories).where(eq(categories.id, row.id)).run();
+      });
       return reply.code(204).send();
     },
   );

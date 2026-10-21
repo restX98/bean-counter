@@ -132,7 +132,7 @@ describe("categories (S16, D5)", () => {
     expect((await list()).uncategorized).toBe(1);
   });
 
-  it("deletes one that nothing uses, and refuses one in use", async () => {
+  it("deletes one that nothing uses, and refuses one in use without a choice", async () => {
     const [, groceries] = await imported();
     const { body: unused } = await add("Gifts");
     const { body: used } = await add("Groceries");
@@ -144,13 +144,59 @@ describe("categories (S16, D5)", () => {
     expect(await call("DELETE", `/api/categories/${used.id}`)).toEqual({
       status: 409,
       body: {
-        error:
-          "1 transaction uses this category. Give it another category first.",
+        error: "1 transaction uses this category. Say where it goes first.",
       },
     });
     expect((await list()).categories).toMatchObject([{ name: "Groceries" }]);
     expect((await call("DELETE", `/api/categories/${unused.id}`)).status).toBe(
       404,
     );
+  });
+
+  it("moves its transactions to another category", async () => {
+    const [salary, groceries] = await imported();
+    const { body: food } = await add("Food");
+    const { body: groceriesCategory } = await add("Groceries");
+    categorize(salary!, food.id);
+    categorize(groceries!, food.id);
+
+    expect(
+      (
+        await call("DELETE", `/api/categories/${food.id}`, {
+          moveTo: groceriesCategory.id,
+        })
+      ).status,
+    ).toBe(204);
+    expect(await list()).toMatchObject({
+      categories: [{ name: "Groceries", transactionCount: 2 }],
+      uncategorized: 1,
+    });
+  });
+
+  it("leaves its transactions uncategorized", async () => {
+    const [, groceries] = await imported();
+    const { body: food } = await add("Food");
+    categorize(groceries!, food.id);
+
+    expect(
+      (await call("DELETE", `/api/categories/${food.id}`, { moveTo: null }))
+        .status,
+    ).toBe(204);
+    expect(await list()).toEqual({ categories: [], uncategorized: 3 });
+  });
+
+  it("refuses to move them to itself or to a category that doesn't exist", async () => {
+    const [, groceries] = await imported();
+    const { body: food } = await add("Food");
+    categorize(groceries!, food.id);
+    for (const moveTo of [food.id, 99]) {
+      expect(
+        await call("DELETE", `/api/categories/${food.id}`, { moveTo }),
+      ).toEqual({
+        status: 400,
+        body: { error: "Pick another category to move them to." },
+      });
+    }
+    expect((await list()).categories).toHaveLength(1);
   });
 });
