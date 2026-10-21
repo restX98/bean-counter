@@ -4,6 +4,7 @@ import type { SuspectReason } from "../../domain/balances.ts";
 import { formatDate } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import {
+  useCategories,
   useExclude,
   useLedger,
   useRemoveCheck,
@@ -15,6 +16,7 @@ import { FormError } from "../components/Dialog.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { Loading } from "../components/Page.tsx";
 import { useIsMobile } from "../useIsMobile.ts";
+import { TransactionPanel } from "./TransactionPanel.tsx";
 
 /** Rows shown at first, and added by "Load more". */
 const PAGE = 50;
@@ -67,7 +69,10 @@ export function AccountLedger({ account }: { account: Account }) {
   const ledger = useLedger(account.id);
   const exclude = useExclude();
   const removeCheck = useRemoveCheck();
+  const categories = useCategories();
   const [shown, setShown] = useState(PAGE);
+  // The transaction open in the panel (S6).
+  const [openId, setOpenId] = useState<number | null>(null);
   const money = (minor: number, signed = false) =>
     formatAmount(minor, account.currency, { signed });
   const readOnly = account.archivedOn !== null;
@@ -80,6 +85,10 @@ export function AccountLedger({ account }: { account: Account }) {
     checks.length > 0 || transactions.some((t) => t.bankBalance !== null);
   const off = new Set(offDays);
   const last = transactions[0]?.date;
+  const open = transactions.find((t) => t.id === openId);
+  const names = new Map(
+    categories.data?.categories.map((c) => [c.id, c.name]) ?? [],
+  );
 
   const showGap = (index: number) => {
     const at = all.findIndex((l) => l.kind === "gap" && l.index === index);
@@ -98,11 +107,37 @@ export function AccountLedger({ account }: { account: Account }) {
         type="button"
         className={isMobile ? "link" : "btn btn-ghost btn-sm"}
         disabled={exclude.isPending}
-        onClick={() => exclude.mutate({ id: t.id, excluded: !t.excluded })}
+        onClick={(e) => {
+          // Not the row's click, which opens the panel.
+          e.stopPropagation();
+          exclude.mutate({ id: t.id, excluded: !t.excluded });
+        }}
       >
         {t.excluded ? "Restore" : "Exclude"}
       </button>
     );
+  // Excluded transactions don't count anywhere, so they don't need one.
+  const category = (t: LedgerTransaction) =>
+    t.categoryId !== null ? (
+      <span>{names.get(t.categoryId)}</span>
+    ) : (
+      !t.excluded &&
+      categories.data && <span className="tag tone-warning">Uncategorized</span>
+    );
+  const rowClass = (t: LedgerTransaction, base: string) =>
+    [base, t.excluded && "is-excluded", t.id === openId && "is-open"]
+      .filter(Boolean)
+      .join(" ");
+  const opener = (t: LedgerTransaction) => (
+    <button
+      type="button"
+      className="row-open"
+      aria-expanded={t.id === openId}
+      onClick={() => setOpenId(t.id)}
+    >
+      {t.description}
+    </button>
+  );
   const tags = (t: LedgerTransaction) => (
     <>
       {t.excluded && (
@@ -185,13 +220,10 @@ export function AccountLedger({ account }: { account: Account }) {
             ) : (
               <div
                 key={line.transaction.id}
-                className={
-                  line.transaction.excluded
-                    ? "m-tx ledger is-excluded"
-                    : "m-tx ledger"
-                }
+                className={rowClass(line.transaction, "m-tx ledger tx")}
+                onClick={() => setOpenId(line.transaction.id)}
               >
-                <span className="desc">{line.transaction.description}</span>
+                <span className="desc">{opener(line.transaction)}</span>
                 <span className={amountClass(line.transaction)}>
                   {money(line.transaction.amount, true)}
                 </span>
@@ -199,6 +231,7 @@ export function AccountLedger({ account }: { account: Account }) {
                   {day(line.transaction.date)}
                   {line.transaction.time &&
                     ` ${line.transaction.time.slice(0, 5)}`}
+                  {category(line.transaction)}
                   {tags(line.transaction)}
                   {toggle(line.transaction)}
                 </span>
@@ -227,6 +260,7 @@ export function AccountLedger({ account }: { account: Account }) {
           >
             <span>Date</span>
             <span>Description</span>
+            <span>Category</span>
             <span className="r">Amount</span>
             <span className="r">Balance</span>
             {hasBank && <span className="r">Bank balance</span>}
@@ -265,6 +299,7 @@ export function AccountLedger({ account }: { account: Account }) {
                   </span>
                 </span>
                 <span />
+                <span />
                 <span className="bal">{money(line.check.app)}</span>
                 <span
                   className={
@@ -283,13 +318,11 @@ export function AccountLedger({ account }: { account: Account }) {
             ) : (
               <div
                 key={line.transaction.id}
-                className={[
-                  "lr",
-                  hasBank && "bank",
-                  line.transaction.excluded && "is-excluded",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+                className={rowClass(
+                  line.transaction,
+                  hasBank ? "lr bank tx" : "lr tx",
+                )}
+                onClick={() => setOpenId(line.transaction.id)}
               >
                 <span className="date">
                   {formatDate(line.transaction.date)}
@@ -300,9 +333,10 @@ export function AccountLedger({ account }: { account: Account }) {
                   )}
                 </span>
                 <span className="desc">
-                  {line.transaction.description}
+                  {opener(line.transaction)}
                   {tags(line.transaction)}
                 </span>
+                <span className="cat">{category(line.transaction)}</span>
                 <span className={amountClass(line.transaction)}>
                   {money(line.transaction.amount, true)}
                 </span>
@@ -359,6 +393,13 @@ export function AccountLedger({ account }: { account: Account }) {
         >
           Load more
         </button>
+      )}
+      {open && (
+        <TransactionPanel
+          account={account}
+          transaction={open}
+          onClose={() => setOpenId(null)}
+        />
       )}
     </>
   );

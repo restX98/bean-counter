@@ -468,7 +468,7 @@ button.m-tx:hover {
 }
 .lr {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr) 120px 128px 96px;
+  grid-template-columns: 96px minmax(0, 1fr) 150px 112px 120px 88px;
   align-items: center;
   gap: var(--space-4);
   min-height: var(--row-height);
@@ -477,7 +477,42 @@ button.m-tx:hover {
   font: var(--type-table);
 }
 .lr.bank {
-  grid-template-columns: 112px minmax(0, 1fr) 120px 128px 136px 96px;
+  grid-template-columns: 96px minmax(0, 1fr) 150px 112px 120px 128px 88px;
+}
+.lr.tx {
+  cursor: pointer;
+}
+.lr.tx:hover {
+  background: var(--color-hover);
+}
+.lr.tx.is-open,
+.m-tx.tx.is-open {
+  background: var(--color-accent-subtle);
+}
+.m-tx.tx {
+  cursor: pointer;
+}
+.lr .cat {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  overflow-wrap: anywhere;
+}
+/* The description opens the panel; the whole row does too, by mouse. */
+.row-open {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.row-open:focus-visible {
+  border-radius: var(--radius-sm);
 }
 .lr.head {
   min-height: 0;
@@ -598,4 +633,107 @@ button.m-tx:hover {
 .m-gap .icon {
   flex: none;
   color: var(--color-warning-solid);
+}
+
+/* ---------- Transaction panel (S6) ---------- */
+
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-panel);
+  width: var(--panel-width);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--color-surface-overlay);
+  border-left: var(--border-width) solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+}
+.panel:focus {
+  outline: none;
+}
+.panel-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  background: var(--color-surface-overlay);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+.panel-head h2 {
+  font: var(--type-dialog-title);
+}
+.detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5);
+}
+.detail-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+.detail-hero .title {
+  font: var(--type-section-title);
+  overflow-wrap: anywhere;
+}
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+}
+.detail-foot {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+}
+.facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  font: var(--type-table);
+}
+.facts dt {
+  color: var(--color-text-muted);
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .panel {
+    left: 0;
+    width: auto;
+    border-left: 0;
+    box-shadow: none;
+  }
+  .panel-head {
+    justify-content: flex-start;
+    gap: var(--space-1);
+    min-height: var(--topbar-height);
+    padding: 0 var(--space-3) 0 var(--space-4);
+  }
+  .panel-head h2 {
+    flex: 1;
+    font: var(--type-page-title);
+  }
+  .panel-head .back {
+    margin-left: calc(-1 * var(--space-3));
+  }
+  .detail {
+    padding: var(--space-4);
+  }
 }

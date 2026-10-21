@@ -3,6 +3,7 @@ import {
   CATEGORY_TYPES,
   type Category,
   type CategoryFields,
+  type CategoryType,
 } from "../../domain/categories.ts";
 import { useCreateCategory, useUpdateCategory } from "../api.ts";
 import { Dialog, FormError, fieldErrors } from "../components/Dialog.tsx";
@@ -17,10 +18,18 @@ interface Props {
   onSaved?: (category: Category) => void;
   /** Edit mode, for a category nothing uses yet. */
   onDelete?: () => void;
+  /** Adding: the type to start with, such as a transaction's. */
+  type?: CategoryType;
 }
 
 /** D5: add a category or edit one. */
-export function CategoryForm({ category, onClose, onSaved, onDelete }: Props) {
+export function CategoryForm({
+  category,
+  onClose,
+  onSaved,
+  onDelete,
+  type = "expense",
+}: Props) {
   const id = useId();
   const create = useCreateCategory();
   const update = useUpdateCategory(category?.id ?? 0);
@@ -29,7 +38,7 @@ export function CategoryForm({ category, onClose, onSaved, onDelete }: Props) {
   const [fields, setFields] = useState<CategoryFields>(() =>
     category
       ? { name: category.name, type: category.type }
-      : { name: "", type: "expense" },
+      : { name: "", type },
   );
   const used = category?.transactionCount ?? 0;
 

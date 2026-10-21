@@ -240,3 +240,43 @@ describe("balances I entered to look for what's missing (D2)", () => {
     expect(await enter(empty.id, "100.00")).toMatchObject({ status: 409 });
   });
 });
+
+describe("a transaction's category (S6)", () => {
+  const setCategory = (id: number, categoryId: number | null) =>
+    call("PUT", `/api/transactions/${id}/category`, { categoryId });
+  const addCategory = async (name: string, type = "expense") =>
+    (await call("POST", "/api/categories", { name, type })).body.id;
+
+  it("sets it, and takes it away", async () => {
+    const account = await setup();
+    const groceries = await addCategory("Groceries");
+    const id = (await ledger(account)).body.transactions[1].id;
+
+    expect((await setCategory(id, groceries)).status).toBe(204);
+    expect((await ledger(account)).body.transactions[1]).toMatchObject({
+      description: "ESSELUNGA MILANO",
+      categoryId: groceries,
+    });
+    expect((await call("GET", "/api/categories")).body).toMatchObject({
+      categories: [{ name: "Groceries", transactionCount: 1 }],
+      uncategorized: 2,
+    });
+
+    await setCategory(id, null);
+    expect((await ledger(account)).body.transactions[1].categoryId).toBeNull();
+  });
+
+  it("refuses unknown transactions and categories, and archived accounts", async () => {
+    const account = await setup();
+    const groceries = await addCategory("Groceries");
+    expect((await setCategory(99, groceries)).status).toBe(404);
+
+    const id = (await ledger(account)).body.transactions[0].id;
+    expect(await setCategory(id, 99)).toEqual({
+      status: 400,
+      body: { error: "This category doesn't exist any more." },
+    });
+    await call("POST", `/api/accounts/${account}/archive`);
+    expect((await setCategory(id, groceries)).status).toBe(409);
+  });
+});

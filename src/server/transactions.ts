@@ -2,7 +2,12 @@ import { eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { inOrder, ledger } from "../domain/ledger.ts";
 import type { Db } from "./db/index.ts";
-import { accounts, balanceChecks, transactions } from "./db/schema.ts";
+import {
+  accounts,
+  balanceChecks,
+  categories,
+  transactions,
+} from "./db/schema.ts";
 
 const idParams = {
   type: "object",
@@ -40,6 +45,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           bankBalance: transactions.bankBalance,
           excluded: transactions.excluded,
           nearMatchOf: transactions.nearMatchOf,
+          categoryId: transactions.categoryId,
         })
         .from(transactions)
         .where(eq(transactions.accountId, account.id))
@@ -81,6 +87,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           bankBalance: t.bankBalance,
           excluded: t.excluded,
           nearMatchOf: t.nearMatchOf,
+          categoryId: t.categoryId,
           balance: t.balance,
         })),
         gaps: gaps.map(({ suspects, ...gap }) => ({
@@ -105,22 +112,63 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
     },
   );
 
+  const findTransaction = (id: number) =>
+    db
+      .select({ id: transactions.id, accountId: transactions.accountId })
+      .from(transactions)
+      .where(eq(transactions.id, id))
+      .get();
+  const archived = (reply: FastifyReply) =>
+    reply.code(409).send({
+      error: "This account is archived. Unarchive it to change it.",
+    });
+
+  // S6: sets the transaction's category, or takes it away (null).
+  app.put<WithId & { Body: { categoryId: number | null } }>(
+    "/api/transactions/:id/category",
+    {
+      schema: {
+        params: idParams,
+        body: {
+          type: "object",
+          required: ["categoryId"],
+          properties: { categoryId: { type: ["integer", "null"] } },
+        },
+      },
+    },
+    (req, reply) => {
+      const row = findTransaction(req.params.id);
+      if (!row) return reply.code(404).send({ error: "Not found" });
+      if (findAccount(row.accountId)?.archivedOn) return archived(reply);
+      const { categoryId } = req.body;
+      if (
+        categoryId !== null &&
+        !db
+          .select({ id: categories.id })
+          .from(categories)
+          .where(eq(categories.id, categoryId))
+          .get()
+      ) {
+        return reply
+          .code(400)
+          .send({ error: "This category doesn't exist any more." });
+      }
+      db.update(transactions)
+        .set({ categoryId })
+        .where(eq(transactions.id, row.id))
+        .run();
+      return reply.code(204).send();
+    },
+  );
+
   // Excluding takes a transaction out of balances, reports and budgets; it
   // stays listed, greyed out, and still counts as a duplicate on re-import.
   const setExcluded =
     (excluded: boolean) =>
     (req: FastifyRequest<WithId>, reply: FastifyReply) => {
-      const row = db
-        .select({ id: transactions.id, accountId: transactions.accountId })
-        .from(transactions)
-        .where(eq(transactions.id, req.params.id))
-        .get();
+      const row = findTransaction(req.params.id);
       if (!row) return reply.code(404).send({ error: "Not found" });
-      if (findAccount(row.accountId)?.archivedOn) {
-        return reply.code(409).send({
-          error: "This account is archived. Unarchive it to change it.",
-        });
-      }
+      if (findAccount(row.accountId)?.archivedOn) return archived(reply);
       db.update(transactions)
         .set({ excluded })
         .where(eq(transactions.id, row.id))

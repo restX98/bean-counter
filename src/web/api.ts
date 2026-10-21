@@ -202,6 +202,8 @@ export interface LedgerTransaction {
   excluded: boolean;
   /** Kept although the import flagged it as a near-match of this one. */
   nearMatchOf: number | null;
+  /** Null while it's uncategorized. */
+  categoryId: number | null;
   /** Null when it's excluded. */
   balance: number | null;
 }
@@ -288,3 +290,23 @@ export const useDeleteCategory = () =>
   useCategoryChange((id: number) =>
     request<null>("DELETE", `/api/categories/${id}`),
   );
+
+/** S6: sets a transaction's category, or takes it away (null). */
+export function useSetCategory() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      categoryId,
+    }: {
+      id: number;
+      categoryId: number | null;
+    }) =>
+      request<null>("PUT", `/api/transactions/${id}/category`, { categoryId }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: ACCOUNTS }),
+        client.invalidateQueries({ queryKey: CATEGORIES }),
+      ]),
+  });
+}
