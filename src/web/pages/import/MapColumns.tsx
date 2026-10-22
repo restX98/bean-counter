@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import type { Account } from "../../../domain/accounts.ts";
-import { formatDate } from "../../../domain/dates.ts";
+import { formatWhen } from "../../../domain/dates.ts";
 import type { MappingDraft } from "../../../domain/import/guess.ts";
 import {
   readRow,
@@ -341,9 +341,7 @@ export function MapColumns({
                   className={row.leftOut ? "is-left-out" : undefined}
                 >
                   <td className={row.date ? undefined : "missing"}>
-                    {row.date
-                      ? `${formatDate(row.date)}${row.time ? ` ${row.time.slice(0, 5)}` : ""}`
-                      : "—"}
+                    {row.date ? formatWhen(row.date, row.time) : "—"}
                   </td>
                   <td className={row.description ? "wrap" : "wrap missing"}>
                     {row.description || "—"}

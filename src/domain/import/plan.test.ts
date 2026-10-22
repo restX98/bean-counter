@@ -157,6 +157,7 @@ describe("planImport", () => {
           {
             reason: "kept-near-match",
             date: "2026-10-02",
+            time: null,
             amount: -5630,
             description: "ESSELUNGA",
             id: null,
@@ -165,6 +166,7 @@ describe("planImport", () => {
           {
             reason: "same-amount",
             date: "2026-10-02",
+            time: null,
             amount: -5630,
             description: "ESSELUNGA MILANO",
             id: 6,

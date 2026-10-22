@@ -247,6 +247,7 @@ export interface TransferSide {
   id: number;
   accountId: number;
   date: string;
+  time: string | null;
   amount: number;
   description: string;
 }
@@ -259,6 +260,7 @@ export interface LedgerGap {
     reason: SuspectReason;
     id: number;
     date: string;
+    time: string | null;
     amount: number;
     description: string;
   }[];

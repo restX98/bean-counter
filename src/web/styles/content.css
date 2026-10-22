@@ -973,6 +973,10 @@ button.m-tx:hover {
   color: var(--color-text-muted);
   font-variant-numeric: var(--numbers);
 }
+.item .date {
+  display: flex;
+  flex-direction: column;
+}
 .item .acct {
   overflow-wrap: anywhere;
 }

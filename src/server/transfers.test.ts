@@ -86,6 +86,7 @@ describe("linking transfers on import", () => {
       id: into.id,
       accountId: savings,
       date: "2026-10-06",
+      time: null,
       amount: 50000,
       description: "TRANSFER FROM CHECKING",
     });
@@ -442,6 +443,7 @@ describe("an exchange between currencies", () => {
           id: into,
           accountId: us,
           date: "2026-09-29",
+          time: null,
           amount: 21800,
           description: "FROM EUR",
         },

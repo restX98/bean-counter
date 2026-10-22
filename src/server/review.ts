@@ -35,6 +35,7 @@ export function reviewRoutes(app: FastifyInstance, { db }: { db: Db }) {
           id: c.id,
           accountId: c.accountId,
           date: c.date,
+          time: c.time,
           amount: c.amount,
           description: c.description,
         })),
@@ -73,13 +74,13 @@ export function reviewRoutes(app: FastifyInstance, { db }: { db: Db }) {
       id: t.id,
       accountId: t.accountId,
       date: t.date,
+      time: t.time,
       amount: t.amount,
       description: t.description,
     });
     const exchanges = pairs
       .map((pair) => ({
         ...side(pair.out),
-        time: pair.out.time,
         currency: pair.out.currency,
         other: side(pair.in),
       }))

@@ -75,6 +75,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
                 id: transactions.id,
                 accountId: transactions.accountId,
                 date: transactions.date,
+                time: transactions.time,
                 amount: transactions.amount,
                 description: transactions.description,
               })
@@ -110,6 +111,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
             reason,
             id: t.id,
             date: t.date,
+            time: t.time,
             amount: t.amount,
             description: t.description,
           })),

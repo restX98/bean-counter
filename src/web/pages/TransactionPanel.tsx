@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { Account } from "../../domain/accounts.ts";
-import { formatDate } from "../../domain/dates.ts";
+import { formatDate, formatWhen } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import { suggestText } from "../../domain/rules.ts";
 import {
@@ -302,7 +302,7 @@ function Transfer({
         <Icon name="transfer" />
         <strong>Linked to {other?.name}</strong>
         <span className="caption">
-          {side.description} · {formatDate(side.date)}
+          {side.description} · {formatWhen(side.date, side.time)}
         </span>
         {other && (
           <span className="amount transfer">

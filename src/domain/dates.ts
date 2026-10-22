@@ -1,5 +1,6 @@
 // Dates are calendar days written as ISO strings, "2026-10-16", with no time
-// or time zone. The app shows them as 16/10/2026.
+// or time zone. The app shows them as 16/10/2026. A transaction's time, when
+// its file had one, is kept apart as "21:02:16".
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -29,6 +30,21 @@ export function todayIso(now: Date = new Date()): string {
 export function formatDate(iso: string): string {
   const [year, month, day] = iso.split("-");
   return `${day}/${month}/${year}`;
+}
+
+/**
+ * A transaction's date, with its time when its file had one: "16/10/2026
+ * 21:02". Short leaves out the year: "16/10 21:02". Seconds keeps them, to
+ * tell apart two in the same minute: "16/10/2026 21:02:16".
+ */
+export function formatWhen(
+  date: string,
+  time: string | null,
+  { short = false, seconds = false } = {},
+): string {
+  const day = short ? formatDate(date).slice(0, 5) : formatDate(date);
+  if (!time) return day;
+  return `${day} ${seconds ? time : time.slice(0, 5)}`;
 }
 
 /** How many days apart two dates are, whichever comes first. */

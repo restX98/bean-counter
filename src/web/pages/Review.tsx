@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import type { BothBalances } from "../../domain/balances.ts";
-import { formatDate } from "../../domain/dates.ts";
+import { formatDate, formatWhen } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import { shownEnd } from "../../domain/review.ts";
 import { suggestText } from "../../domain/rules.ts";
@@ -45,6 +45,8 @@ type GroupKey = "uncategorized" | "conflicts" | "transfers" | "mismatches";
 interface Row {
   key: string;
   date: string;
+  /** A transaction's time, when its file had one. */
+  time: string | null;
   account: string;
   /** On a phone, above the item: the account, and the day if it matters. */
   where: string;
@@ -61,7 +63,6 @@ const keyOf = (item: Item) =>
 const transferKey = (item: ReviewTransfer) => `transfers ${item.id}`;
 const exchangeKey = (item: ReviewExchange) =>
   `exchanges ${item.id} ${item.other.id}`;
-const day = (date: string) => formatDate(date).slice(0, 5);
 
 /**
  * S2: what the app can't decide on its own. Transactions waiting for a
@@ -304,8 +305,9 @@ export function Review() {
     return {
       key: String(item.id),
       date: item.date,
+      time: item.time,
       account,
-      where: `${account} · ${day(item.date)}`,
+      where: `${account} · ${formatWhen(item.date, item.time, { short: true })}`,
       what: what(item),
       amount: (
         <span className={item.amount > 0 ? "amount income" : "amount"}>
@@ -326,8 +328,9 @@ export function Review() {
     return {
       key: String(item.id),
       date: item.date,
+      time: item.time,
       account,
-      where: `${account} · ${day(item.date)}`,
+      where: `${account} · ${formatWhen(item.date, item.time, { short: true })}`,
       what: (
         <span className="what">
           <strong>{item.description}</strong>
@@ -373,8 +376,9 @@ export function Review() {
     return {
       key: `${item.id} ${item.other.id}`,
       date: item.date,
+      time: item.time,
       account,
-      where: `${account} · ${day(item.date)}`,
+      where: `${account} · ${formatWhen(item.date, item.time, { short: true })}`,
       what: (
         <span className="what">
           <strong>{item.description}</strong>
@@ -384,7 +388,7 @@ export function Review() {
               formatAmount(item.other.amount, other.currency, {
                 signed: true,
               })}{" "}
-            on {day(item.other.date)}
+            on {formatWhen(item.other.date, item.other.time, { short: true })}
           </span>
         </span>
       ),
@@ -425,6 +429,7 @@ export function Review() {
     return {
       key: `${m.accountId}-${m.index}`,
       date: end.date,
+      time: null,
       account,
       where: account,
       what: (
@@ -483,7 +488,11 @@ export function Review() {
           ...review.data.exchanges
             .filter((x) => !settled.has(exchangeKey(x)))
             .map(exchangeRow),
-        ].sort((a, b) => b.date.localeCompare(a.date)),
+        ].sort(
+          (a, b) =>
+            b.date.localeCompare(a.date) ||
+            (b.time ?? "").localeCompare(a.time ?? ""),
+        ),
       },
       {
         key: "mismatches",
@@ -575,7 +584,12 @@ export function Review() {
               </h2>
               {shown.map((row) => (
                 <div key={row.key} className="item">
-                  <span className="date">{formatDate(row.date)}</span>
+                  <span className="date">
+                    {formatDate(row.date)}
+                    {row.time && (
+                      <span className="caption">{row.time.slice(0, 5)}</span>
+                    )}
+                  </span>
                   <span className="acct">{row.account}</span>
                   {row.what}
                   {row.amount}

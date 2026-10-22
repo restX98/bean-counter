@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import type { Account } from "../../domain/accounts.ts";
 import type { SuspectReason } from "../../domain/balances.ts";
-import { formatDate } from "../../domain/dates.ts";
+import { formatDate, formatWhen } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import {
   useAccounts,
@@ -264,9 +264,9 @@ export function AccountLedger({ account }: { account: Account }) {
                   {money(line.transaction.amount, true)}
                 </span>
                 <span className="meta">
-                  {day(line.transaction.date)}
-                  {line.transaction.time &&
-                    ` ${line.transaction.time.slice(0, 5)}`}
+                  {formatWhen(line.transaction.date, line.transaction.time, {
+                    short: true,
+                  })}
                   {category(line.transaction)}
                   {tags(line.transaction)}
                   {toggle(line.transaction)}
@@ -508,7 +508,8 @@ function Suspects({
         <span key={s.id}>
           {i > 0 && " "}
           {s.reason === "same-amount" ? "Possibly" : "Probably"} {s.description}{" "}
-          ({money(s.amount, true)}, {day(s.date)}): {BECAUSE[s.reason]}.
+          ({money(s.amount, true)},{" "}
+          {formatWhen(s.date, s.time, { short: true })}): {BECAUSE[s.reason]}.
         </span>
       ))}
     </>

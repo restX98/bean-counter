@@ -242,6 +242,7 @@ describe("saving an import", () => {
     expect(body.gaps[0].suspects[0]).toEqual({
       reason: "kept-near-match",
       date: "2026-10-02",
+      time: null,
       amount: -5630,
       description: "ESSELUNGA SPA",
       id: 4,

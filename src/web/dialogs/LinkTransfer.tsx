@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { formatDate } from "../../domain/dates.ts";
+import { formatWhen } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import {
   useAccounts,
@@ -17,6 +17,7 @@ interface Linking {
   id: number;
   description: string;
   date: string;
+  time: string | null;
   amount: number;
   accountId: number;
   currency: string;
@@ -48,6 +49,12 @@ export function LinkTransfer({
   // The first one, until I pick another.
   const chosen = list.find((o) => o.id === picked) ?? list[0];
   const days = options.data && plural(options.data.window, "day");
+  // Seconds only where two options would otherwise read the same.
+  const minute = (o: TransferSide) => formatWhen(o.date, o.time);
+  const when = (o: TransferSide) =>
+    formatWhen(o.date, o.time, {
+      seconds: list.some((p) => p !== o && minute(p) === minute(o)),
+    });
   const save = () =>
     chosen &&
     link.mutate(
@@ -89,7 +96,7 @@ export function LinkTransfer({
             {formatAmount(t.amount, t.currency, { signed: true })}
           </span>
           <span className="caption">
-            {account(t.accountId)?.name} · {formatDate(t.date)}
+            {account(t.accountId)?.name} · {formatWhen(t.date, t.time)}
           </span>
         </div>
         <FormError error={options.error ?? link.error} />
@@ -133,7 +140,7 @@ export function LinkTransfer({
                     <span className="what">
                       <strong>{o.description}</strong>
                       <span className="caption">
-                        {other?.name} · {formatDate(o.date)}
+                        {other?.name} · {when(o)}
                       </span>
                     </span>
                     <span className="amount">

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { daysBetween, formatDate, isIsoDate, todayIso } from "./dates.ts";
+import {
+  daysBetween,
+  formatDate,
+  formatWhen,
+  isIsoDate,
+  todayIso,
+} from "./dates.ts";
 
 describe("isIsoDate", () => {
   it("accepts real calendar days", () => {
@@ -32,6 +38,29 @@ describe("todayIso", () => {
 describe("formatDate", () => {
   it("shows day/month/year", () => {
     expect(formatDate("2026-10-16")).toBe("16/10/2026");
+  });
+});
+
+describe("formatWhen", () => {
+  it("adds the time, without seconds, when there is one", () => {
+    expect(formatWhen("2026-06-12", "21:02:16")).toBe("12/06/2026 21:02");
+    expect(formatWhen("2026-06-12", null)).toBe("12/06/2026");
+  });
+
+  it("leaves out the year when short", () => {
+    expect(formatWhen("2026-06-12", "09:05:00", { short: true })).toBe(
+      "12/06 09:05",
+    );
+    expect(formatWhen("2026-06-12", null, { short: true })).toBe("12/06");
+  });
+
+  it("keeps the seconds when asked", () => {
+    expect(formatWhen("2026-06-12", "21:02:16", { seconds: true })).toBe(
+      "12/06/2026 21:02:16",
+    );
+    expect(formatWhen("2026-06-12", null, { seconds: true })).toBe(
+      "12/06/2026",
+    );
   });
 });
 

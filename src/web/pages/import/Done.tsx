@@ -1,6 +1,6 @@
 import type { Account, Anchor } from "../../../domain/accounts.ts";
 import type { SuspectReason } from "../../../domain/balances.ts";
-import { formatDate } from "../../../domain/dates.ts";
+import { formatDate, formatWhen } from "../../../domain/dates.ts";
 import type { PlanGap } from "../../../domain/import/plan.ts";
 import { formatAmount } from "../../../domain/money.ts";
 import { Link } from "react-router";
@@ -210,7 +210,7 @@ function Gap({
   const likely = gap.suspects.filter((s) => s.reason !== "same-amount");
   const guesses = gap.suspects.filter((s) => s.reason === "same-amount");
   const describe = (s: PlanGap["suspects"][number]) =>
-    `${s.description} (${money(s.amount)}, ${formatDate(s.date)})`;
+    `${s.description} (${money(s.amount)}, ${formatWhen(s.date, s.time)})`;
   return (
     <>
       <span className="gap">

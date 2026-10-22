@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import type { Account, Anchor } from "../../../domain/accounts.ts";
-import { formatDate, todayIso } from "../../../domain/dates.ts";
+import { formatWhen, todayIso } from "../../../domain/dates.ts";
 import type { Mapping } from "../../../domain/import/mapping.ts";
 import {
   isImported,
@@ -120,7 +120,7 @@ function items(
       row.status === "duplicate"
         ? "Already imported · will be skipped"
         : row.status === "near-match" && row.match
-          ? `Similar to “${row.match.description}”, already imported on ${formatDate(row.match.date)}`
+          ? `Similar to “${row.match.description}”, already imported on ${formatWhen(row.match.date, row.match.time)}`
           : transfer.kind === "pick"
             ? possibleMatches(
                 transfer.count,
@@ -190,9 +190,7 @@ function items(
 }
 
 const when = (item: Item) =>
-  item.date
-    ? `${formatDate(item.date)}${item.time ? ` ${item.time.slice(0, 5)}` : ""}`
-    : "—";
+  item.date ? formatWhen(item.date, item.time) : "—";
 
 const isSkipped = (item: Item) =>
   item.kind === "duplicate" ||

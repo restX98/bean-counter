@@ -29,7 +29,10 @@ export type Decision = "keep" | "skip";
 export interface PlannedRow extends StatementRow {
   status: "new" | "duplicate" | "near-match";
   /** The transaction a duplicate or near-match looks like. */
-  match: Pick<Existing, "id" | "date" | "amount" | "description"> | null;
+  match: Pick<
+    Existing,
+    "id" | "date" | "time" | "amount" | "description"
+  > | null;
   /** A near-match's decision, once I've made it. */
   decision: Decision | null;
   /** What the rules say about it; nothing for a duplicate. */
@@ -57,6 +60,7 @@ export interface TransferContext {
 export interface PlanSuspect {
   reason: SuspectReason;
   date: string;
+  time: string | null;
   amount: number;
   description: string;
   id: number | null;
@@ -125,11 +129,11 @@ export function planImport({
           transfer: none,
         };
       }
-      const { id, date, amount, description } = byId.get(match.of)!;
+      const { id, date, time, amount, description } = byId.get(match.of)!;
       return {
         ...row,
         status: match.status,
-        match: { id, date, amount, description },
+        match: { id, date, time, amount, description },
         decision:
           match.status === "near-match" ? (decisions[row.line] ?? null) : null,
         rule: match.status === "near-match" ? rules(row) : none,
@@ -247,6 +251,7 @@ function check(
     suspects: suspects.map(({ reason, transaction: t }) => ({
       reason,
       date: t.date,
+      time: t.time,
       amount: t.amount,
       description: t.description,
       id: t.id,

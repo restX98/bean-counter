@@ -227,10 +227,11 @@ export function transferRoutes(app: FastifyInstance, { db }: { db: Db }) {
       return {
         window,
         options: options.map(
-          ({ id, accountId, date, amount, description }) => ({
+          ({ id, accountId, date, time, amount, description }) => ({
             id,
             accountId,
             date,
+            time,
             amount,
             description,
           }),
