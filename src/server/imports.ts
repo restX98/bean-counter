@@ -19,8 +19,10 @@ import {
 } from "../domain/import/plan.ts";
 import type { Table } from "../domain/import/table.ts";
 import { DATE_FORMATS } from "../domain/import/values.ts";
+import { ruleChecker } from "../domain/rules.ts";
 import type { Db } from "./db/index.ts";
 import { accounts, importPresets, imports, transactions } from "./db/schema.ts";
+import { loadRules } from "./rules.ts";
 import { readStatementFile } from "./statements.ts";
 
 // The import in three steps, one per screen: upload a file (S7), preview it
@@ -169,11 +171,25 @@ export function importRoutes(
             source: account.anchorSource,
           }
         : null;
+    const check = ruleChecker(loadRules(db));
     return {
       account,
       unreadable: errors,
       leftOut,
-      ...planImport({ rows, existing, anchor, decisions, balance: entered }),
+      ...planImport({
+        rows,
+        existing,
+        anchor,
+        decisions,
+        balance: entered,
+        rules: ({ description, amount }) =>
+          check({
+            description,
+            amount,
+            accountId: account.id,
+            currency: account.currency,
+          }),
+      }),
     };
   }
 
@@ -372,6 +388,10 @@ export function importRoutes(
                 bankBalance: row.balance,
                 raw: cells.get(row.line)!,
                 nearMatchOf: row.status === "near-match" ? row.match!.id : null,
+                // The category the rules agree on, if they do.
+                ...(row.rule.kind === "category"
+                  ? { categoryId: row.rule.categoryId, ruleId: row.rule.ruleId }
+                  : {}),
               })),
             )
             .run();
@@ -394,6 +414,8 @@ export function importRoutes(
       return reply.code(201).send({
         importId,
         imported: saved.length,
+        categorized: saved.filter((r) => r.rule.kind === "category").length,
+        conflicts: saved.filter((r) => r.rule.kind === "conflict").length,
         skipped: rows.length - saved.length,
         unreadable: unreadable.length,
         leftOut: leftOut.length,

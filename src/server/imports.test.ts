@@ -181,6 +181,8 @@ describe("saving an import", () => {
       body: {
         importId: 1,
         imported: 3,
+        categorized: 0,
+        conflicts: 0,
         skipped: 0,
         unreadable: 1,
         leftOut: 0,
@@ -295,6 +297,94 @@ describe("saving an import", () => {
     const body = { mapping, presetName: null };
     expect((await call("POST", url, body)).status).toBe(201);
     expect((await call("POST", url, body)).status).toBe(404);
+  });
+});
+
+describe("rules on import", () => {
+  const category = async (name: string) =>
+    (await call("POST", "/api/categories", { name, type: "expense" })).body
+      .id as number;
+  const rule = async (text: string, categoryId: number, more: object = {}) =>
+    (
+      await call("POST", "/api/rules", {
+        match: "contains",
+        text,
+        accountId: null,
+        min: "",
+        max: "",
+        currency: "EUR",
+        categoryId,
+        ...more,
+      })
+    ).body.id as number;
+
+  it("previews and saves the category the rules agree on, and leaves conflicts", async () => {
+    const id = await addAccount();
+    const groceries = await category("Groceries");
+    const savings = await category("Savings");
+    const moves = await category("Moves");
+    const esselunga = await rule("ESSELUNGA", groceries);
+    await rule("MILANO", groceries);
+    const toSavings = await rule("TO SAVINGS", savings);
+    await rule("TRANSFER", moves);
+
+    const { body: file } = await upload(id, statement());
+    const { body: preview } = await call(
+      "POST",
+      `/api/imports/${file.id}/preview`,
+      { mapping },
+    );
+    expect(
+      preview.rows.map((r: { rule: { kind: string } }) => r.rule),
+    ).toMatchObject([
+      { kind: "none" },
+      { kind: "category", categoryId: groceries, ruleId: esselunga },
+      {
+        kind: "conflict",
+        rules: [{ id: toSavings }, { categoryId: moves }],
+      },
+    ]);
+
+    const { body: result } = await call(
+      "POST",
+      `/api/imports/${file.id}/save`,
+      { mapping, presetName: null },
+    );
+    expect(result).toMatchObject({ imported: 3, categorized: 1, conflicts: 1 });
+    const { body: ledger } = await call(
+      "GET",
+      `/api/accounts/${id}/transactions`,
+    );
+    expect(ledger.transactions).toMatchObject([
+      {
+        description: "TRANSFER TO SAVINGS",
+        categoryId: null,
+        ruleId: null,
+        conflict: [savings, moves],
+      },
+      {
+        description: "ESSELUNGA MILANO",
+        categoryId: groceries,
+        ruleId: esselunga,
+        conflict: null,
+      },
+      {
+        description: "SALARY ACME SPA",
+        categoryId: null,
+        ruleId: null,
+        conflict: null,
+      },
+    ]);
+  });
+
+  it("keeps to a rule's account", async () => {
+    const main = await addAccount();
+    const other = await addAccount({ name: "Other" });
+    const groceries = await category("Groceries");
+    await rule("ESSELUNGA", groceries, { accountId: other });
+    expect(await importStatement(main)).toMatchObject({
+      body: { categorized: 0 },
+    });
   });
 });
 

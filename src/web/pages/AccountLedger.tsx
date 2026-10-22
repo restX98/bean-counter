@@ -120,9 +120,15 @@ export function AccountLedger({ account }: { account: Account }) {
   const category = (t: LedgerTransaction) =>
     t.categoryId !== null ? (
       <span>{names.get(t.categoryId)}</span>
+    ) : t.excluded || !categories.data ? null : t.conflict ? (
+      <span
+        className="tag tone-warning"
+        title={`Rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}`}
+      >
+        Rule conflict
+      </span>
     ) : (
-      !t.excluded &&
-      categories.data && <span className="tag tone-warning">Uncategorized</span>
+      <span className="tag tone-warning">Uncategorized</span>
     );
   const rowClass = (t: LedgerTransaction, base: string) =>
     [base, t.excluded && "is-excluded", t.id === openId && "is-open"]

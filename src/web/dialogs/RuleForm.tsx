@@ -32,6 +32,8 @@ interface Props {
   onClose: () => void;
   /** Edit mode: opens the delete dialog. */
   onDelete?: () => void;
+  /** Adding: fields to start from, such as a transaction's (S6). */
+  prefill?: Partial<RuleFields>;
 }
 
 /** The fields of a rule to edit, or of a new one with bounds in `currency`. */
@@ -91,7 +93,7 @@ function amountHint(min: string, max: string, currency: string): string {
  * overlap and offers to categorize the uncategorized transactions it
  * concerns.
  */
-export function RuleForm({ rule, onClose, onDelete }: Props) {
+export function RuleForm({ rule, onClose, onDelete, prefill }: Props) {
   const id = useId();
   const { data: accounts = [] } = useAccounts();
   const categories = useCategories();
@@ -104,9 +106,10 @@ export function RuleForm({ rule, onClose, onDelete }: Props) {
   const choices = accounts.filter(
     (a) => !a.archivedOn || a.id === rule?.accountId,
   );
-  const [fields, setFields] = useState(() =>
-    initialFields(rule, choices[0]?.currency ?? "EUR"),
-  );
+  const [fields, setFields] = useState(() => ({
+    ...initialFields(rule, choices[0]?.currency ?? "EUR"),
+    ...(rule ? {} : prefill),
+  }));
   const [apply, setApply] = useState(true);
   const [settle, setSettle] = useState(true);
   const [addingCategory, setAddingCategory] = useState(false);

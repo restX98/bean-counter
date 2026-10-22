@@ -9,6 +9,7 @@ import {
 } from "../../../domain/import/plan.ts";
 import { findCurrency, formatAmount } from "../../../domain/money.ts";
 import {
+  useCategories,
   useSaveImport,
   usePreview,
   type ImportPreview,
@@ -26,7 +27,15 @@ import { Flow } from "./Flow.tsx";
 /** Rows shown before "Show all". */
 const SHOWN = 100;
 
-type Kind = "near-match" | "new" | "unreadable" | "left-out" | "duplicate";
+/** A new row is auto-categorized, uncategorized or a rule conflict. */
+type Kind =
+  | "near-match"
+  | "conflict"
+  | "uncategorized"
+  | "auto"
+  | "unreadable"
+  | "left-out"
+  | "duplicate";
 
 /** A row of the file as S9 lists it: what it is, and what happens to it. */
 interface Item {
@@ -41,11 +50,15 @@ interface Item {
   balance: number | null;
   note: string | null;
   decision: Decision | null;
+  /** The category the rules give it. */
+  category: string | null;
 }
 
 const TAGS: Record<Kind, { label: string; tone: string; icon?: "alert" }> = {
   "near-match": { label: "Near-match", tone: "tone-warning", icon: "alert" },
-  new: { label: "New", tone: "tone-info" },
+  conflict: { label: "Rule conflict", tone: "tone-warning" },
+  uncategorized: { label: "Uncategorized", tone: "tone-warning" },
+  auto: { label: "Auto-categorized", tone: "tone-success" },
   unreadable: { label: "Can't read", tone: "tone-danger", icon: "alert" },
   "left-out": { label: "Left out", tone: "tone-neutral" },
   duplicate: { label: "Duplicate", tone: "tone-neutral" },
@@ -53,31 +66,51 @@ const TAGS: Record<Kind, { label: string; tone: string; icon?: "alert" }> = {
 /** The order rows are listed in: what needs me first. */
 const ORDER: Kind[] = [
   "near-match",
-  "new",
+  "conflict",
+  "uncategorized",
+  "auto",
   "unreadable",
   "left-out",
   "duplicate",
 ];
 
+/** What a new row is, from what the rules say about it. */
+const KIND_OF: Record<PlannedRow["rule"]["kind"], Kind> = {
+  category: "auto",
+  conflict: "conflict",
+  none: "uncategorized",
+};
+
 function items(
   preview: ImportPreview,
   decisions: Record<number, Decision>,
   currency: string,
+  names: Map<number, string>,
 ): Item[] {
   const planned = preview.rows.map((row): Item => {
+    const { rule } = row;
+    // The categories the rules that match disagree on.
+    const disagree =
+      rule.kind === "conflict"
+        ? [...new Set(rule.rules.map((r) => names.get(r.categoryId)))]
+        : [];
     const note =
       row.status === "duplicate"
         ? "Already imported · will be skipped"
         : row.status === "near-match" && row.match
           ? `Similar to “${row.match.description}”, already imported on ${formatDate(row.match.date)}`
-          : null;
+          : rule.kind === "conflict"
+            ? `Matches ${plural(rule.rules.length, "rule")}: ${disagree.join(", ")}`
+            : null;
     return {
       ...row,
-      kind: row.status,
+      kind: row.status === "new" ? KIND_OF[rule.kind] : row.status,
       currency,
       note,
       decision:
         row.status === "near-match" ? (decisions[row.line] ?? null) : null,
+      category:
+        rule.kind === "category" ? (names.get(rule.categoryId) ?? null) : null,
     };
   });
   const leftOut = preview.leftOut.map((row): Item => ({
@@ -95,6 +128,7 @@ function items(
         ? `In ${row.value} · will be left out`
         : `${row.value} · will be left out`,
     decision: null,
+    category: null,
   }));
   const unreadable = preview.unreadable.map((row): Item => ({
     line: row.line,
@@ -107,6 +141,7 @@ function items(
     balance: null,
     note: row.problems.join(" "),
     decision: null,
+    category: null,
   }));
   return [...planned, ...leftOut, ...unreadable].sort(
     (a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind) || a.line - b.line,
@@ -151,6 +186,7 @@ export function PreviewStep({
   const id = useId();
   const isMobile = useIsMobile();
   const preview = usePreview(file.id, mapping);
+  const categories = useCategories();
   const save = useSaveImport(file.id);
   const [decisions, setDecisions] = useState<Record<number, Decision>>({});
   const [balance, setBalance] = useState({ amount: "", date: todayIso() });
@@ -162,16 +198,17 @@ export function PreviewStep({
       ← Back
     </button>
   );
-  if (!preview.data) {
+  if (!preview.data || !categories.data) {
     return (
       <Flow step={3} skipped={skipped} onClose={onClose} back={back}>
-        <Loading error={preview.error} />
+        <Loading error={preview.error ?? categories.error} />
       </Flow>
     );
   }
 
   const data = preview.data;
-  const all = items(data, decisions, account.currency);
+  const names = new Map(categories.data.categories.map((c) => [c.id, c.name]));
+  const all = items(data, decisions, account.currency, names);
   const rows: PlannedRow[] = data.rows.map((row) => ({
     ...row,
     decision:
@@ -385,7 +422,7 @@ export function PreviewStep({
             <span className="what">
               <strong>{item.description || "—"}</strong>
               <span className="caption">
-                {[item.date && when(item), item.note]
+                {[item.date && when(item), item.category, item.note]
                   .filter(Boolean)
                   .join(" · ")}
               </span>
@@ -406,7 +443,7 @@ export function PreviewStep({
             <span>Description</span>
             <span className="r">Amount</span>
             {hasBalances && <span className="r">Bank balance</span>}
-            <span>Decision</span>
+            <span>Category or decision</span>
           </div>
           {shown.map((item) => (
             <div
@@ -434,7 +471,7 @@ export function PreviewStep({
                 </span>
               )}
               <span className="decide">
-                {item.kind === "near-match" && keepOrSkip(item)}
+                {item.kind === "near-match" ? keepOrSkip(item) : item.category}
               </span>
             </div>
           ))}

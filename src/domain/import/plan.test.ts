@@ -185,3 +185,29 @@ describe("planImport", () => {
     expect(plan.gaps).toEqual([]);
   });
 });
+
+describe("planImport with rules", () => {
+  it("asks the rules about the rows it may import, not the duplicates", () => {
+    const asked: string[] = [];
+    const plan = planImport({
+      rows: october,
+      existing: [
+        existing(5, "2026-10-01", 200000, "SALARY"),
+        existing(6, "2026-10-02", -5630, "ESSELUNGA MILANO"),
+      ],
+      anchor: null,
+      rules: (row) => {
+        asked.push(row.description);
+        return row.description === "ESSELUNGA"
+          ? { kind: "category", categoryId: 1, ruleId: 7 }
+          : { kind: "none" };
+      },
+    });
+    expect(asked).toEqual(["ESSELUNGA", "TRANSFER TO SAVINGS"]);
+    expect(plan.rows.map((r) => r.rule)).toEqual([
+      { kind: "none" },
+      { kind: "category", categoryId: 1, ruleId: 7 },
+      { kind: "none" },
+    ]);
+  });
+});

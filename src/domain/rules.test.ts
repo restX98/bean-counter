@@ -5,6 +5,7 @@ import {
   matcher,
   ruleChecker,
   ruleEffect,
+  suggestText,
   validateRule,
   type Rule,
   type RuleFields,
@@ -334,5 +335,20 @@ describe("ruleEffect", () => {
       conflicts: 0,
       settled: [],
     });
+  });
+});
+
+describe("suggestText", () => {
+  it("keeps the longest run of words without digits", () => {
+    expect(suggestText("PHARMACY 24")).toBe("PHARMACY");
+    expect(suggestText("SALARY  ACME SPA ")).toBe("SALARY ACME SPA");
+    expect(suggestText("CARD 1234 AMAZON MKTP EU 5678")).toBe("AMAZON MKTP EU");
+  });
+
+  it("takes the last of two runs as long, and all of it when every word has digits", () => {
+    expect(suggestText("PAGAMENTO POS 12/10 ESSELUNGA MILANO")).toBe(
+      "ESSELUNGA MILANO",
+    );
+    expect(suggestText("12/10 1234")).toBe("12/10 1234");
   });
 });

@@ -3,9 +3,12 @@ import type { Account } from "../../domain/accounts.ts";
 import { groupCategories } from "../../domain/categories.ts";
 import { formatDate } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
+import { suggestText } from "../../domain/rules.ts";
 import {
+  useAccounts,
   useCategories,
   useExclude,
+  useRules,
   useSetCategory,
   type LedgerTransaction,
 } from "../api.ts";
@@ -13,6 +16,8 @@ import { FormError } from "../components/Dialog.tsx";
 import { Field } from "../components/Field.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { CategoryForm } from "../dialogs/CategoryForm.tsx";
+import { RuleForm } from "../dialogs/RuleForm.tsx";
+import { ruleName } from "../labels.ts";
 import { useIsMobile } from "../useIsMobile.ts";
 
 /** The picker's option that opens the category form. */
@@ -37,20 +42,23 @@ export function TransactionPanel({
   const id = useId();
   const ref = useRef<HTMLElement>(null);
   const categories = useCategories();
+  const rules = useRules(t.ruleId !== null);
+  const { data: accounts = [] } = useAccounts();
   const setCategory = useSetCategory();
   const exclude = useExclude();
-  const [adding, setAdding] = useState(false);
+  // The dialog open over the panel: a new category, or a rule from this.
+  const [dialog, setDialog] = useState<"category" | "rule" | null>(null);
   const readOnly = account.archivedOn !== null;
 
   useEffect(() => ref.current?.focus(), []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // The category form handles its own Escape.
-      if (e.key === "Escape" && !adding && !e.defaultPrevented) onClose();
+      // A dialog handles its own Escape.
+      if (e.key === "Escape" && !dialog && !e.defaultPrevented) onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [adding, onClose]);
+  }, [dialog, onClose]);
 
   // The category just picked, until the list catches up.
   const picking =
@@ -58,13 +66,26 @@ export function TransactionPanel({
       ? setCategory.variables.categoryId
       : undefined;
   const categoryId = picking === undefined ? t.categoryId : picking;
+  // The rule that gave the category, until I pick another.
+  const ruleId = picking === undefined ? t.ruleId : null;
+  const rule = rules.data?.rules.find((r) => r.id === ruleId);
+  const names = new Map(
+    categories.data?.categories.map((c) => [c.id, c.name]) ?? [],
+  );
+  const hint = t.excluded
+    ? "It's excluded, so it doesn't count in reports or budgets whatever its category."
+    : rule
+      ? `Given by the rule ${ruleName(rule, accounts)}.`
+      : categoryId === null && t.conflict
+        ? `Its rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}. Pick the category.`
+        : undefined;
   // The type that matches the amount comes first.
   const first = t.amount > 0 ? "income" : "expense";
   const groups = groupCategories(categories.data?.categories ?? []).toSorted(
     (a, b) => Number(b.type === first) - Number(a.type === first),
   );
   const pick = (value: string) => {
-    if (value === NEW) setAdding(true);
+    if (value === NEW) setDialog("category");
     else
       setCategory.mutate({
         id: t.id,
@@ -139,15 +160,7 @@ export function TransactionPanel({
         </dl>
 
         <section className="detail-section">
-          <Field
-            id={`${id}-category`}
-            label="Category"
-            hint={
-              t.excluded
-                ? "It's excluded, so it doesn't count in reports or budgets whatever its category."
-                : undefined
-            }
-          >
+          <Field id={`${id}-category`} label="Category" hint={hint}>
             <span className="select-wrap">
               <select
                 id={`${id}-category`}
@@ -171,6 +184,15 @@ export function TransactionPanel({
               <Icon name="chevron" />
             </span>
           </Field>
+          {!readOnly && categoryId !== null && ruleId === null && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setDialog("rule")}
+            >
+              Create rule from this
+            </button>
+          )}
         </section>
 
         {!readOnly && (
@@ -189,13 +211,19 @@ export function TransactionPanel({
         )}
       </div>
 
-      {adding && (
+      {dialog === "category" && (
         <CategoryForm
           type={t.amount > 0 ? "income" : "expense"}
-          onClose={() => setAdding(false)}
+          onClose={() => setDialog(null)}
           onSaved={(category) =>
             setCategory.mutate({ id: t.id, categoryId: category.id })
           }
+        />
+      )}
+      {dialog === "rule" && (
+        <RuleForm
+          prefill={{ text: suggestText(t.description), categoryId }}
+          onClose={() => setDialog(null)}
         />
       )}
     </aside>

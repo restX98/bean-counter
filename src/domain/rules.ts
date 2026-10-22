@@ -178,6 +178,26 @@ export function matcher(rule: RuleCondition): (t: RuleTarget) => boolean {
     described(t.description);
 }
 
+/**
+ * A rule's text to start from, made from a transaction's description. Words
+ * with digits are often a date, a store number or a reference, so it's the
+ * longest run of words without any, the last one if two are as long
+ * ("PAGAMENTO POS 12/10 ESSELUNGA MILANO" gives "ESSELUNGA MILANO").
+ */
+export function suggestText(description: string): string {
+  const text = squeeze(description);
+  let best: string[] = [];
+  let run: string[] = [];
+  for (const word of [...text.split(" "), "0"]) {
+    if (!/\d/.test(word)) run.push(word);
+    else {
+      if (run.length > 0 && run.length >= best.length) best = run;
+      run = [];
+    }
+  }
+  return best.length > 0 ? best.join(" ") : text;
+}
+
 export type RuleOutcome<R extends Rule = Rule> =
   | { kind: "none" }
   /** The rules that match agree. `ruleId` is the oldest of them. */

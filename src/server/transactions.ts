@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { inOrder, ledger } from "../domain/ledger.ts";
+import { ruleChecker } from "../domain/rules.ts";
 import type { Db } from "./db/index.ts";
 import {
   accounts,
@@ -8,6 +9,7 @@ import {
   categories,
   transactions,
 } from "./db/schema.ts";
+import { loadRules } from "./rules.ts";
 
 const idParams = {
   type: "object",
@@ -24,7 +26,8 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
     db.select().from(accounts).where(eq(accounts.id, id)).get();
 
   // S4: the account's transactions, newest first, each with the balance
-  // after it, and where the bank's balances disagree with the app's.
+  // after it, and where the bank's balances disagree with the app's. An
+  // uncategorized one says which categories its rules disagree on, if any.
   app.get<WithId>(
     "/api/accounts/:id/transactions",
     { schema: { params: idParams } },
@@ -46,6 +49,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           excluded: transactions.excluded,
           nearMatchOf: transactions.nearMatchOf,
           categoryId: transactions.categoryId,
+          ruleId: transactions.ruleId,
         })
         .from(transactions)
         .where(eq(transactions.accountId, account.id))
@@ -76,6 +80,18 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
               offDays: [],
               checks: [],
             };
+      const check = ruleChecker(loadRules(db));
+      const conflict = (t: (typeof rows)[number]) => {
+        if (t.categoryId !== null || t.excluded) return null;
+        const outcome = check({
+          ...t,
+          accountId: account.id,
+          currency: account.currency,
+        });
+        return outcome.kind === "conflict"
+          ? [...new Set(outcome.rules.map((r) => r.categoryId))]
+          : null;
+      };
       return {
         transactions: entries.toReversed().map((t) => ({
           id: t.id,
@@ -88,6 +104,8 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           excluded: t.excluded,
           nearMatchOf: t.nearMatchOf,
           categoryId: t.categoryId,
+          ruleId: t.ruleId,
+          conflict: conflict(t),
           balance: t.balance,
         })),
         gaps: gaps.map(({ suspects, ...gap }) => ({

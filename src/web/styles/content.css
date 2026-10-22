@@ -803,6 +803,9 @@ button.m-tx:hover {
   padding-top: var(--space-5);
   border-top: var(--border-width) solid var(--color-border);
 }
+.detail-section > .btn {
+  align-self: flex-start;
+}
 .detail-foot {
   margin-top: auto;
   padding-top: var(--space-4);

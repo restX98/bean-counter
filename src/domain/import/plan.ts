@@ -5,6 +5,7 @@ import {
   type DayBalance,
   type SuspectReason,
 } from "../balances.ts";
+import type { RuleOutcome } from "../rules.ts";
 import { findDuplicates, type Imported } from "./duplicates.ts";
 import type { StatementRow } from "./mapping.ts";
 
@@ -26,6 +27,8 @@ export interface PlannedRow extends StatementRow {
   match: Pick<Existing, "id" | "date" | "amount" | "description"> | null;
   /** A near-match's decision, once I've made it. */
   decision: Decision | null;
+  /** What the rules say about it; nothing for a duplicate. */
+  rule: RuleOutcome;
 }
 
 /** A transaction that could explain a gap: in the account (id) or the file (line). */
@@ -69,6 +72,7 @@ export function planImport({
   anchor,
   decisions = {},
   balance = null,
+  rules = () => ({ kind: "none" }),
 }: {
   rows: StatementRow[];
   /** All of the account's transactions, excluded ones too. */
@@ -78,13 +82,21 @@ export function planImport({
   decisions?: Record<number, Decision>;
   /** The balance I entered, used only when needsBalance. */
   balance?: Pick<Anchor, "amount" | "date"> | null;
+  /** What the rules say about a row, in this account. */
+  rules?: (row: StatementRow) => RuleOutcome;
 }): ImportPlan {
   const byId = new Map(existing.map((t) => [t.id, t]));
   const planned: PlannedRow[] = findDuplicates(rows, existing).map(
     (match, i) => {
       const row = rows[i]!;
       if (match.status === "new") {
-        return { ...row, status: "new", match: null, decision: null };
+        return {
+          ...row,
+          status: "new",
+          match: null,
+          decision: null,
+          rule: rules(row),
+        };
       }
       const { id, date, amount, description } = byId.get(match.of)!;
       return {
@@ -93,6 +105,7 @@ export function planImport({
         match: { id, date, amount, description },
         decision:
           match.status === "near-match" ? (decisions[row.line] ?? null) : null,
+        rule: match.status === "near-match" ? rules(row) : { kind: "none" },
       };
     },
   );

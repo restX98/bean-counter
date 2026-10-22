@@ -88,6 +88,10 @@ function toRule(row: Row): Rule {
   };
 }
 
+/** Every rule, oldest first. */
+export const loadRules = (db: Db): Rule[] =>
+  db.select().from(rules).orderBy(rules.id).all().map(toRule);
+
 const toColumns = (rule: RuleCondition & { categoryId: number }) => ({
   match: rule.match,
   text: rule.text,
@@ -104,7 +108,7 @@ const notFound = (reply: FastifyReply) =>
 export function ruleRoutes(app: FastifyInstance, { db }: { db: Db }) {
   const find = (id: number) =>
     db.select().from(rules).where(eq(rules.id, id)).get();
-  const all = () => db.select().from(rules).orderBy(rules.id).all().map(toRule);
+  const all = () => loadRules(db);
   const targets = () =>
     db
       .select({

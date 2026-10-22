@@ -5,6 +5,7 @@ import type { PlanGap } from "../../../domain/import/plan.ts";
 import { formatAmount } from "../../../domain/money.ts";
 import type { ImportResult } from "../../api.ts";
 import { Icon } from "../../components/Icon.tsx";
+import { plural } from "../../labels.ts";
 import { Flow } from "./Flow.tsx";
 
 const BECAUSE: Record<SuspectReason, string> = {
@@ -64,6 +65,9 @@ export function DoneStep({
               <span>left out or unreadable</span>
             </div>
           </div>
+          {result.imported > 0 && (
+            <p className="caption">{rulesSummary(result)}</p>
+          )}
 
           {gaps === null ? (
             <div className="banner tone-neutral">
@@ -118,6 +122,22 @@ export function DoneStep({
       </div>
     </Flow>
   );
+}
+
+/** What the rules did with the imported transactions. */
+function rulesSummary({ imported, categorized, conflicts }: ImportResult) {
+  const them = imported === 1 ? "it" : "them";
+  const left = imported - categorized;
+  const done =
+    categorized === imported
+      ? `Your rules categorized ${imported === 1 ? "it" : "all of them"}.`
+      : categorized > 0
+        ? `Your rules categorized ${categorized}; ${left} ${left === 1 ? "is" : "are"} still uncategorized.`
+        : `No rule categorized ${them}.`;
+  const one = conflicts === 1;
+  return conflicts === 0
+    ? done
+    : `${done} ${plural(conflicts, "transaction")} ${one ? "matches" : "match"} rules that disagree, so ${one ? "it waits" : "they wait"} for you to pick a category.`;
 }
 
 /**

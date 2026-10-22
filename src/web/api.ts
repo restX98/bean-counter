@@ -166,6 +166,10 @@ export interface ImportPreview {
 export interface ImportResult {
   importId: number;
   imported: number;
+  /** Imported ones the rules gave a category. */
+  categorized: number;
+  /** Imported ones the rules disagree on. */
+  conflicts: number;
   skipped: number;
   unreadable: number;
   leftOut: number;
@@ -210,6 +214,10 @@ export interface LedgerTransaction {
   nearMatchOf: number | null;
   /** Null while it's uncategorized. */
   categoryId: number | null;
+  /** The rule that gave its category; null when I picked it. */
+  ruleId: number | null;
+  /** While it's uncategorized: the categories its rules disagree on. */
+  conflict: number[] | null;
   /** Null when it's excluded. */
   balance: number | null;
 }
