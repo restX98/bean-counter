@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, isIsoDate, todayIso } from "./dates.ts";
+import { daysBetween, formatDate, isIsoDate, todayIso } from "./dates.ts";
 
 describe("isIsoDate", () => {
   it("accepts real calendar days", () => {
@@ -32,5 +32,15 @@ describe("todayIso", () => {
 describe("formatDate", () => {
   it("shows day/month/year", () => {
     expect(formatDate("2026-10-16")).toBe("16/10/2026");
+  });
+});
+
+describe("daysBetween", () => {
+  it("counts calendar days either way, across months and leap days", () => {
+    expect(daysBetween("2026-10-10", "2026-10-13")).toBe(3);
+    expect(daysBetween("2026-10-13", "2026-10-10")).toBe(3);
+    expect(daysBetween("2026-09-29", "2026-10-02")).toBe(3);
+    expect(daysBetween("2028-02-28", "2028-03-01")).toBe(2);
+    expect(daysBetween("2026-10-10", "2026-10-10")).toBe(0);
   });
 });

@@ -178,6 +178,8 @@ export interface ImportPreview {
 export interface ImportResult {
   importId: number;
   imported: number;
+  /** Imported ones linked as one side of a transfer. */
+  linked: number;
   /** Imported ones the rules gave a category. */
   categorized: number;
   /** Imported ones the rules disagree on. */
@@ -230,8 +232,19 @@ export interface LedgerTransaction {
   ruleId: number | null;
   /** While it's uncategorized: the categories its rules disagree on. */
   conflict: number[] | null;
+  /** The other side, when it's a transfer. */
+  transfer: TransferSide | null;
   /** Null when it's excluded. */
   balance: number | null;
+}
+
+/** The other side of a transfer, in another account. */
+export interface TransferSide {
+  id: number;
+  accountId: number;
+  date: string;
+  amount: number;
+  description: string;
 }
 
 export interface LedgerGap {
@@ -471,6 +484,21 @@ export function useApplyRules() {
     onSuccess: () =>
       Promise.all(
         [ACCOUNTS, CATEGORIES, RULES, REVIEW].map((queryKey) =>
+          client.invalidateQueries({ queryKey }),
+        ),
+      ),
+  });
+}
+
+/** S6: unlinks a transfer for good; both sides become uncategorized. */
+export function useUnlink() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      request<null>("POST", `/api/transactions/${id}/unlink`),
+    onSuccess: () =>
+      Promise.all(
+        [ACCOUNTS, CATEGORIES, REVIEW].map((queryKey) =>
           client.invalidateQueries({ queryKey }),
         ),
       ),

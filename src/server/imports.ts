@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import {
   validateAnchor,
@@ -24,6 +24,7 @@ import type { Db } from "./db/index.ts";
 import { accounts, importPresets, imports, transactions } from "./db/schema.ts";
 import { loadRules } from "./rules.ts";
 import { readStatementFile } from "./statements.ts";
+import { linkTransfers } from "./transfers.ts";
 
 // The import in three steps, one per screen: upload a file (S7), preview it
 // with a mapping and my decisions (S8, S9), save it (S9's Import button).
@@ -406,16 +407,35 @@ export function importRoutes(
             .where(eq(accounts.id, account.id))
             .run();
         }
+        // Transfers with my other accounts lose the rules' category.
+        linkTransfers(db);
         return id;
       });
       uploads.delete(req.params.id);
+
+      const linked = new Set(
+        db
+          .select({ line: transactions.line })
+          .from(transactions)
+          .where(
+            and(
+              eq(transactions.importId, importId),
+              isNotNull(transactions.transferWith),
+            ),
+          )
+          .all()
+          .map((row) => row.line),
+      );
+      // What the rules decided only counts for the rest.
+      const rest = saved.filter((r) => !linked.has(r.line));
 
       // S10.
       return reply.code(201).send({
         importId,
         imported: saved.length,
-        categorized: saved.filter((r) => r.rule.kind === "category").length,
-        conflicts: saved.filter((r) => r.rule.kind === "conflict").length,
+        linked: linked.size,
+        categorized: rest.filter((r) => r.rule.kind === "category").length,
+        conflicts: rest.filter((r) => r.rule.kind === "conflict").length,
         skipped: rows.length - saved.length,
         unreadable: unreadable.length,
         leftOut: leftOut.length,

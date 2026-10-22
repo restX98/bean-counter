@@ -181,6 +181,7 @@ describe("saving an import", () => {
       body: {
         importId: 1,
         imported: 3,
+        linked: 0,
         categorized: 0,
         conflicts: 0,
         skipped: 0,

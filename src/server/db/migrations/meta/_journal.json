@@ -43,6 +43,13 @@
       "when": 1792603797190,
       "tag": "0005_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792705518965,
+      "tag": "0006_transfers",
+      "breakpoints": true
     }
   ]
 }

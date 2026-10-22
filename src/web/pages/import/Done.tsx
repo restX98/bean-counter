@@ -42,7 +42,7 @@ export function DoneStep({
   const { anchor, gaps } = result;
   const money = (minor: number) => formatAmount(minor, account.currency);
   // Waiting for a category, the rules' conflicts among them.
-  const sent = result.imported - result.categorized;
+  const sent = result.imported - result.linked - result.categorized;
   const mismatch = gaps !== null && gaps.length > 0;
   const open = (
     <button
@@ -84,9 +84,7 @@ export function DoneStep({
               <span>sent to Review</span>
             </div>
           </div>
-          {result.imported > 0 && (
-            <p className="caption">{rulesSummary(result)}</p>
-          )}
+          {result.imported > 0 && <p className="caption">{summary(result)}</p>}
 
           {gaps === null ? (
             <div className="banner tone-neutral">
@@ -154,20 +152,37 @@ export function DoneStep({
   );
 }
 
-/** What the rules did with the imported transactions. */
-function rulesSummary({ imported, categorized, conflicts }: ImportResult) {
-  const them = imported === 1 ? "it" : "them";
-  const left = imported - categorized;
+/** What became of the imported transactions: transfers, then the rules. */
+function summary({ imported, linked, categorized, conflicts }: ImportResult) {
+  const transfers =
+    linked === 0
+      ? ""
+      : linked === imported
+        ? `${imported === 1 ? "It's a transfer" : "They're all transfers"} with your other accounts, linked to the other side.`
+        : `${linked} ${linked === 1 ? "is a transfer" : "are transfers"} with your other accounts, linked to the other side.`;
+  const rest = imported - linked;
+  if (rest === 0) return transfers;
+  const them =
+    linked > 0
+      ? rest === 1
+        ? "the other one"
+        : `the other ${rest}`
+      : rest === 1
+        ? "it"
+        : "them";
+  const left = rest - categorized;
   const done =
-    categorized === imported
-      ? `Your rules categorized ${imported === 1 ? "it" : "all of them"}.`
+    categorized === rest
+      ? `Your rules categorized ${linked === 0 && rest > 1 ? "all of them" : them}.`
       : categorized > 0
         ? `Your rules categorized ${categorized}; ${left} ${left === 1 ? "is" : "are"} still uncategorized.`
         : `No rule categorized ${them}.`;
   const one = conflicts === 1;
-  return conflicts === 0
-    ? done
-    : `${done} ${plural(conflicts, "transaction")} ${one ? "matches" : "match"} rules that disagree, so ${one ? "it waits" : "they wait"} for you to pick a category.`;
+  const waiting =
+    conflicts === 0
+      ? ""
+      : `${plural(conflicts, "transaction")} ${one ? "matches" : "match"} rules that disagree, so ${one ? "it waits" : "they wait"} for you to pick a category.`;
+  return [transfers, done, waiting].filter(Boolean).join(" ");
 }
 
 /**

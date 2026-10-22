@@ -5,6 +5,7 @@ import type { SuspectReason } from "../../domain/balances.ts";
 import { formatDate } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import {
+  useAccounts,
   useCategories,
   useExclude,
   useLedger,
@@ -71,6 +72,7 @@ export function AccountLedger({ account }: { account: Account }) {
   const exclude = useExclude();
   const removeCheck = useRemoveCheck();
   const categories = useCategories();
+  const { data: accounts = [] } = useAccounts();
   const [shown, setShown] = useState(PAGE);
   // The transaction open in the panel (S6).
   const [openId, setOpenId] = useState<number | null>(null);
@@ -127,9 +129,16 @@ export function AccountLedger({ account }: { account: Account }) {
         {t.excluded ? "Restore" : "Exclude"}
       </button>
     );
-  // Excluded transactions don't count anywhere, so they don't need one.
+  // A transfer names its other side's account instead. Excluded
+  // transactions don't count anywhere, so they don't need a category.
   const category = (t: LedgerTransaction) =>
-    t.categoryId !== null ? (
+    t.transfer ? (
+      <span className="tag tone-neutral">
+        <Icon name="transfer" />
+        <span className="visually-hidden">Transfer with </span>
+        {accounts.find((a) => a.id === t.transfer?.accountId)?.name}
+      </span>
+    ) : t.categoryId !== null ? (
       <span>{names.get(t.categoryId)}</span>
     ) : t.excluded || !categories.data ? null : t.conflict ? (
       <span
@@ -171,7 +180,11 @@ export function AccountLedger({ account }: { account: Account }) {
     </>
   );
   const amountClass = (t: LedgerTransaction) =>
-    t.amount > 0 && !t.excluded ? "amount income" : "amount";
+    t.transfer
+      ? "amount transfer"
+      : t.amount > 0 && !t.excluded
+        ? "amount income"
+        : "amount";
   const remove = (c: Check) =>
     !readOnly && (
       <button

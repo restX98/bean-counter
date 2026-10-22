@@ -30,3 +30,16 @@ export function formatDate(iso: string): string {
   const [year, month, day] = iso.split("-");
   return `${day}/${month}/${year}`;
 }
+
+/** How many days apart two dates are, whichever comes first. */
+export function daysBetween(a: string, b: string): number {
+  const day = (iso: string) => {
+    const [year, month, date] = iso.split("-").map(Number) as [
+      number,
+      number,
+      number,
+    ];
+    return Date.UTC(year, month - 1, date) / 86_400_000;
+  };
+  return Math.abs(day(a) - day(b));
+}

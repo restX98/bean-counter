@@ -64,14 +64,19 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
     ruleCount: n.rules.get(row.id) ?? 0,
   });
 
-  // S16: every category, and how many counted transactions have none yet.
+  // S16: every category, and how many counted transactions have none yet
+  // (transfers need none).
   app.get("/api/categories", () => {
     const n = counts();
     const [uncategorized] = db
       .select({ n: count() })
       .from(transactions)
       .where(
-        and(isNull(transactions.categoryId), eq(transactions.excluded, false)),
+        and(
+          isNull(transactions.categoryId),
+          isNull(transactions.transferWith),
+          eq(transactions.excluded, false),
+        ),
       )
       .all();
     return {

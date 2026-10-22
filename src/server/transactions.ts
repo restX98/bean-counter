@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { inOrder, ledger } from "../domain/ledger.ts";
 import { ruleChecker } from "../domain/rules.ts";
@@ -27,7 +27,8 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
 
   // S4: the account's transactions, newest first, each with the balance
   // after it, and where the bank's balances disagree with the app's. An
-  // uncategorized one says which categories its rules disagree on, if any.
+  // uncategorized one says which categories its rules disagree on, if any;
+  // a transfer gives its other side.
   app.get<WithId>(
     "/api/accounts/:id/transactions",
     { schema: { params: idParams } },
@@ -38,7 +39,9 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       const { entries, gaps, offDays, checks } = loadLedger(db, account);
       const check = ruleChecker(loadRules(db));
       const conflict = (t: (typeof entries)[number]) => {
-        if (t.categoryId !== null || t.excluded) return null;
+        if (t.categoryId !== null || t.transferWith !== null || t.excluded) {
+          return null;
+        }
         const outcome = check({
           ...t,
           accountId: account.id,
@@ -48,6 +51,26 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           ? [...new Set(outcome.rules.map((r) => r.categoryId))]
           : null;
       };
+      // The other side of each transfer.
+      const linkedIds = entries.flatMap((t) =>
+        t.transferWith === null ? [] : [t.transferWith],
+      );
+      const others = new Map(
+        (linkedIds.length === 0
+          ? []
+          : db
+              .select({
+                id: transactions.id,
+                accountId: transactions.accountId,
+                date: transactions.date,
+                amount: transactions.amount,
+                description: transactions.description,
+              })
+              .from(transactions)
+              .where(inArray(transactions.id, linkedIds))
+              .all()
+        ).map((other) => [other.id, other]),
+      );
       return {
         transactions: entries.toReversed().map((t) => ({
           id: t.id,
@@ -62,6 +85,10 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           categoryId: t.categoryId,
           ruleId: t.ruleId,
           conflict: conflict(t),
+          transfer:
+            t.transferWith === null
+              ? null
+              : (others.get(t.transferWith) ?? null),
           balance: t.balance,
         })),
         gaps: gaps.map(({ suspects, ...gap }) => ({
@@ -88,10 +115,18 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
 
   const findTransaction = (id: number) =>
     db
-      .select({ id: transactions.id, accountId: transactions.accountId })
+      .select({
+        id: transactions.id,
+        accountId: transactions.accountId,
+        transferWith: transactions.transferWith,
+      })
       .from(transactions)
       .where(eq(transactions.id, id))
       .get();
+  const transfer = (reply: FastifyReply) =>
+    reply.code(409).send({
+      error: "It's a transfer, so it has no category. Unlink it first.",
+    });
   const archived = (reply: FastifyReply) =>
     reply.code(409).send({
       error: "This account is archived. Unarchive it to change it.",
@@ -114,6 +149,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       const row = findTransaction(req.params.id);
       if (!row) return reply.code(404).send({ error: "Not found" });
       if (findAccount(row.accountId)?.archivedOn) return archived(reply);
+      if (row.transferWith !== null) return transfer(reply);
       const { categoryId } = req.body;
       if (
         categoryId !== null &&
@@ -149,6 +185,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           description: transactions.description,
           amount: transactions.amount,
           categoryId: transactions.categoryId,
+          transferWith: transactions.transferWith,
         })
         .from(transactions)
         .where(eq(transactions.id, req.params.id))
@@ -156,6 +193,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       if (!row) return reply.code(404).send({ error: "Not found" });
       const account = findAccount(row.accountId)!;
       if (account.archivedOn) return archived(reply);
+      if (row.transferWith !== null) return transfer(reply);
       if (row.categoryId !== null) {
         return reply.code(409).send({ error: "It already has a category." });
       }
@@ -179,16 +217,25 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
 
   // Excluding takes a transaction out of balances, reports and budgets; it
   // stays listed, greyed out, and still counts as a duplicate on re-import.
+  // A transfer loses its other side, which becomes a normal transaction.
   const setExcluded =
     (excluded: boolean) =>
     (req: FastifyRequest<WithId>, reply: FastifyReply) => {
       const row = findTransaction(req.params.id);
       if (!row) return reply.code(404).send({ error: "Not found" });
       if (findAccount(row.accountId)?.archivedOn) return archived(reply);
-      db.update(transactions)
-        .set({ excluded })
-        .where(eq(transactions.id, row.id))
-        .run();
+      db.transaction(() => {
+        if (excluded && row.transferWith !== null) {
+          db.update(transactions)
+            .set({ transferWith: null })
+            .where(eq(transactions.id, row.transferWith))
+            .run();
+        }
+        db.update(transactions)
+          .set(excluded ? { excluded, transferWith: null } : { excluded })
+          .where(eq(transactions.id, row.id))
+          .run();
+      });
       return reply.code(204).send();
     };
   app.post<WithId>(
@@ -224,6 +271,7 @@ export function loadLedger(db: Db, account: typeof accounts.$inferSelect) {
       nearMatchOf: transactions.nearMatchOf,
       categoryId: transactions.categoryId,
       ruleId: transactions.ruleId,
+      transferWith: transactions.transferWith,
     })
     .from(transactions)
     .where(eq(transactions.accountId, account.id))

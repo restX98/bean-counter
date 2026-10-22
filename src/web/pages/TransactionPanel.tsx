@@ -9,7 +9,9 @@ import {
   useExclude,
   useRules,
   useSetCategory,
+  useUnlink,
   type LedgerTransaction,
+  type TransferSide,
 } from "../api.ts";
 import { CategorySelect } from "../components/CategorySelect.tsx";
 import { FormError } from "../components/Dialog.tsx";
@@ -42,6 +44,7 @@ export function TransactionPanel({
   const { data: accounts = [] } = useAccounts();
   const setCategory = useSetCategory();
   const exclude = useExclude();
+  const unlink = useUnlink();
   // The dialog open over the panel: a new category, or a rule from this.
   const [dialog, setDialog] = useState<"category" | "rule" | null>(null);
   const readOnly = account.archivedOn !== null;
@@ -101,15 +104,22 @@ export function TransactionPanel({
       </header>
       <div className="detail">
         <FormError
-          error={setCategory.error ?? exclude.error ?? categories.error}
+          error={
+            setCategory.error ??
+            exclude.error ??
+            unlink.error ??
+            categories.error
+          }
         />
         <div className="detail-hero">
           <span className="title">{t.description}</span>
           <span
             className={
-              t.amount > 0 && !t.excluded
-                ? "big-number amount income"
-                : "big-number amount"
+              t.transfer
+                ? "big-number amount transfer"
+                : t.amount > 0 && !t.excluded
+                  ? "big-number amount income"
+                  : "big-number amount"
             }
           >
             {formatAmount(t.amount, account.currency, { signed: true })}
@@ -142,31 +152,39 @@ export function TransactionPanel({
           )}
         </dl>
 
-        <section className="detail-section">
-          <Field id={`${id}-category`} label="Category" hint={hint}>
-            <CategorySelect
-              id={`${id}-category`}
-              value={categoryId}
-              amount={t.amount}
-              none="Uncategorized"
-              disabled={readOnly}
-              onPick={(picked) =>
-                setCategory.mutate({ id: t.id, categoryId: picked })
-              }
-              onNew={() => setDialog("category")}
-              {...describedBy(`${id}-category`, undefined, hint)}
-            />
-          </Field>
-          {!readOnly && categoryId !== null && ruleId === null && (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setDialog("rule")}
-            >
-              Create rule from this
-            </button>
-          )}
-        </section>
+        {t.transfer ? (
+          <Transfer
+            side={t.transfer}
+            unlinking={unlink.isPending}
+            onUnlink={readOnly ? undefined : () => unlink.mutate(t.id)}
+          />
+        ) : (
+          <section className="detail-section">
+            <Field id={`${id}-category`} label="Category" hint={hint}>
+              <CategorySelect
+                id={`${id}-category`}
+                value={categoryId}
+                amount={t.amount}
+                none="Uncategorized"
+                disabled={readOnly}
+                onPick={(picked) =>
+                  setCategory.mutate({ id: t.id, categoryId: picked })
+                }
+                onNew={() => setDialog("category")}
+                {...describedBy(`${id}-category`, undefined, hint)}
+              />
+            </Field>
+            {!readOnly && categoryId !== null && ruleId === null && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setDialog("rule")}
+              >
+                Create rule from this
+              </button>
+            )}
+          </section>
+        )}
 
         {!readOnly && (
           <div className="detail-foot">
@@ -200,5 +218,54 @@ export function TransactionPanel({
         />
       )}
     </aside>
+  );
+}
+
+/** S6's Transfer section for a linked transfer: its other side, and Unlink. */
+function Transfer({
+  side,
+  unlinking,
+  onUnlink,
+}: {
+  side: TransferSide;
+  unlinking: boolean;
+  /** Left out when the account is archived. */
+  onUnlink?: () => void;
+}) {
+  const { data: accounts = [] } = useAccounts();
+  const other = accounts.find((a) => a.id === side.accountId);
+  return (
+    <section className="detail-section">
+      <h3>
+        <Icon name="transfer" className="icon icon-sm" />
+        Transfer
+      </h3>
+      <div className="linked">
+        <Icon name="transfer" />
+        <strong>Linked to {other?.name}</strong>
+        <span className="caption">
+          {side.description} · {formatDate(side.date)}
+        </span>
+        {other && (
+          <span className="amount transfer">
+            {formatAmount(side.amount, other.currency, { signed: true })}
+          </span>
+        )}
+      </div>
+      {onUnlink && (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          disabled={unlinking}
+          onClick={onUnlink}
+        >
+          <Icon name="unlink" />
+          Unlink
+        </button>
+      )}
+      <p className="caption">
+        Transfers don't count as income or expense, so they have no category.
+      </p>
+    </section>
   );
 }

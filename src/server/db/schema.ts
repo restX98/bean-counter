@@ -156,8 +156,34 @@ export const transactions = sqliteTable(
     ruleId: integer("rule_id").references(() => rules.id, {
       onDelete: "set null",
     }),
+    /**
+     * The other side of its transfer, which points back to this one. A
+     * transfer has no category.
+     */
+    transferWith: integer("transfer_with").references(
+      (): AnySQLiteColumn => transactions.id,
+      { onDelete: "set null" },
+    ),
   },
   (t) => [index("transactions_account_date").on(t.accountId, t.date)],
+);
+
+/**
+ * A pair I said isn't a transfer, or unlinked: never suggested or linked
+ * again on its own. `low` is the smaller id.
+ */
+export const transferDismissals = sqliteTable(
+  "transfer_dismissals",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    low: integer("low")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
+    high: integer("high")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
+  },
+  (t) => [uniqueIndex("transfer_dismissals_pair").on(t.low, t.high)],
 );
 
 /**

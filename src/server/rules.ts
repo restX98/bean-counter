@@ -94,7 +94,8 @@ export const loadRules = (db: Db): Rule[] =>
 
 /**
  * The transactions waiting for a category, which rules may still give one:
- * counted ones without a category, in accounts that aren't archived.
+ * counted ones without a category, in accounts that aren't archived. Linked
+ * transfers have none, and need none.
  */
 export const loadUncategorized = (db: Db) =>
   db
@@ -112,6 +113,7 @@ export const loadUncategorized = (db: Db) =>
     .where(
       and(
         isNull(transactions.categoryId),
+        isNull(transactions.transferWith),
         eq(transactions.excluded, false),
         isNull(accounts.archivedOn),
       ),

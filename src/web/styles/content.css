@@ -835,6 +835,46 @@ button.m-tx:hover {
 .detail-section > .btn {
   align-self: flex-start;
 }
+.detail-section > h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+.detail-section > .caption {
+  color: var(--color-text-muted);
+}
+/* The other side of a transfer. */
+.linked {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-muted);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: var(--type-table);
+}
+.linked > .icon {
+  grid-row: 1 / span 2;
+  color: var(--color-text-muted);
+}
+.linked strong {
+  overflow-wrap: anywhere;
+}
+.linked .caption {
+  grid-column: 2;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+.linked > .amount {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  text-align: right;
+  font-weight: var(--weight-semibold);
+}
 .detail-foot {
   margin-top: auto;
   padding-top: var(--space-4);

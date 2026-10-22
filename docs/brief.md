@@ -119,11 +119,12 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 ### 5.4 Transfer detection
 
 - **Candidate match**: two transactions in two different accounts of mine, in the same currency, with opposite amounts, dated within the transfer window (3 days by default, adjustable in settings).
-- **Exactly one candidate**: the app links them automatically.
+- **Exactly one candidate**: when the two are each other's only candidate, the app links them automatically, as soon as the second one is imported (an import also links pairs imported before). Accounts that are archived are left out.
 - **More than one candidate**: the app asks me to pick.
 - **Different currencies (an exchange)**: there's no rate to compare the amounts with, so the app never links these on its own. It suggests pairs that move money in opposite directions within the window, and I confirm. The two amounts record the real rate my bank applied.
 - I can always link or unlink transfers manually.
-- If I say a suggested pair is not a transfer, the app remembers it and never suggests that pair again. I can still link them by hand.
+- If I say a suggested pair is not a transfer, or unlink a pair, the app remembers it and never suggests or links that pair again. I can still link them by hand.
+- A transfer has no category: linking takes away the one a rule or I gave, and unlinking leaves both sides uncategorized. Excluding one side unlinks the other.
 - A linked transfer:
   - still updates both accounts' balances and still appears in both accounts' transaction lists;
   - does **not** count as income, expense or category spending.
@@ -271,3 +272,4 @@ New features and decisions are added here as we go.
 | 2026-10-22 | Rules run on import: the preview tags rows auto-categorized, uncategorized or rule conflict, and the summary counts them; the account page tags rule conflicts; a transaction categorized by hand offers "Create rule from this", with the form filled in, and one a rule categorized names the rule |
 | 2026-10-22 | Review: picking a category takes the item off the list with an Undo message; an uncategorized transaction a rule would now categorize names the rule and its category, with Use it |
 | 2026-10-22 | Review: balance mismatches, one item per gap, with the app's and the bank's balance where they differ most, opening the account at the gap; the review count in the navigation, on the dashboard and in the import's summary; archived accounts left out |
+| 2026-10-22 | Transfers, linked automatically: a pair that's each other's only candidate is linked when an import is saved, losing its category; the account page tags it with the other account, the transaction panel shows the other side with Unlink, which is remembered; excluding one side unlinks the other; the import summary counts the linked ones |

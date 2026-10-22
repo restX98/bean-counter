@@ -9,6 +9,7 @@ import { importRoutes } from "./imports.ts";
 import { reviewRoutes } from "./review.ts";
 import { ruleRoutes } from "./rules.ts";
 import { transactionRoutes } from "./transactions.ts";
+import { transferRoutes } from "./transfers.ts";
 
 export interface AppOptions {
   db: Db;
@@ -33,6 +34,7 @@ export function buildApp({
   ruleRoutes(app, { db });
   importRoutes(app, { db, today });
   transactionRoutes(app, { db });
+  transferRoutes(app, { db });
   reviewRoutes(app, { db });
 
   app.get("/api/health", () => {
