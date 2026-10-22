@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { Account } from "../../domain/accounts.ts";
-import { groupCategories } from "../../domain/categories.ts";
 import { formatDate } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import { suggestText } from "../../domain/rules.ts";
@@ -12,17 +11,14 @@ import {
   useSetCategory,
   type LedgerTransaction,
 } from "../api.ts";
+import { CategorySelect } from "../components/CategorySelect.tsx";
 import { FormError } from "../components/Dialog.tsx";
-import { Field } from "../components/Field.tsx";
+import { describedBy, Field } from "../components/Field.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { CategoryForm } from "../dialogs/CategoryForm.tsx";
 import { RuleForm } from "../dialogs/RuleForm.tsx";
 import { ruleName } from "../labels.ts";
 import { useIsMobile } from "../useIsMobile.ts";
-
-/** The picker's option that opens the category form. */
-const NEW = "new";
-const GROUP_TITLES = { income: "Income", expense: "Expenses" };
 
 /**
  * S6: one transaction, to look at and fix. On desktop it's a side panel that
@@ -79,19 +75,6 @@ export function TransactionPanel({
       : categoryId === null && t.conflict
         ? `Its rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}. Pick the category.`
         : undefined;
-  // The type that matches the amount comes first.
-  const first = t.amount > 0 ? "income" : "expense";
-  const groups = groupCategories(categories.data?.categories ?? []).toSorted(
-    (a, b) => Number(b.type === first) - Number(a.type === first),
-  );
-  const pick = (value: string) => {
-    if (value === NEW) setDialog("category");
-    else
-      setCategory.mutate({
-        id: t.id,
-        categoryId: value === "" ? null : Number(value),
-      });
-  };
 
   const close = (
     <button
@@ -161,28 +144,18 @@ export function TransactionPanel({
 
         <section className="detail-section">
           <Field id={`${id}-category`} label="Category" hint={hint}>
-            <span className="select-wrap">
-              <select
-                id={`${id}-category`}
-                className="select"
-                value={categoryId ?? ""}
-                disabled={readOnly || !categories.data}
-                onChange={(e) => pick(e.target.value)}
-              >
-                <option value="">Uncategorized</option>
-                {groups.map((group) => (
-                  <optgroup key={group.type} label={GROUP_TITLES[group.type]}>
-                    {group.categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-                <option value={NEW}>New category…</option>
-              </select>
-              <Icon name="chevron" />
-            </span>
+            <CategorySelect
+              id={`${id}-category`}
+              value={categoryId}
+              amount={t.amount}
+              none="Uncategorized"
+              disabled={readOnly}
+              onPick={(picked) =>
+                setCategory.mutate({ id: t.id, categoryId: picked })
+              }
+              onNew={() => setDialog("category")}
+              {...describedBy(`${id}-category`, undefined, hint)}
+            />
           </Field>
           {!readOnly && categoryId !== null && ruleId === null && (
             <button

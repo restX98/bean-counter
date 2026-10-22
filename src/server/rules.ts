@@ -92,6 +92,32 @@ function toRule(row: Row): Rule {
 export const loadRules = (db: Db): Rule[] =>
   db.select().from(rules).orderBy(rules.id).all().map(toRule);
 
+/**
+ * The transactions waiting for a category, which rules may still give one:
+ * counted ones without a category, in accounts that aren't archived.
+ */
+export const loadUncategorized = (db: Db) =>
+  db
+    .select({
+      id: transactions.id,
+      date: transactions.date,
+      time: transactions.time,
+      description: transactions.description,
+      amount: transactions.amount,
+      accountId: transactions.accountId,
+      currency: accounts.currency,
+    })
+    .from(transactions)
+    .innerJoin(accounts, eq(accounts.id, transactions.accountId))
+    .where(
+      and(
+        isNull(transactions.categoryId),
+        eq(transactions.excluded, false),
+        isNull(accounts.archivedOn),
+      ),
+    )
+    .all();
+
 const toColumns = (rule: RuleCondition & { categoryId: number }) => ({
   match: rule.match,
   text: rule.text,
@@ -123,29 +149,7 @@ export function ruleRoutes(app: FastifyInstance, { db }: { db: Db }) {
       .from(transactions)
       .innerJoin(accounts, eq(accounts.id, transactions.accountId))
       .all();
-  /**
-   * The transactions a rule may still categorize: counted ones without a
-   * category, in accounts that aren't archived.
-   */
-  const uncategorized = () =>
-    db
-      .select({
-        id: transactions.id,
-        description: transactions.description,
-        amount: transactions.amount,
-        accountId: transactions.accountId,
-        currency: accounts.currency,
-      })
-      .from(transactions)
-      .innerJoin(accounts, eq(accounts.id, transactions.accountId))
-      .where(
-        and(
-          isNull(transactions.categoryId),
-          eq(transactions.excluded, false),
-          isNull(accounts.archivedOn),
-        ),
-      )
-      .all();
+  const uncategorized = () => loadUncategorized(db);
   const currencies = () =>
     new Map(
       db

@@ -180,6 +180,47 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
     },
   );
 
+  // S2, Use it: the category the rules agree on now, credited to them. The
+  // transaction must still have none, and the rules must still agree.
+  app.post<WithId>(
+    "/api/transactions/:id/apply-rules",
+    { schema: { params: idParams } },
+    (req, reply) => {
+      const row = db
+        .select({
+          id: transactions.id,
+          accountId: transactions.accountId,
+          description: transactions.description,
+          amount: transactions.amount,
+          categoryId: transactions.categoryId,
+        })
+        .from(transactions)
+        .where(eq(transactions.id, req.params.id))
+        .get();
+      if (!row) return reply.code(404).send({ error: "Not found" });
+      const account = findAccount(row.accountId)!;
+      if (account.archivedOn) return archived(reply);
+      if (row.categoryId !== null) {
+        return reply.code(409).send({ error: "It already has a category." });
+      }
+      const outcome = ruleChecker(loadRules(db))({
+        ...row,
+        currency: account.currency,
+      });
+      if (outcome.kind !== "category") {
+        return reply.code(409).send({
+          error: "No rule gives it a category any more. Pick one instead.",
+        });
+      }
+      const { categoryId, ruleId } = outcome;
+      db.update(transactions)
+        .set({ categoryId, ruleId })
+        .where(eq(transactions.id, row.id))
+        .run();
+      return { categoryId, ruleId };
+    },
+  );
+
   // Excluding takes a transaction out of balances, reports and budgets; it
   // stays listed, greyed out, and still counts as a duplicate on re-import.
   const setExcluded =

@@ -20,6 +20,11 @@ import type {
 } from "../domain/import/mapping.ts";
 import type { Decision, PlanGap, PlannedRow } from "../domain/import/plan.ts";
 import type { TableRow } from "../domain/import/table.ts";
+import type {
+  ReviewGroups,
+  ReviewTarget,
+  Suggestion,
+} from "../domain/review.ts";
 import type { Rule, RuleFields } from "../domain/rules.ts";
 
 export class ApiError extends Error {
@@ -271,6 +276,7 @@ export const useExclude = () =>
 
 const CATEGORIES = ["categories"];
 const RULES = ["rules"];
+const REVIEW = ["review"];
 
 /** S16: every category, and how many counted transactions have none yet. */
 export const useCategories = () =>
@@ -316,11 +322,11 @@ export function useDeleteCategory() {
       ),
     // The transactions and rules it had change too.
     onSuccess: () =>
-      Promise.all([
-        client.invalidateQueries({ queryKey: CATEGORIES }),
-        client.invalidateQueries({ queryKey: ACCOUNTS }),
-        client.invalidateQueries({ queryKey: RULES }),
-      ]),
+      Promise.all(
+        [CATEGORIES, ACCOUNTS, RULES, REVIEW].map((queryKey) =>
+          client.invalidateQueries({ queryKey }),
+        ),
+      ),
   });
 }
 
@@ -338,11 +344,11 @@ export function useSetCategory() {
       request<null>("PUT", `/api/transactions/${id}/category`, { categoryId }),
     // A rule's count of the transactions it categorized can change too.
     onSuccess: () =>
-      Promise.all([
-        client.invalidateQueries({ queryKey: ACCOUNTS }),
-        client.invalidateQueries({ queryKey: CATEGORIES }),
-        client.invalidateQueries({ queryKey: RULES }),
-      ]),
+      Promise.all(
+        [ACCOUNTS, CATEGORIES, RULES, REVIEW].map((queryKey) =>
+          client.invalidateQueries({ queryKey }),
+        ),
+      ),
   });
 }
 
@@ -373,7 +379,7 @@ function useRuleChange<V, R>(change: (vars: V) => Promise<R>) {
     mutationFn: change,
     onSuccess: () =>
       Promise.all(
-        [RULES, CATEGORIES, ACCOUNTS].map((queryKey) =>
+        [RULES, CATEGORIES, ACCOUNTS, REVIEW].map((queryKey) =>
           client.invalidateQueries({ queryKey }),
         ),
       ),
@@ -425,3 +431,27 @@ export const useRulePreview = (fields: RuleFields, id: number | null) =>
     // Keeps the last answer on screen while typing.
     placeholderData: keepPreviousData,
   });
+
+/** S2: the transactions waiting for a category, and how many items wait. */
+export type ReviewList = ReviewGroups<ReviewTarget> & { count: number };
+
+export const useReview = () =>
+  useQuery({
+    queryKey: REVIEW,
+    queryFn: () => request<ReviewList>("GET", "/api/review"),
+  });
+
+/** S2, Use it: gives a transaction the category its rules agree on. */
+export function useApplyRules() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      request<Suggestion>("POST", `/api/transactions/${id}/apply-rules`),
+    onSuccess: () =>
+      Promise.all(
+        [ACCOUNTS, CATEGORIES, RULES, REVIEW].map((queryKey) =>
+          client.invalidateQueries({ queryKey }),
+        ),
+      ),
+  });
+}

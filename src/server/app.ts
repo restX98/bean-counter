@@ -6,6 +6,7 @@ import { accountRoutes } from "./accounts.ts";
 import { categoryRoutes } from "./categories.ts";
 import type { Db } from "./db/index.ts";
 import { importRoutes } from "./imports.ts";
+import { reviewRoutes } from "./review.ts";
 import { ruleRoutes } from "./rules.ts";
 import { transactionRoutes } from "./transactions.ts";
 
@@ -32,6 +33,7 @@ export function buildApp({
   ruleRoutes(app, { db });
   importRoutes(app, { db, today });
   transactionRoutes(app, { db });
+  reviewRoutes(app, { db });
 
   app.get("/api/health", () => {
     const row = db.get<{ version: string }>(

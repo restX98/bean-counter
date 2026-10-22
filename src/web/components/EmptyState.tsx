@@ -9,6 +9,7 @@ export function EmptyState({
   children,
   action,
   after,
+  tone,
 }: {
   icon: IconName;
   title: string;
@@ -16,10 +17,12 @@ export function EmptyState({
   action?: ReactNode;
   /** Below the action, such as the first-run steps. */
   after?: ReactNode;
+  /** "success" when there's nothing left to do. */
+  tone?: "success";
 }) {
   return (
     <section className="card">
-      <div className="empty">
+      <div className={tone ? `empty ${tone}` : "empty"}>
         <span className="empty-icon">
           <Icon name={icon} />
         </span>

@@ -167,6 +167,8 @@ Amounts in different currencies are never added together. Every report is shown 
 
 - The app opens on a dashboard showing balances, this month's income and expenses, budgets at a glance, and how many items are waiting for review.
 - A Review inbox gathers everything waiting for my decision: uncategorized transactions, rule conflicts, transfers to confirm, possible paybacks and balance mismatches. During an import, the same items can be settled right away for that file.
+  - Picking a category in Review takes the transaction off the list, and a message offers Undo.
+  - When a rule would categorize an uncategorized transaction now (it was saved without applying it, or the other rule of a conflict was deleted), Review names the rule and its category, and one click accepts it. Nothing changes until I do.
 - There's no setup wizard. On first launch, empty screens explain the next step (add an account, then import a statement).
 
 The screens and flows are listed in [plan.md](plan.md).
@@ -264,3 +266,4 @@ New features and decisions are added here as we go.
 | 2026-10-21 | Rules, matching and storage: contains or regex ignoring case and spaces, amount bounds on the size in one currency, an optional account; rules that agree aren't a conflict; overlaps found from the descriptions and from imported transactions; deleting a category moves or deletes its rules with its transactions |
 | 2026-10-22 | Rules page and form: each rule with what it needs, its category and how many it categorized, overlaps flagged with the conflicts they caused; the form shows overlaps while typing and offers to apply the rule to matching uncategorized transactions, or to re-check the conflicts an edit settles; categories show the rules that give them, and deleting one lists what happens to its rules |
 | 2026-10-22 | Rules run on import: the preview tags rows auto-categorized, uncategorized or rule conflict, and the summary counts them; the account page tags rule conflicts; a transaction categorized by hand offers "Create rule from this", with the form filled in, and one a rule categorized names the rule |
+| 2026-10-22 | Review: picking a category takes the item off the list with an Undo message; an uncategorized transaction a rule would now categorize names the rule and its category, with Use it |

@@ -850,3 +850,178 @@ button.m-tx:hover {
     padding: var(--space-4);
   }
 }
+
+/* ---------- Review (S2) ---------- */
+
+.item {
+  display: grid;
+  grid-template-columns: 92px 120px minmax(0, 1fr) 112px 316px;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 64px;
+  padding: var(--space-3) var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+  font: var(--type-table);
+}
+.group-head + .item {
+  border-top: 0;
+}
+.item .date,
+.item .acct {
+  color: var(--color-text-muted);
+  font-variant-numeric: var(--numbers);
+}
+.item .acct {
+  overflow-wrap: anywhere;
+}
+.item .what,
+.m-item .what {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
+}
+.item .what strong {
+  font-weight: var(--weight-semibold);
+}
+.item .what .caption {
+  color: var(--color-text-muted);
+}
+.item > .amount {
+  text-align: right;
+  font-variant-numeric: var(--numbers);
+}
+.item .acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.item .acts .select-wrap {
+  flex: 0 1 184px;
+  min-width: 0;
+}
+.item-more {
+  padding: var(--space-3) var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+  font: var(--type-table);
+}
+.select.is-placeholder {
+  color: var(--color-text-subtle);
+}
+
+/* On a phone, each group is a section that folds. */
+.m-group > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  list-style: none;
+  cursor: pointer;
+  font: var(--type-section-title);
+}
+.m-group > summary::-webkit-details-marker {
+  display: none;
+}
+.m-group > summary .icon {
+  color: var(--color-text-muted);
+}
+.m-group > summary .chev {
+  margin-left: auto;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.m-group:not([open]) > summary .chev {
+  transform: rotate(-90deg);
+}
+.m-group > summary:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--radius-sm);
+}
+.m-group-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+.m-group-body > .link {
+  align-self: flex-start;
+  min-height: var(--touch-target);
+}
+.m-item .where {
+  font: var(--type-caption);
+  color: var(--color-text-muted);
+}
+.m-item .acts .select-wrap {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.empty.success .empty-icon {
+  background: var(--color-success-bg);
+  color: var(--color-success-solid);
+}
+
+/* ---------- Toasts ---------- */
+
+.toast {
+  position: fixed;
+  bottom: var(--space-6);
+  left: calc(50% + var(--sidebar-width) / 2);
+  z-index: var(--z-toast);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: max-content;
+  max-width: min(
+    720px,
+    calc(100vw - var(--sidebar-width) - 2 * var(--space-6))
+  );
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  font: var(--type-table);
+}
+.toast .icon {
+  flex: none;
+  color: var(--color-inverse-text);
+}
+.toast .text {
+  flex: 1;
+  min-width: 0;
+}
+.toast-action {
+  flex: none;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-inverse-text);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.toast-action:focus-visible {
+  outline: var(--focus-width) solid var(--color-inverse-text);
+}
+
+@media (max-width: 767px) {
+  .item-more {
+    padding: var(--space-3) var(--space-4);
+  }
+  .toast {
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: calc(var(--tabbar-height) + var(--space-3));
+    width: auto;
+    max-width: none;
+    transform: none;
+  }
+}
