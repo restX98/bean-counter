@@ -180,6 +180,8 @@ export interface ImportResult {
   imported: number;
   /** Imported ones linked as one side of a transfer. */
   linked: number;
+  /** Imported ones that may be a transfer, whose other side I pick. */
+  toPick: number;
   /** Imported ones the rules gave a category. */
   categorized: number;
   /** Imported ones the rules disagree on. */
@@ -232,6 +234,8 @@ export interface LedgerTransaction {
   ruleId: number | null;
   /** While it's uncategorized: the categories its rules disagree on. */
   conflict: number[] | null;
+  /** A possible transfer: how many could be its other side, and where. */
+  toPick: { count: number; accountIds: number[] } | null;
   /** The other side, when it's a transfer. */
   transfer: TransferSide | null;
   /** Null when it's excluded. */
@@ -464,7 +468,13 @@ export interface ReviewMismatch {
   balances: { after: BothBalances; until: BothBalances };
 }
 
+/** S2: a possible transfer, with the transactions that could be its other side. */
+export interface ReviewTransfer extends ReviewTarget {
+  candidates: TransferSide[];
+}
+
 export type ReviewList = ReviewGroups<ReviewTarget> & {
+  transfers: ReviewTransfer[];
   mismatches: ReviewMismatch[];
   count: number;
 };
@@ -504,3 +514,57 @@ export function useUnlink() {
       ),
   });
 }
+
+/** What linking or Not a transfer changed, for Undo to put back. */
+export interface TransferChange {
+  linked: [number, number][];
+  dismissed: [number, number][];
+  before: { id: number; categoryId: number | null; ruleId: number | null }[];
+}
+
+/**
+ * D4: what a transaction can be linked with by hand. Its own key, so that
+ * linking doesn't fetch it again while the dialog closes: by then the
+ * transaction is linked, and has no options.
+ */
+export const useLinkOptions = (id: number) =>
+  useQuery({
+    queryKey: ["link-options", id],
+    retry: false,
+    queryFn: () =>
+      request<{ window: number; options: TransferSide[] }>(
+        "GET",
+        `/api/transactions/${id}/link-options`,
+      ),
+  });
+
+/** Linking, Not a transfer and their Undo change categories and Review too. */
+function useTransferChange<V, R>(change: (vars: V) => Promise<R>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: change,
+    onSuccess: () =>
+      Promise.all(
+        [ACCOUNTS, CATEGORIES, RULES, REVIEW].map((queryKey) =>
+          client.invalidateQueries({ queryKey }),
+        ),
+      ),
+  });
+}
+
+export const useLink = () =>
+  useTransferChange(({ id, otherId }: { id: number; otherId: number }) =>
+    request<TransferChange>("POST", `/api/transactions/${id}/link`, {
+      otherId,
+    }),
+  );
+
+export const useNotATransfer = () =>
+  useTransferChange((id: number) =>
+    request<TransferChange>("POST", `/api/transactions/${id}/not-a-transfer`),
+  );
+
+export const useUndoTransfer = () =>
+  useTransferChange((change: TransferChange) =>
+    request<null>("POST", "/api/transfers/undo", change),
+  );

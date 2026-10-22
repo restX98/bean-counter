@@ -10,6 +10,7 @@ import {
   transactions,
 } from "./db/schema.ts";
 import { loadRules } from "./rules.ts";
+import { findTransfers } from "./transfers.ts";
 
 const idParams = {
   type: "object",
@@ -28,7 +29,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
   // S4: the account's transactions, newest first, each with the balance
   // after it, and where the bank's balances disagree with the app's. An
   // uncategorized one says which categories its rules disagree on, if any;
-  // a transfer gives its other side.
+  // a transfer gives its other side, and a possible one says so.
   app.get<WithId>(
     "/api/accounts/:id/transactions",
     { schema: { params: idParams } },
@@ -37,6 +38,17 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       if (!account) return reply.code(404).send({ error: "Not found" });
 
       const { entries, gaps, offDays, checks } = loadLedger(db, account);
+      const { candidates } = findTransfers(db);
+      // A possible transfer: how many could be its other side, and where.
+      const toPick = (id: number) => {
+        const list = candidates.get(id);
+        return list
+          ? {
+              count: list.length,
+              accountIds: [...new Set(list.map((c) => c.accountId))],
+            }
+          : null;
+      };
       const check = ruleChecker(loadRules(db));
       const conflict = (t: (typeof entries)[number]) => {
         if (t.categoryId !== null || t.transferWith !== null || t.excluded) {
@@ -85,6 +97,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           categoryId: t.categoryId,
           ruleId: t.ruleId,
           conflict: conflict(t),
+          toPick: toPick(t.id),
           transfer:
             t.transferWith === null
               ? null

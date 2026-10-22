@@ -87,6 +87,7 @@ describe("the Review list (S2)", () => {
     expect(await review()).toEqual({
       uncategorized: [],
       conflicts: [],
+      transfers: [],
       mismatches: [],
       count: 0,
     });

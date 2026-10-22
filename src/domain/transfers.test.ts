@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   isCandidate,
+  linkOptions,
   matchTransfers,
   pairKey,
+  transfersToPick,
   type TransferTarget,
 } from "./transfers.ts";
 
@@ -129,5 +131,66 @@ describe("matchTransfers", () => {
       { out: toCard, in: fromMain },
     ]);
     expect(candidates.size).toBe(0);
+  });
+});
+
+describe("linkOptions", () => {
+  it("lists the candidates, then other currencies going the other way, each oldest first", () => {
+    const deposit = tx(3, 2, "2026-10-12", 50000);
+    const dollars = tx(4, 4, "2026-10-11", 54500, "USD");
+    const pool = [
+      deposit,
+      dollars,
+      fromChecking,
+      // Not options: same account, same direction, too late, another amount.
+      tx(5, 1, "2026-10-10", 50000),
+      tx(6, 2, "2026-10-10", -50000),
+      tx(7, 2, "2026-10-14", 50000),
+      tx(8, 2, "2026-10-10", 40000),
+      tx(9, 4, "2026-10-09", -1000, "USD"),
+    ];
+    expect(linkOptions(toSavings, pool)).toEqual([
+      fromChecking,
+      deposit,
+      dollars,
+    ]);
+  });
+
+  it("still offers a pair I dismissed: I can link it by hand", () => {
+    expect(linkOptions(toSavings, [fromChecking])).toEqual([fromChecking]);
+  });
+});
+
+describe("transfersToPick", () => {
+  const pick = (pool: TransferTarget[]) =>
+    transfersToPick(matchTransfers(pool).candidates).map((t) => [
+      t.id,
+      t.candidates.map((c) => c.id),
+    ]);
+
+  it("asks about the side with two candidates, not each of them", () => {
+    const deposit = tx(3, 2, "2026-10-12", 50000);
+    expect(pick([toSavings, fromChecking, deposit])).toEqual([[1, [2, 3]]]);
+  });
+
+  it("asks about the money going out when both sides are as many", () => {
+    const again = [
+      tx(3, 1, "2026-10-11", -50000),
+      tx(4, 2, "2026-10-11", 50000),
+    ];
+    expect(pick([toSavings, fromChecking, ...again])).toEqual([
+      [1, [2, 4]],
+      [3, [2, 4]],
+    ]);
+  });
+
+  it("asks about the money coming in when fewer came in", () => {
+    // Two 500.00 transfers out of different accounts, one 500.00 in.
+    const fromCard = tx(3, 3, "2026-10-11", -50000);
+    expect(pick([toSavings, fromChecking, fromCard])).toEqual([[2, [1, 3]]]);
+  });
+
+  it("asks nothing when every pair links", () => {
+    expect(pick([toSavings, fromChecking])).toEqual([]);
   });
 });

@@ -1,25 +1,34 @@
-import { and, eq, isNull } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
+import { and, eq, inArray, isNull } from "drizzle-orm";
+import type { FastifyInstance, FastifyReply } from "fastify";
 import {
+  linkOptions,
   matchTransfers,
   pairKey,
   TRANSFER_WINDOW,
 } from "../domain/transfers.ts";
 import type { Db } from "./db/index.ts";
-import { accounts, transactions, transferDismissals } from "./db/schema.ts";
+import {
+  accounts,
+  categories,
+  rules,
+  transactions,
+  transferDismissals,
+} from "./db/schema.ts";
 
 /**
  * The transactions that could still be part of a transfer: counted, not
  * linked, in accounts that aren't archived.
  */
-const loadUnlinked = (db: Db) =>
+export const loadTransferPool = (db: Db) =>
   db
     .select({
       id: transactions.id,
       accountId: transactions.accountId,
       currency: accounts.currency,
       date: transactions.date,
+      time: transactions.time,
       amount: transactions.amount,
+      description: transactions.description,
     })
     .from(transactions)
     .innerJoin(accounts, eq(accounts.id, transactions.accountId))
@@ -32,7 +41,7 @@ const loadUnlinked = (db: Db) =>
     )
     .all();
 
-const loadDismissed = (db: Db) =>
+export const loadDismissed = (db: Db) =>
   new Set(
     db
       .select()
@@ -40,6 +49,28 @@ const loadDismissed = (db: Db) =>
       .all()
       .map(({ low, high }) => pairKey(low, high)),
   );
+
+/** The pool, what links on its own, and the candidates of everything else. */
+export function findTransfers(db: Db) {
+  const pool = loadTransferPool(db);
+  return {
+    pool,
+    ...matchTransfers(pool, {
+      window: TRANSFER_WINDOW,
+      dismissed: loadDismissed(db),
+    }),
+  };
+}
+
+/** What a decision changed, so that Undo can put it back. */
+export interface TransferChange {
+  /** The pairs it linked: the one I picked, then those that linked on their own. */
+  linked: [number, number][];
+  /** The pairs it dismissed. */
+  dismissed: [number, number][];
+  /** The categories the linked transactions had before. */
+  before: { id: number; categoryId: number | null; ruleId: number | null }[];
+}
 
 /** Points two transactions at each other, or apart. */
 function setTransfer(db: Db, a: number, b: number, linked: boolean) {
@@ -59,73 +90,278 @@ function setTransfer(db: Db, a: number, b: number, linked: boolean) {
   }
 }
 
+/** Links pairs, and returns the categories they had. */
+function link(db: Db, pairs: [number, number][]): TransferChange["before"] {
+  const ids = pairs.flat();
+  const before =
+    ids.length === 0
+      ? []
+      : db
+          .select({
+            id: transactions.id,
+            categoryId: transactions.categoryId,
+            ruleId: transactions.ruleId,
+          })
+          .from(transactions)
+          .where(inArray(transactions.id, ids))
+          .all();
+  for (const [a, b] of pairs) setTransfer(db, a, b, true);
+  return before;
+}
+
 /**
- * Links every pair of transactions that are each other's only candidate,
- * and returns how many it linked. Run inside the caller's transaction.
+ * Links every pair of transactions that are each other's only candidate.
+ * Run after anything that changes the candidates, inside the caller's
+ * transaction.
  */
-export function linkTransfers(db: Db): number {
-  const { links } = matchTransfers(loadUnlinked(db), {
-    window: TRANSFER_WINDOW,
-    dismissed: loadDismissed(db),
-  });
-  for (const link of links) setTransfer(db, link.out.id, link.in.id, true);
-  return links.length;
+export function linkTransfers(
+  db: Db,
+): Pick<TransferChange, "linked" | "before"> {
+  const linked = findTransfers(db).links.map(
+    (l) => [l.out.id, l.in.id] as [number, number],
+  );
+  return { linked, before: link(db, linked) };
+}
+
+function dismiss(db: Db, a: number, b: number): [number, number] {
+  const [low, high] = a < b ? [a, b] : [b, a];
+  db.insert(transferDismissals)
+    .values({ low, high })
+    .onConflictDoNothing()
+    .run();
+  return [low, high];
 }
 
 interface WithId {
   Params: { id: number };
 }
 
+const idParams = {
+  type: "object",
+  required: ["id"],
+  properties: { id: { type: "integer" } },
+} as const;
+
+const pairs = {
+  type: "array",
+  items: {
+    type: "array",
+    items: { type: "integer" },
+    minItems: 2,
+    maxItems: 2,
+  },
+} as const;
+
 export function transferRoutes(app: FastifyInstance, { db }: { db: Db }) {
-  // S6, Unlink: both sides become normal, uncategorized transactions, and
-  // the pair is never linked on its own again.
-  app.post<WithId>(
-    "/api/transactions/:id/unlink",
+  const find = (id: number) =>
+    db
+      .select({
+        id: transactions.id,
+        accountId: transactions.accountId,
+        currency: accounts.currency,
+        date: transactions.date,
+        amount: transactions.amount,
+        excluded: transactions.excluded,
+        transferWith: transactions.transferWith,
+        archivedOn: accounts.archivedOn,
+      })
+      .from(transactions)
+      .innerJoin(accounts, eq(accounts.id, transactions.accountId))
+      .where(eq(transactions.id, id))
+      .get();
+  type Row = NonNullable<ReturnType<typeof find>>;
+
+  /**
+   * A transaction that can still become one side of a transfer. When it
+   * can't, the reply says why and it's null.
+   */
+  const unlinked = (id: number, reply: FastifyReply): Row | null => {
+    const row = find(id);
+    const refuse = (status: number, error: string) => {
+      reply.code(status).send({ error });
+      return null;
+    };
+    if (!row) return refuse(404, "Not found");
+    if (row.archivedOn) {
+      return refuse(
+        409,
+        "This account is archived. Unarchive it to change it.",
+      );
+    }
+    if (row.transferWith !== null) return refuse(409, "It's already linked.");
+    if (row.excluded)
+      return refuse(409, "It's excluded. Restore it to link it.");
+    return row;
+  };
+
+  // D4: what the transaction can be linked with by hand.
+  app.get<WithId>(
+    "/api/transactions/:id/link-options",
+    { schema: { params: idParams } },
+    (req, reply) => {
+      const row = unlinked(req.params.id, reply);
+      if (!row) return reply;
+      const options = linkOptions(row, loadTransferPool(db), TRANSFER_WINDOW);
+      return {
+        window: TRANSFER_WINDOW,
+        options: options.map(
+          ({ id, accountId, date, amount, description }) => ({
+            id,
+            accountId,
+            date,
+            amount,
+            description,
+          }),
+        ),
+      };
+    },
+  );
+
+  // D4, Link: the pair I picked, then whatever now links on its own.
+  app.post<WithId & { Body: { otherId: number } }>(
+    "/api/transactions/:id/link",
     {
       schema: {
-        params: {
+        params: idParams,
+        body: {
           type: "object",
-          required: ["id"],
-          properties: { id: { type: "integer" } },
+          required: ["otherId"],
+          properties: { otherId: { type: "integer" } },
         },
       },
     },
     (req, reply) => {
-      const row = db
-        .select({
-          id: transactions.id,
-          transferWith: transactions.transferWith,
-          archivedOn: accounts.archivedOn,
-        })
-        .from(transactions)
-        .innerJoin(accounts, eq(accounts.id, transactions.accountId))
-        .where(eq(transactions.id, req.params.id))
-        .get();
+      const row = unlinked(req.params.id, reply);
+      if (!row) return reply;
+      const options = linkOptions(row, loadTransferPool(db), TRANSFER_WINDOW);
+      if (!options.some((o) => o.id === req.body.otherId)) {
+        return reply.code(409).send({
+          error: "These two can't be linked any more. Pick another one.",
+        });
+      }
+      const pair: [number, number] =
+        row.amount < 0
+          ? [row.id, req.body.otherId]
+          : [req.body.otherId, row.id];
+      const change: TransferChange = db.transaction(() => {
+        const before = link(db, [pair]);
+        const more = linkTransfers(db);
+        return {
+          linked: [pair, ...more.linked],
+          dismissed: [],
+          before: [...before, ...more.before],
+        };
+      });
+      return change;
+    },
+  );
+
+  // S2, Not a transfer: none of its candidates is its other side.
+  app.post<WithId>(
+    "/api/transactions/:id/not-a-transfer",
+    { schema: { params: idParams } },
+    (req, reply) => {
+      const row = unlinked(req.params.id, reply);
+      if (!row) return reply;
+      const candidates = findTransfers(db).candidates.get(row.id) ?? [];
+      if (candidates.length === 0) {
+        return reply.code(409).send({
+          error: "Nothing in your other accounts could be its other side.",
+        });
+      }
+      const change: TransferChange = db.transaction(() => {
+        const dismissed = candidates.map((c) => dismiss(db, row.id, c.id));
+        return { dismissed, ...linkTransfers(db) };
+      });
+      return change;
+    },
+  );
+
+  // Undo, right after Link or Not a transfer: puts back what it changed.
+  app.post<{ Body: TransferChange }>(
+    "/api/transfers/undo",
+    {
+      schema: {
+        body: {
+          type: "object",
+          required: ["linked", "dismissed", "before"],
+          properties: {
+            linked: pairs,
+            dismissed: pairs,
+            before: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["id", "categoryId", "ruleId"],
+                properties: {
+                  id: { type: "integer" },
+                  categoryId: { type: ["integer", "null"] },
+                  ruleId: { type: ["integer", "null"] },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    (req, reply) => {
+      const { linked, dismissed, before } = req.body;
+      const exists = (table: typeof categories | typeof rules, id: number) =>
+        db.select({ id: table.id }).from(table).where(eq(table.id, id)).get();
+      db.transaction(() => {
+        for (const [a, b] of linked) {
+          // Only a pair that's still linked together.
+          if (find(a)?.transferWith === b) setTransfer(db, a, b, false);
+        }
+        for (const { id, categoryId, ruleId } of before) {
+          if (find(id)?.transferWith !== null) continue;
+          db.update(transactions)
+            .set({
+              categoryId:
+                categoryId !== null && exists(categories, categoryId)
+                  ? categoryId
+                  : null,
+              ruleId: ruleId !== null && exists(rules, ruleId) ? ruleId : null,
+            })
+            .where(eq(transactions.id, id))
+            .run();
+        }
+        for (const [a, b] of dismissed) {
+          db.delete(transferDismissals)
+            .where(
+              and(
+                eq(transferDismissals.low, Math.min(a, b)),
+                eq(transferDismissals.high, Math.max(a, b)),
+              ),
+            )
+            .run();
+        }
+      });
+      return reply.code(204).send();
+    },
+  );
+
+  // S6, Unlink: both sides become normal, uncategorized transactions, and
+  // the pair is never linked on its own again.
+  app.post<WithId>(
+    "/api/transactions/:id/unlink",
+    { schema: { params: idParams } },
+    (req, reply) => {
+      const row = find(req.params.id);
       if (!row) return reply.code(404).send({ error: "Not found" });
       if (row.transferWith === null) {
         return reply.code(409).send({ error: "It isn't linked." });
       }
-      const other = db
-        .select({ archivedOn: accounts.archivedOn })
-        .from(transactions)
-        .innerJoin(accounts, eq(accounts.id, transactions.accountId))
-        .where(eq(transactions.id, row.transferWith))
-        .get();
-      if (row.archivedOn || other?.archivedOn) {
+      if (row.archivedOn || find(row.transferWith)?.archivedOn) {
         return reply.code(409).send({
           error: "One side is in an archived account. Unarchive it first.",
         });
       }
-      const [low, high] = [row.id, row.transferWith].sort((a, b) => a - b) as [
-        number,
-        number,
-      ];
+      const other = row.transferWith;
       db.transaction(() => {
-        setTransfer(db, low, high, false);
-        db.insert(transferDismissals)
-          .values({ low, high })
-          .onConflictDoNothing()
-          .run();
+        setTransfer(db, row.id, other, false);
+        dismiss(db, row.id, other);
+        linkTransfers(db);
       });
       return reply.code(204).send();
     },

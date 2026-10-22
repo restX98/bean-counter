@@ -110,3 +110,68 @@ export function matchTransfers<T extends TransferTarget>(
   );
   return { links, candidates };
 }
+
+/**
+ * What I can link a transaction with by hand (D4): its candidates, even
+ * pairs I dismissed, then the transactions in other currencies going the
+ * other way within the window, whose amounts can't be compared. Each kind
+ * oldest first.
+ */
+export function linkOptions<T extends TransferTarget>(
+  t: TransferTarget,
+  pool: T[],
+  window = TRANSFER_WINDOW,
+): T[] {
+  const near = (o: T) =>
+    o.accountId !== t.accountId &&
+    t.amount !== 0 &&
+    Math.sign(o.amount) === -Math.sign(t.amount) &&
+    daysBetween(o.date, t.date) <= window;
+  const byDate = (a: T, b: T) => a.date.localeCompare(b.date) || a.id - b.id;
+  return [
+    ...pool
+      .filter((o) => near(o) && o.currency === t.currency)
+      .filter((o) => o.amount === -t.amount)
+      .sort(byDate),
+    ...pool.filter((o) => near(o) && o.currency !== t.currency).sort(byDate),
+  ];
+}
+
+/**
+ * What Review asks me to pick, from `matchTransfers`' candidates: in each
+ * group of transactions that could pair up in more than one way, the side
+ * with fewer of them (money out when they're as many), each with its
+ * candidates. The other side are the candidates.
+ */
+export function transfersToPick<T extends TransferTarget>(
+  candidates: Map<number, T[]>,
+): (T & { candidates: T[] })[] {
+  const byId = new Map(
+    [...candidates.values()].flat().map((t) => [t.id, t] as const),
+  );
+  const seen = new Set<number>();
+  const picks: (T & { candidates: T[] })[] = [];
+  for (const id of candidates.keys()) {
+    if (seen.has(id)) continue;
+    // The group: everything linked to this one through candidates.
+    const group: T[] = [];
+    const queue = [id];
+    seen.add(id);
+    while (queue.length > 0) {
+      const next = byId.get(queue.pop()!)!;
+      group.push(next);
+      for (const other of candidates.get(next.id) ?? []) {
+        if (!seen.has(other.id)) {
+          seen.add(other.id);
+          queue.push(other.id);
+        }
+      }
+    }
+    const outs = group.filter((t) => t.amount < 0);
+    const ins = group.filter((t) => t.amount > 0);
+    for (const t of ins.length < outs.length ? ins : outs) {
+      picks.push({ ...t, candidates: candidates.get(t.id)! });
+    }
+  }
+  return picks.sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
+}

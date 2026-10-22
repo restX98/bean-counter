@@ -92,6 +92,7 @@ function ReviewCard() {
       "uncategorized transactions",
     ],
     [data.conflicts.length, "rule conflict", "rule conflicts"],
+    [data.transfers.length, "transfer to confirm", "transfers to confirm"],
     [data.mismatches.length, "balance mismatch", "balance mismatches"],
   ];
   return (

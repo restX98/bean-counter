@@ -270,6 +270,39 @@ a.ar:focus-visible {
 .choice .select-wrap {
   flex: 1 1 160px;
 }
+.choice > .amount {
+  font-variant-numeric: var(--numbers);
+}
+/* D4's choices are transactions, whose descriptions can be long. */
+.link-options .what strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* The transaction a dialog is about (D4). */
+.summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-muted);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: var(--type-table);
+}
+.summary strong {
+  overflow-wrap: anywhere;
+}
+.summary .caption {
+  grid-column: 1;
+  color: var(--color-text-muted);
+}
+.summary .amount {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: var(--numbers);
+}
 .select.sm {
   min-width: 0;
   min-height: 32px;

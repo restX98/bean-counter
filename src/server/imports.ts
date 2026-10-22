@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, isNotNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import {
   validateAnchor,
@@ -24,7 +24,12 @@ import type { Db } from "./db/index.ts";
 import { accounts, importPresets, imports, transactions } from "./db/schema.ts";
 import { loadRules } from "./rules.ts";
 import { readStatementFile } from "./statements.ts";
-import { linkTransfers } from "./transfers.ts";
+import {
+  findTransfers,
+  linkTransfers,
+  loadDismissed,
+  loadTransferPool,
+} from "./transfers.ts";
 
 // The import in three steps, one per screen: upload a file (S7), preview it
 // with a mapping and my decisions (S8, S9), save it (S9's Import button).
@@ -190,6 +195,11 @@ export function importRoutes(
             accountId: account.id,
             currency: account.currency,
           }),
+        transfers: {
+          account,
+          pool: loadTransferPool(db),
+          dismissed: loadDismissed(db),
+        },
       }),
     };
   }
@@ -413,27 +423,37 @@ export function importRoutes(
       });
       uploads.delete(req.params.id);
 
-      const linked = new Set(
+      // Transfers first: what the rules decided only counts for the rest.
+      const { candidates } = findTransfers(db);
+      const outcome = new Map(
         db
-          .select({ line: transactions.line })
+          .select({
+            line: transactions.line,
+            id: transactions.id,
+            transferWith: transactions.transferWith,
+          })
           .from(transactions)
-          .where(
-            and(
-              eq(transactions.importId, importId),
-              isNotNull(transactions.transferWith),
-            ),
-          )
+          .where(eq(transactions.importId, importId))
           .all()
-          .map((row) => row.line),
+          .map((t) => [
+            t.line,
+            t.transferWith !== null
+              ? "linked"
+              : candidates.has(t.id)
+                ? "pick"
+                : null,
+          ]),
       );
-      // What the rules decided only counts for the rest.
-      const rest = saved.filter((r) => !linked.has(r.line));
+      const rest = saved.filter((r) => outcome.get(r.line) === null);
+      const count = (kind: string) =>
+        saved.filter((r) => outcome.get(r.line) === kind).length;
 
       // S10.
       return reply.code(201).send({
         importId,
         imported: saved.length,
-        linked: linked.size,
+        linked: count("linked"),
+        toPick: count("pick"),
         categorized: rest.filter((r) => r.rule.kind === "category").length,
         conflicts: rest.filter((r) => r.rule.kind === "conflict").length,
         skipped: rows.length - saved.length,

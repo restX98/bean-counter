@@ -215,3 +215,65 @@ describe("planImport with rules", () => {
     ]);
   });
 });
+
+describe("planImport with transfers", () => {
+  // Importing into Main checking (account 1); Savings is account 2.
+  const context = (pool: { id: number; date: string; amount: number }[]) => ({
+    account: { id: 1, currency: "EUR" },
+    pool: pool.map((t) => ({ ...t, accountId: 2, currency: "EUR" })),
+  });
+  const transfers = (plan: ReturnType<typeof planImport>) =>
+    plan.rows.map((r) => [r.line, r.transfer]);
+
+  it("links a row to the only candidate in another account", () => {
+    const plan = planImport({
+      rows: october,
+      existing: [],
+      anchor: null,
+      transfers: context([{ id: 7, date: "2026-10-06", amount: 50000 }]),
+    });
+    expect(transfers(plan)).toEqual([
+      [2, { kind: "none" }],
+      [3, { kind: "none" }],
+      [4, { kind: "linked", accountId: 2 }],
+    ]);
+  });
+
+  it("leaves a row with two candidates to pick", () => {
+    const plan = planImport({
+      rows: october,
+      existing: [],
+      anchor: null,
+      transfers: context([
+        { id: 7, date: "2026-10-05", amount: 50000 },
+        { id: 8, date: "2026-10-07", amount: 50000 },
+      ]),
+    });
+    expect(plan.rows[2]!.transfer).toEqual({
+      kind: "pick",
+      count: 2,
+      accountIds: [2],
+    });
+  });
+
+  it("leaves out duplicates and skipped near-matches", () => {
+    const plan = planImport({
+      rows: october,
+      existing: [
+        existing(5, "2026-10-05", -50000, "TRANSFER TO SAVINGS"),
+        existing(6, "2026-10-02", -5630, "ESSELUNGA MILANO"),
+      ],
+      anchor: null,
+      decisions: { 3: "skip" },
+      transfers: context([
+        { id: 7, date: "2026-10-06", amount: 50000 },
+        { id: 8, date: "2026-10-02", amount: 5630 },
+      ]),
+    });
+    expect(transfers(plan)).toEqual([
+      [2, { kind: "none" }],
+      [3, { kind: "none" }],
+      [4, { kind: "none" }],
+    ]);
+  });
+});

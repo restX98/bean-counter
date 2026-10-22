@@ -9,11 +9,15 @@ import {
   useAccounts,
   useApplyRules,
   useCategories,
+  useNotATransfer,
   useReview,
   useRules,
   useSetCategory,
+  useUndoTransfer,
   type ReviewList,
   type ReviewMismatch,
+  type ReviewTransfer,
+  type TransferChange,
 } from "../api.ts";
 import { CategorySelect } from "../components/CategorySelect.tsx";
 import { FormError } from "../components/Dialog.tsx";
@@ -23,8 +27,9 @@ import type { IconName } from "../components/icons.ts";
 import { Loading, Page } from "../components/Page.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { CategoryForm } from "../dialogs/CategoryForm.tsx";
+import { LinkTransfer } from "../dialogs/LinkTransfer.tsx";
 import { RuleForm } from "../dialogs/RuleForm.tsx";
-import { plural, ruleText } from "../labels.ts";
+import { plural, possibleMatches, ruleText } from "../labels.ts";
 import { useIsMobile } from "../useIsMobile.ts";
 
 /** Items shown in a group before "Show N more". */
@@ -32,7 +37,7 @@ const SHOWN = 5;
 
 type Item =
   ReviewList["uncategorized"][number] | ReviewList["conflicts"][number];
-type GroupKey = "uncategorized" | "conflicts" | "mismatches";
+type GroupKey = "uncategorized" | "conflicts" | "transfers" | "mismatches";
 
 /** One item of a group, laid out the same way in every group. */
 interface Row {
@@ -48,13 +53,18 @@ interface Row {
 
 const isConflict = (item: Item): item is ReviewList["conflicts"][number] =>
   "categoryIds" in item;
+/** An item's group and transaction, which together name it. */
+const keyOf = (item: Item) =>
+  `${isConflict(item) ? "conflicts" : "uncategorized"} ${item.id}`;
+const transferKey = (item: ReviewTransfer) => `transfers ${item.id}`;
 const day = (date: string) => formatDate(date).slice(0, 5);
 
 /**
  * S2: what the app can't decide on its own. Transactions waiting for a
  * category: picking one takes the item off the list, with Undo; a rule's
- * category can be taken with one click. Places where an account's balances
- * and the bank's part ways: fixed on the account's page.
+ * category can be taken with one click. Possible transfers: I pick the
+ * other side (D4) or say it isn't one, with Undo. Places where an account's
+ * balances and the bank's part ways: fixed on the account's page.
  */
 export function Review() {
   const isMobile = useIsMobile();
@@ -64,17 +74,21 @@ export function Review() {
   const rules = useRules();
   const setCategory = useSetCategory();
   const applyRules = useApplyRules();
-  // Items just settled, hidden before the list catches up; Undo brings them back.
-  const [settled, setSettled] = useState<ReadonlySet<number>>(new Set());
+  const notATransfer = useNotATransfer();
+  const undoTransfer = useUndoTransfer();
+  // Items just settled, hidden before the list catches up; Undo brings them
+  // back. By group, since a transaction can move to another one (see `keyOf`).
+  const [settled, setSettled] = useState<ReadonlySet<string>>(new Set());
   const [toast, setToast] = useState<{
     key: number;
     text: string;
     undo: () => void;
   } | null>(null);
-  const [dialog, setDialog] = useState<{
-    kind: "category" | "rule";
-    item: Item;
-  } | null>(null);
+  const [dialog, setDialog] = useState<
+    | { kind: "category" | "rule"; item: Item }
+    | { kind: "link"; item: ReviewTransfer }
+    | null
+  >(null);
   const [expanded, setExpanded] = useState<ReadonlySet<GroupKey>>(new Set());
 
   const page = {
@@ -93,41 +107,76 @@ export function Review() {
   const accountNames = new Map(accounts.data.map((a) => [a.id, a.name]));
   const ruleById = new Map(rules.data?.rules.map((r) => [r.id, r]) ?? []);
 
-  const hide = (id: number, hidden: boolean) =>
+  const hide = (key: string, hidden: boolean) =>
     setSettled((current) => {
       const next = new Set(current);
-      if (hidden) next.add(id);
-      else next.delete(id);
+      if (hidden) next.add(key);
+      else next.delete(key);
       return next;
     });
   // A new key for each message, so its timer starts again.
-  const done = (item: Item, category: string) =>
+  const notify = (text: string, undo: () => void) =>
     setToast((previous) => ({
       key: (previous?.key ?? 0) + 1,
-      text: `${item.description} is now in ${category}.`,
+      text,
       undo: () => {
         setToast(null);
-        setCategory.mutate(
-          { id: item.id, categoryId: null },
-          { onSuccess: () => hide(item.id, false) },
-        );
+        undo();
       },
     }));
+  const done = (item: Item, category: string) =>
+    notify(`${item.description} is now in ${category}.`, () =>
+      setCategory.mutate(
+        { id: item.id, categoryId: null },
+        { onSuccess: () => hide(keyOf(item), false) },
+      ),
+    );
+  // `others`: the transfers that linked on their own after it.
+  const transferDone = (
+    item: ReviewTransfer,
+    text: string,
+    change: TransferChange,
+    others: number,
+  ) => {
+    hide(transferKey(item), true);
+    notify(
+      others > 0
+        ? `${text} ${plural(others, "more transfer")} linked on ${others === 1 ? "its" : "their"} own.`
+        : text,
+      () =>
+        undoTransfer.mutate(change, {
+          onSuccess: () => hide(transferKey(item), false),
+        }),
+    );
+  };
+  const dismiss = (item: ReviewTransfer) => {
+    hide(transferKey(item), true);
+    notATransfer.mutate(item.id, {
+      onSuccess: (change) =>
+        transferDone(
+          item,
+          `${item.description} isn't a transfer.`,
+          change,
+          change.linked.length,
+        ),
+      onError: () => hide(transferKey(item), false),
+    });
+  };
   const pick = (item: Item, categoryId: number, name: string) => {
-    hide(item.id, true);
+    hide(keyOf(item), true);
     setCategory.mutate(
       { id: item.id, categoryId },
       {
         onSuccess: () => done(item, name),
-        onError: () => hide(item.id, false),
+        onError: () => hide(keyOf(item), false),
       },
     );
   };
   const takeSuggestion = (item: Item) => {
-    hide(item.id, true);
+    hide(keyOf(item), true);
     applyRules.mutate(item.id, {
       onSuccess: ({ categoryId }) => done(item, names.get(categoryId) ?? ""),
-      onError: () => hide(item.id, false),
+      onError: () => hide(keyOf(item), false),
     });
   };
 
@@ -227,6 +276,56 @@ export function Review() {
     };
   };
 
+  const transferRow = (item: ReviewTransfer): Row => {
+    const account = accountNames.get(item.accountId) ?? "";
+    const where = [
+      ...new Set(
+        item.candidates.map((c) => accountNames.get(c.accountId) ?? ""),
+      ),
+    ];
+    return {
+      key: String(item.id),
+      date: item.date,
+      account,
+      where: `${account} · ${day(item.date)}`,
+      what: (
+        <span className="what">
+          <strong>{item.description}</strong>
+          <span className="caption">
+            {possibleMatches(item.candidates.length, where)}
+          </span>
+        </span>
+      ),
+      amount: (
+        <span className={item.amount > 0 ? "amount income" : "amount"}>
+          {formatAmount(item.amount, item.currency, { signed: true })}
+        </span>
+      ),
+      acts: (
+        <span className="acts">
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            aria-label={`Pick the other side of ${item.description}`}
+            onClick={() => setDialog({ kind: "link", item })}
+          >
+            <Icon name="transfer" />
+            Pick the other side
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            aria-label={`${item.description} isn't a transfer`}
+            disabled={notATransfer.isPending}
+            onClick={() => dismiss(item)}
+          >
+            Not a transfer
+          </button>
+        </span>
+      ),
+    };
+  };
+
   const mismatchRow = (m: ReviewMismatch): Row => {
     const money = (minor: number) => formatAmount(minor, m.currency);
     const account = accountNames.get(m.accountId) ?? "";
@@ -265,7 +364,7 @@ export function Review() {
   };
 
   const unsettled = (items: Item[]) =>
-    items.filter((t) => !settled.has(t.id)).map(transactionRow);
+    items.filter((t) => !settled.has(keyOf(t))).map(transactionRow);
   const groups = (
     [
       {
@@ -279,6 +378,14 @@ export function Review() {
         title: "Rule conflicts",
         icon: "rules",
         rows: unsettled(review.data.conflicts),
+      },
+      {
+        key: "transfers",
+        title: "Transfers to confirm",
+        icon: "transfer",
+        rows: review.data.transfers
+          .filter((t) => !settled.has(transferKey(t)))
+          .map(transferRow),
       },
       {
         key: "mismatches",
@@ -302,7 +409,14 @@ export function Review() {
   return (
     <Page {...page} subtitle={summary}>
       {isMobile && <p className="muted">{summary}</p>}
-      <FormError error={setCategory.error ?? applyRules.error} />
+      <FormError
+        error={
+          setCategory.error ??
+          applyRules.error ??
+          notATransfer.error ??
+          undoTransfer.error
+        }
+      />
 
       {count === 0 ? (
         <EmptyState
@@ -315,8 +429,9 @@ export function Review() {
             </Link>
           }
         >
-          Every transaction has a category and every balance matches the bank.
-          New items show up here after your next import.
+          Every transaction is categorized, every transfer is linked and every
+          balance matches the bank. New items show up here after your next
+          import.
         </EmptyState>
       ) : (
         groups.map(({ key, title, icon, rows }) => {
@@ -379,6 +494,20 @@ export function Review() {
           type={dialog.item.amount > 0 ? "income" : "expense"}
           onClose={() => setDialog(null)}
           onSaved={(category) => pick(dialog.item, category.id, category.name)}
+        />
+      )}
+      {dialog?.kind === "link" && (
+        <LinkTransfer
+          transaction={dialog.item}
+          onClose={() => setDialog(null)}
+          onLinked={(change, other) =>
+            transferDone(
+              dialog.item,
+              `${dialog.item.description} is now linked to ${accountNames.get(other.accountId)}.`,
+              change,
+              change.linked.length - 1,
+            )
+          }
         />
       )}
       {dialog?.kind === "rule" && (

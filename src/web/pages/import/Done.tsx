@@ -153,17 +153,27 @@ export function DoneStep({
 }
 
 /** What became of the imported transactions: transfers, then the rules. */
-function summary({ imported, linked, categorized, conflicts }: ImportResult) {
+function summary({
+  imported,
+  linked,
+  toPick,
+  categorized,
+  conflicts,
+}: ImportResult) {
   const transfers =
     linked === 0
       ? ""
       : linked === imported
         ? `${imported === 1 ? "It's a transfer" : "They're all transfers"} with your other accounts, linked to the other side.`
         : `${linked} ${linked === 1 ? "is a transfer" : "are transfers"} with your other accounts, linked to the other side.`;
-  const rest = imported - linked;
-  if (rest === 0) return transfers;
+  const picking =
+    toPick === 0
+      ? ""
+      : `${toPick} may ${toPick === 1 ? "be a transfer" : "be transfers"}: pick the other side in Review.`;
+  const rest = imported - linked - toPick;
+  if (rest === 0) return [transfers, picking].filter(Boolean).join(" ");
   const them =
-    linked > 0
+    linked + toPick > 0
       ? rest === 1
         ? "the other one"
         : `the other ${rest}`
@@ -173,7 +183,7 @@ function summary({ imported, linked, categorized, conflicts }: ImportResult) {
   const left = rest - categorized;
   const done =
     categorized === rest
-      ? `Your rules categorized ${linked === 0 && rest > 1 ? "all of them" : them}.`
+      ? `Your rules categorized ${linked + toPick === 0 && rest > 1 ? "all of them" : them}.`
       : categorized > 0
         ? `Your rules categorized ${categorized}; ${left} ${left === 1 ? "is" : "are"} still uncategorized.`
         : `No rule categorized ${them}.`;
@@ -182,7 +192,7 @@ function summary({ imported, linked, categorized, conflicts }: ImportResult) {
     conflicts === 0
       ? ""
       : `${plural(conflicts, "transaction")} ${one ? "matches" : "match"} rules that disagree, so ${one ? "it waits" : "they wait"} for you to pick a category.`;
-  return [transfers, done, waiting].filter(Boolean).join(" ");
+  return [transfers, picking, done, waiting].filter(Boolean).join(" ");
 }
 
 /**

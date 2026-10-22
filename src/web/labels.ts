@@ -17,6 +17,17 @@ export function plural(count: number, one: string, many = `${one}s`): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
+/** "Savings", "Savings and Card account", "A, B and C". */
+export function listNames(names: string[]): string {
+  return names.length > 1
+    ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`
+    : (names[0] ?? "");
+}
+
+/** "2 possible matches in Savings": a possible transfer's candidates. */
+export const possibleMatches = (count: number, accounts: string[]) =>
+  `${plural(count, "possible match", "possible matches")} in ${listNames(accounts)}`;
+
 export const RULE_MATCH_LABELS: Record<RuleMatch, string> = {
   contains: "contains",
   regex: "matches regex",

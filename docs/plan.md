@@ -75,7 +75,7 @@ These are the screens to design and the flows that connect them. Each entry cove
 - **Shows**: three groups, each with a count.
   - **Uncategorized**: date, account, description and amount, with an inline category picker. When a rule would give one a category now (it was saved without applying it, or the other rule of a conflict was deleted), the item names the rule and its category, and **Use it** accepts it.
   - **Rule conflicts**: transactions matched by more than one rule, with the competing rules and their categories. I pick the category.
-  - **Transfers to confirm**: same-currency transactions with more than one possible match (pick one), and cross-currency suggestions (link, or mark as not a transfer).
+  - **Transfers to confirm**: same-currency transactions with more than one possible match (pick the other side, or mark as not a transfer), and cross-currency suggestions (link, or mark as not a transfer).
   - **Balance mismatches**: account, computed vs. bank balance, the difference, and the last day the balances match and the first day they don't.
 - **Actions**:
   - categorize a transaction, with a shortcut to create a rule (D6); it leaves the list, and a toast offers Undo;

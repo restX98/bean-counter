@@ -18,8 +18,9 @@ import { FormError } from "../components/Dialog.tsx";
 import { describedBy, Field } from "../components/Field.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { CategoryForm } from "../dialogs/CategoryForm.tsx";
+import { LinkTransfer } from "../dialogs/LinkTransfer.tsx";
 import { RuleForm } from "../dialogs/RuleForm.tsx";
-import { ruleName } from "../labels.ts";
+import { possibleMatches, ruleName } from "../labels.ts";
 import { useIsMobile } from "../useIsMobile.ts";
 
 /**
@@ -45,8 +46,11 @@ export function TransactionPanel({
   const setCategory = useSetCategory();
   const exclude = useExclude();
   const unlink = useUnlink();
-  // The dialog open over the panel: a new category, or a rule from this.
-  const [dialog, setDialog] = useState<"category" | "rule" | null>(null);
+  // The dialog open over the panel: a new category, a rule from this, or
+  // its transfer's other side.
+  const [dialog, setDialog] = useState<"category" | "rule" | "link" | null>(
+    null,
+  );
   const readOnly = account.archivedOn !== null;
 
   useEffect(() => ref.current?.focus(), []);
@@ -78,6 +82,45 @@ export function TransactionPanel({
       : categoryId === null && t.conflict
         ? `Its rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}. Pick the category.`
         : undefined;
+
+  const toPick = t.toPick;
+  // Not linked yet: a possible transfer says how many could be its other
+  // side; any other transaction can still be linked by hand.
+  const unlinkedSection = (
+    <section className="detail-section">
+      <h3>
+        <Icon name="transfer" className="icon icon-sm" />
+        Transfer
+      </h3>
+      {toPick ? (
+        <div className="banner tone-warning">
+          <Icon name="alert" />
+          <span className="text">
+            <strong>Transfer to pick</strong>
+            {possibleMatches(
+              toPick.count,
+              toPick.accountIds.map(
+                (a) => accounts.find((x) => x.id === a)?.name ?? "",
+              ),
+            )}
+            . Pick the other side to link them.
+          </span>
+        </div>
+      ) : (
+        <p className="muted">Not linked to another account.</p>
+      )}
+      {!readOnly && (
+        <button
+          type="button"
+          className={toPick ? "btn btn-primary" : "btn btn-secondary"}
+          onClick={() => setDialog("link")}
+        >
+          <Icon name="transfer" />
+          Link transfer…
+        </button>
+      )}
+    </section>
+  );
 
   const close = (
     <button
@@ -159,31 +202,36 @@ export function TransactionPanel({
             onUnlink={readOnly ? undefined : () => unlink.mutate(t.id)}
           />
         ) : (
-          <section className="detail-section">
-            <Field id={`${id}-category`} label="Category" hint={hint}>
-              <CategorySelect
-                id={`${id}-category`}
-                value={categoryId}
-                amount={t.amount}
-                none="Uncategorized"
-                disabled={readOnly}
-                onPick={(picked) =>
-                  setCategory.mutate({ id: t.id, categoryId: picked })
-                }
-                onNew={() => setDialog("category")}
-                {...describedBy(`${id}-category`, undefined, hint)}
-              />
-            </Field>
-            {!readOnly && categoryId !== null && ruleId === null && (
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setDialog("rule")}
-              >
-                Create rule from this
-              </button>
-            )}
-          </section>
+          <>
+            {/* A possible transfer: that decision comes first. */}
+            {t.toPick && unlinkedSection}
+            <section className="detail-section">
+              <Field id={`${id}-category`} label="Category" hint={hint}>
+                <CategorySelect
+                  id={`${id}-category`}
+                  value={categoryId}
+                  amount={t.amount}
+                  none="Uncategorized"
+                  disabled={readOnly}
+                  onPick={(picked) =>
+                    setCategory.mutate({ id: t.id, categoryId: picked })
+                  }
+                  onNew={() => setDialog("category")}
+                  {...describedBy(`${id}-category`, undefined, hint)}
+                />
+              </Field>
+              {!readOnly && categoryId !== null && ruleId === null && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setDialog("rule")}
+                >
+                  Create rule from this
+                </button>
+              )}
+            </section>
+            {!t.toPick && !t.excluded && unlinkedSection}
+          </>
         )}
 
         {!readOnly && (
@@ -214,6 +262,16 @@ export function TransactionPanel({
       {dialog === "rule" && (
         <RuleForm
           prefill={{ text: suggestText(t.description), categoryId }}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog === "link" && (
+        <LinkTransfer
+          transaction={{
+            ...t,
+            accountId: account.id,
+            currency: account.currency,
+          }}
           onClose={() => setDialog(null)}
         />
       )}

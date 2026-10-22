@@ -129,14 +129,20 @@ export function AccountLedger({ account }: { account: Account }) {
         {t.excluded ? "Restore" : "Exclude"}
       </button>
     );
-  // A transfer names its other side's account instead. Excluded
-  // transactions don't count anywhere, so they don't need a category.
+  // A transfer names its other side's account instead, and a possible one
+  // waits for that decision first. Excluded transactions don't count
+  // anywhere, so they don't need a category.
   const category = (t: LedgerTransaction) =>
     t.transfer ? (
       <span className="tag tone-neutral">
         <Icon name="transfer" />
         <span className="visually-hidden">Transfer with </span>
         {accounts.find((a) => a.id === t.transfer?.accountId)?.name}
+      </span>
+    ) : t.toPick ? (
+      <span className="tag tone-warning">
+        <Icon name="transfer" />
+        Transfer to pick
       </span>
     ) : t.categoryId !== null ? (
       <span>{names.get(t.categoryId)}</span>

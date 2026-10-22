@@ -9,6 +9,7 @@ import {
 } from "../../../domain/import/plan.ts";
 import { findCurrency, formatAmount } from "../../../domain/money.ts";
 import {
+  useAccounts,
   useCategories,
   useSaveImport,
   usePreview,
@@ -20,19 +21,24 @@ import { FormError, fieldErrors } from "../../components/Dialog.tsx";
 import { describedBy, Field } from "../../components/Field.tsx";
 import { Icon } from "../../components/Icon.tsx";
 import { Loading } from "../../components/Page.tsx";
-import { plural } from "../../labels.ts";
+import { plural, possibleMatches } from "../../labels.ts";
 import { useIsMobile } from "../../useIsMobile.ts";
 import { Flow } from "./Flow.tsx";
 
 /** Rows shown before "Show all". */
 const SHOWN = 100;
 
-/** A new row is auto-categorized, uncategorized or a rule conflict. */
+/**
+ * A new row is one side of a transfer, linked or to pick; otherwise it's
+ * auto-categorized, uncategorized or a rule conflict.
+ */
 type Kind =
   | "near-match"
   | "conflict"
+  | "transfer-pick"
   | "uncategorized"
   | "auto"
+  | "transfer-linked"
   | "unreadable"
   | "left-out"
   | "duplicate";
@@ -50,15 +56,28 @@ interface Item {
   balance: number | null;
   note: string | null;
   decision: Decision | null;
-  /** The category the rules give it. */
+  /** The category the rules give it, or its transfer's other side. */
   category: string | null;
 }
 
-const TAGS: Record<Kind, { label: string; tone: string; icon?: "alert" }> = {
+const TAGS: Record<
+  Kind,
+  { label: string; tone: string; icon?: "alert" | "transfer" }
+> = {
   "near-match": { label: "Near-match", tone: "tone-warning", icon: "alert" },
   conflict: { label: "Rule conflict", tone: "tone-warning" },
+  "transfer-pick": {
+    label: "Transfer to pick",
+    tone: "tone-warning",
+    icon: "transfer",
+  },
   uncategorized: { label: "Uncategorized", tone: "tone-warning" },
   auto: { label: "Auto-categorized", tone: "tone-success" },
+  "transfer-linked": {
+    label: "Transfer linked",
+    tone: "tone-neutral",
+    icon: "transfer",
+  },
   unreadable: { label: "Can't read", tone: "tone-danger", icon: "alert" },
   "left-out": { label: "Left out", tone: "tone-neutral" },
   duplicate: { label: "Duplicate", tone: "tone-neutral" },
@@ -67,8 +86,10 @@ const TAGS: Record<Kind, { label: string; tone: string; icon?: "alert" }> = {
 const ORDER: Kind[] = [
   "near-match",
   "conflict",
+  "transfer-pick",
   "uncategorized",
   "auto",
+  "transfer-linked",
   "unreadable",
   "left-out",
   "duplicate",
@@ -86,9 +107,10 @@ function items(
   decisions: Record<number, Decision>,
   currency: string,
   names: Map<number, string>,
+  accountNames: Map<number, string>,
 ): Item[] {
   const planned = preview.rows.map((row): Item => {
-    const { rule } = row;
+    const { rule, transfer } = row;
     // The categories the rules that match disagree on.
     const disagree =
       rule.kind === "conflict"
@@ -99,18 +121,37 @@ function items(
         ? "Already imported · will be skipped"
         : row.status === "near-match" && row.match
           ? `Similar to “${row.match.description}”, already imported on ${formatDate(row.match.date)}`
-          : rule.kind === "conflict"
-            ? `Matches ${plural(rule.rules.length, "rule")}: ${disagree.join(", ")}`
-            : null;
+          : transfer.kind === "pick"
+            ? possibleMatches(
+                transfer.count,
+                transfer.accountIds.map((a) => accountNames.get(a) ?? ""),
+              )
+            : rule.kind === "conflict"
+              ? `Matches ${plural(rule.rules.length, "rule")}: ${disagree.join(", ")}`
+              : null;
+    // A transfer comes before what the rules say: it needs no category.
+    const kind: Kind =
+      row.status !== "new"
+        ? row.status
+        : transfer.kind === "linked"
+          ? "transfer-linked"
+          : transfer.kind === "pick"
+            ? "transfer-pick"
+            : KIND_OF[rule.kind];
     return {
       ...row,
-      kind: row.status === "new" ? KIND_OF[rule.kind] : row.status,
+      kind,
       currency,
       note,
       decision:
         row.status === "near-match" ? (decisions[row.line] ?? null) : null,
       category:
-        rule.kind === "category" ? (names.get(rule.categoryId) ?? null) : null,
+        transfer.kind === "linked" && kind === "transfer-linked"
+          ? // Linked on its own, so the other side has the same amount.
+            `⇄ ${accountNames.get(transfer.accountId)} · ${formatAmount(-row.amount, currency, { signed: true })}`
+          : rule.kind === "category" && kind === "auto"
+            ? (names.get(rule.categoryId) ?? null)
+            : null,
     };
   });
   const leftOut = preview.leftOut.map((row): Item => ({
@@ -187,6 +228,7 @@ export function PreviewStep({
   const isMobile = useIsMobile();
   const preview = usePreview(file.id, mapping);
   const categories = useCategories();
+  const { data: accounts = [] } = useAccounts();
   const save = useSaveImport(file.id);
   const [decisions, setDecisions] = useState<Record<number, Decision>>({});
   const [balance, setBalance] = useState({ amount: "", date: todayIso() });
@@ -208,7 +250,8 @@ export function PreviewStep({
 
   const data = preview.data;
   const names = new Map(categories.data.categories.map((c) => [c.id, c.name]));
-  const all = items(data, decisions, account.currency, names);
+  const accountNames = new Map(accounts.map((a) => [a.id, a.name]));
+  const all = items(data, decisions, account.currency, names, accountNames);
   const rows: PlannedRow[] = data.rows.map((row) => ({
     ...row,
     decision:
@@ -285,9 +328,11 @@ export function PreviewStep({
       ? "—"
       : formatAmount(item.amount, item.currency, { signed: true });
   const amountClass = (item: Item) =>
-    item.amount !== null && item.amount > 0 && !isSkipped(item)
-      ? "amount income"
-      : "amount";
+    item.kind === "transfer-linked"
+      ? "amount transfer"
+      : item.amount !== null && item.amount > 0 && !isSkipped(item)
+        ? "amount income"
+        : "amount";
 
   const importNow = () =>
     save.mutate(

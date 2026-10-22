@@ -213,3 +213,195 @@ describe("a linked transfer", () => {
     expect((await find(savings, "TRANSFER FROM CHECKING")).transfer).toBeNull();
   });
 });
+
+/** Main checking's 500.00 to Savings, which got 500.00 twice that week. */
+async function toPick() {
+  const main = await account("Main checking");
+  const savings = await account("Savings");
+  await importRows(main, ["05/10/2026;TRANSFER TO SAVINGS;-500,00"]);
+  const result = await importRows(savings, [
+    "05/10/2026;TRANSFER FROM CHECKING;500,00",
+    "07/10/2026;DEPOSIT;500,00",
+  ]);
+  const id = async (accountId: number, description: string) =>
+    (await find(accountId, description)).id;
+  return {
+    main,
+    savings,
+    result,
+    out: await id(main, "TRANSFER TO SAVINGS"),
+    fromChecking: await id(savings, "TRANSFER FROM CHECKING"),
+    deposit: await id(savings, "DEPOSIT"),
+  };
+}
+
+const review = async () => (await call("GET", "/api/review")).body;
+
+describe("a transfer to pick", () => {
+  it("waits in Review with its candidates, not as uncategorized", async () => {
+    const { result, out, fromChecking, deposit, main, savings } =
+      await toPick();
+    expect(result).toMatchObject({ linked: 0, toPick: 2 });
+    const { transfers, uncategorized, count } = await review();
+    expect(transfers).toEqual([
+      {
+        id: out,
+        date: "2026-10-05",
+        time: null,
+        description: "TRANSFER TO SAVINGS",
+        amount: -50000,
+        accountId: expect.any(Number),
+        currency: "EUR",
+        candidates: [
+          expect.objectContaining({ id: fromChecking, accountId: savings }),
+          expect.objectContaining({ id: deposit, description: "DEPOSIT" }),
+        ],
+      },
+    ]);
+    expect(uncategorized).toEqual([]);
+    expect(count).toBe(1);
+    expect(
+      (await ledger(savings)).map(
+        (t) => (t as Row & { toPick: object | null }).toPick,
+      ),
+    ).toEqual([
+      { count: 1, accountIds: [main] },
+      { count: 1, accountIds: [main] },
+    ]);
+  });
+
+  it("offers its candidates, then other currencies, to link by hand", async () => {
+    const { out, fromChecking, deposit } = await toPick();
+    const { body: us } = await call("POST", "/api/accounts", {
+      name: "US account",
+      bank: "Bank B",
+      type: "checking",
+      currency: "USD",
+    });
+    await importRows(us.id, ["06/10/2026;FROM EUR;545,00"]);
+    const { body } = await call("GET", `/api/transactions/${out}/link-options`);
+    expect(body.window).toBe(3);
+    expect(body.options.map((o: { id: number }) => o.id)).toEqual([
+      fromChecking,
+      deposit,
+      (await find(us.id, "FROM EUR")).id,
+    ]);
+  });
+
+  it("links the one I pick, and Undo puts it back", async () => {
+    const { out, fromChecking, deposit, savings } = await toPick();
+    const { status, body: change } = await call(
+      "POST",
+      `/api/transactions/${out}/link`,
+      { otherId: fromChecking },
+    );
+    expect(status).toBe(200);
+    expect(change).toEqual({
+      linked: [[out, fromChecking]],
+      dismissed: [],
+      before: expect.arrayContaining([
+        { id: out, categoryId: null, ruleId: null },
+      ]),
+    });
+    expect(
+      (await find(savings, "TRANSFER FROM CHECKING")).transfer,
+    ).toMatchObject({ id: out });
+    // DEPOSIT is a normal transaction again.
+    let waiting = await review();
+    expect(waiting.transfers).toEqual([]);
+    expect(waiting.uncategorized.map((t: Row) => t.id)).toEqual([deposit]);
+
+    expect(await call("POST", "/api/transfers/undo", change)).toEqual({
+      status: 204,
+      body: null,
+    });
+    waiting = await review();
+    expect(waiting.transfers.map((t: Row) => t.id)).toEqual([out]);
+    expect((await find(savings, "TRANSFER FROM CHECKING")).transfer).toBeNull();
+  });
+
+  it("links what's left on its own after a pick", async () => {
+    // The same 500.00 transfer, twice on the same day.
+    const main = await account("Main checking");
+    const savings = await account("Savings");
+    await importRows(main, [
+      "05/10/2026;TRANSFER TO SAVINGS;-500,00",
+      "05/10/2026;TRANSFER TO SAVINGS;-500,00",
+    ]);
+    await importRows(savings, [
+      "05/10/2026;TRANSFER FROM CHECKING;500,00",
+      "05/10/2026;TRANSFER FROM CHECKING;500,00",
+    ]);
+    const [a, b] = await ledger(main);
+    const [c, d] = await ledger(savings);
+    const { body: change } = await call(
+      "POST",
+      `/api/transactions/${a!.id}/link`,
+      { otherId: c!.id },
+    );
+    expect(change.linked).toEqual([
+      [a!.id, c!.id],
+      [b!.id, d!.id],
+    ]);
+    expect((await review()).count).toBe(0);
+  });
+
+  it("isn't a transfer when I say so, and the rest may link on its own", async () => {
+    const { out, fromChecking, deposit, savings } = await toPick();
+    // DEPOSIT came from someone else: what's left is a pair.
+    const { body: change } = await call(
+      "POST",
+      `/api/transactions/${deposit}/not-a-transfer`,
+    );
+    expect(change).toMatchObject({
+      dismissed: [[out, deposit]],
+      linked: [[out, fromChecking]],
+    });
+    expect((await find(savings, "DEPOSIT")).transfer).toBeNull();
+    expect((await review()).uncategorized.map((t: Row) => t.id)).toEqual([
+      deposit,
+    ]);
+
+    await call("POST", "/api/transfers/undo", change);
+    expect((await review()).transfers.map((t: Row) => t.id)).toEqual([out]);
+  });
+
+  it("refuses what can't be linked", async () => {
+    const { out, fromChecking, deposit } = await toPick();
+    // Not with itself: it's in the same account.
+    expect(
+      await call("POST", `/api/transactions/${out}/link`, { otherId: out }),
+    ).toEqual({
+      status: 409,
+      body: { error: "These two can't be linked any more. Pick another one." },
+    });
+    await call("POST", `/api/transactions/${out}/link`, {
+      otherId: fromChecking,
+    });
+    expect(
+      await call("POST", `/api/transactions/${deposit}/link`, {
+        otherId: out,
+      }),
+    ).toEqual({
+      status: 409,
+      body: { error: "These two can't be linked any more. Pick another one." },
+    });
+    expect(
+      await call("POST", `/api/transactions/${out}/link`, {
+        otherId: deposit,
+      }),
+    ).toEqual({ status: 409, body: { error: "It's already linked." } });
+    expect(
+      await call("POST", `/api/transactions/${deposit}/not-a-transfer`),
+    ).toEqual({
+      status: 409,
+      body: {
+        error: "Nothing in your other accounts could be its other side.",
+      },
+    });
+    await call("POST", `/api/transactions/${deposit}/exclude`);
+    expect(
+      (await call("GET", `/api/transactions/${deposit}/link-options`)).body,
+    ).toEqual({ error: "It's excluded. Restore it to link it." });
+  });
+});

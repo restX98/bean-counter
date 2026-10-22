@@ -6,6 +6,11 @@ import {
   type SuspectReason,
 } from "../balances.ts";
 import type { RuleOutcome } from "../rules.ts";
+import {
+  matchTransfers,
+  type Dismissed,
+  type TransferTarget,
+} from "../transfers.ts";
 import { findDuplicates, type Imported } from "./duplicates.ts";
 import type { StatementRow } from "./mapping.ts";
 
@@ -29,6 +34,23 @@ export interface PlannedRow extends StatementRow {
   decision: Decision | null;
   /** What the rules say about it; nothing for a duplicate. */
   rule: RuleOutcome;
+  /** Whether it will be one side of a transfer; nothing for a duplicate. */
+  transfer: TransferOutcome;
+}
+
+/** A row's transfer: linked to the only candidate, or candidates to pick from. */
+export type TransferOutcome =
+  | { kind: "none" }
+  | { kind: "linked"; accountId: number }
+  | { kind: "pick"; count: number; accountIds: number[] };
+
+/** What transfer detection needs to know about the rest of my transactions. */
+export interface TransferContext {
+  account: { id: number; currency: string };
+  /** Every unlinked, counted transaction in an account that isn't archived. */
+  pool: TransferTarget[];
+  dismissed?: Dismissed;
+  window?: number;
 }
 
 /** A transaction that could explain a gap: in the account (id) or the file (line). */
@@ -73,6 +95,7 @@ export function planImport({
   decisions = {},
   balance = null,
   rules = () => ({ kind: "none" }),
+  transfers = null,
 }: {
   rows: StatementRow[];
   /** All of the account's transactions, excluded ones too. */
@@ -84,9 +107,12 @@ export function planImport({
   balance?: Pick<Anchor, "amount" | "date"> | null;
   /** What the rules say about a row, in this account. */
   rules?: (row: StatementRow) => RuleOutcome;
+  /** Left out, rows are never transfers. */
+  transfers?: TransferContext | null;
 }): ImportPlan {
   const byId = new Map(existing.map((t) => [t.id, t]));
-  const planned: PlannedRow[] = findDuplicates(rows, existing).map(
+  const none = { kind: "none" } as const;
+  const matched: PlannedRow[] = findDuplicates(rows, existing).map(
     (match, i) => {
       const row = rows[i]!;
       if (match.status === "new") {
@@ -96,6 +122,7 @@ export function planImport({
           match: null,
           decision: null,
           rule: rules(row),
+          transfer: none,
         };
       }
       const { id, date, amount, description } = byId.get(match.of)!;
@@ -105,10 +132,16 @@ export function planImport({
         match: { id, date, amount, description },
         decision:
           match.status === "near-match" ? (decisions[row.line] ?? null) : null,
-        rule: match.status === "near-match" ? rules(row) : { kind: "none" },
+        rule: match.status === "near-match" ? rules(row) : none,
+        transfer: none,
       };
     },
   );
+  const outcomes = transfers ? transferOutcomes(matched, transfers) : null;
+  const planned = matched.map((row) => ({
+    ...row,
+    transfer: outcomes?.get(row.line) ?? none,
+  }));
 
   const bank = bankBalances(rows);
   const latest = bank.at(-1);
@@ -130,6 +163,56 @@ export function planImport({
       : start,
     gaps,
   };
+}
+
+/**
+ * Runs transfer detection as if the rows that may be saved were already
+ * there: new ones, and near-matches I haven't skipped. They join the pool
+ * with negative ids, so they can't clash with saved transactions.
+ */
+function transferOutcomes(
+  rows: PlannedRow[],
+  { account, pool, dismissed, window }: TransferContext,
+): Map<number, TransferOutcome> {
+  const joining = rows.filter(
+    (r) =>
+      r.status === "new" ||
+      (r.status === "near-match" && r.decision !== "skip"),
+  );
+  const { links, candidates } = matchTransfers(
+    [
+      ...pool,
+      ...joining.map((r) => ({
+        id: -r.line,
+        accountId: account.id,
+        currency: account.currency,
+        date: r.date,
+        amount: r.amount,
+      })),
+    ],
+    { window, dismissed },
+  );
+  const outcomes = new Map<number, TransferOutcome>();
+  for (const link of links) {
+    for (const [side, other] of [
+      [link.out, link.in],
+      [link.in, link.out],
+    ] as const) {
+      if (side.id < 0) {
+        outcomes.set(-side.id, { kind: "linked", accountId: other.accountId });
+      }
+    }
+  }
+  for (const [id, list] of candidates) {
+    if (id < 0) {
+      outcomes.set(-id, {
+        kind: "pick",
+        count: list.length,
+        accountIds: [...new Set(list.map((c) => c.accountId))],
+      });
+    }
+  }
+  return outcomes;
 }
 
 /** Whether a planned row will be saved: new, or a near-match I kept. */
