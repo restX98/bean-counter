@@ -6,6 +6,7 @@ import { accountRoutes } from "./accounts.ts";
 import { categoryRoutes } from "./categories.ts";
 import type { Db } from "./db/index.ts";
 import { importRoutes } from "./imports.ts";
+import { ruleRoutes } from "./rules.ts";
 import { transactionRoutes } from "./transactions.ts";
 
 export interface AppOptions {
@@ -28,6 +29,7 @@ export function buildApp({
 
   accountRoutes(app, { db, today });
   categoryRoutes(app, { db });
+  ruleRoutes(app, { db });
   importRoutes(app, { db, today });
   transactionRoutes(app, { db });
 

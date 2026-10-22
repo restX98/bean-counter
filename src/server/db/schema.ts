@@ -55,6 +55,37 @@ export const categories = sqliteTable(
   (t) => [check("categories_type", sql`${t.type} in ('income', 'expense')`)],
 );
 
+/**
+ * "If a transaction looks like this, it gets that category" (see
+ * domain/rules.ts). Rules have no order.
+ */
+export const rules = sqliteTable(
+  "rules",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    match: text("match", { enum: ["contains", "regex"] }).notNull(),
+    /** The text the description contains, or the regular expression. */
+    text: text("text").notNull(),
+    /** Only this account's transactions; null for any account. */
+    accountId: integer("account_id").references(() => accounts.id),
+    // Bounds on the amount's size, in minor units of amount_currency: at
+    // least amount_min, under amount_max. All null for any amount.
+    amountCurrency: text("amount_currency"),
+    amountMin: integer("amount_min"),
+    amountMax: integer("amount_max"),
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => categories.id),
+  },
+  (t) => [
+    check("rules_match", sql`${t.match} in ('contains', 'regex')`),
+    check(
+      "rules_amount",
+      sql`(${t.amountCurrency} is null) = (${t.amountMin} is null and ${t.amountMax} is null)`,
+    ),
+  ],
+);
+
 /** A bank's export format, saved so the next file like it skips the mapping. */
 export const importPresets = sqliteTable(
   "import_presets",
@@ -121,6 +152,10 @@ export const transactions = sqliteTable(
     ),
     /** Null while it's uncategorized. */
     categoryId: integer("category_id").references(() => categories.id),
+    /** The rule that gave it its category; null when I picked it. */
+    ruleId: integer("rule_id").references(() => rules.id, {
+      onDelete: "set null",
+    }),
   },
   (t) => [index("transactions_account_date").on(t.accountId, t.date)],
 );

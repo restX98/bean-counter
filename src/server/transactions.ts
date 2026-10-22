@@ -153,8 +153,9 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           .code(400)
           .send({ error: "This category doesn't exist any more." });
       }
+      // Picked by hand: no rule gave it.
       db.update(transactions)
-        .set({ categoryId })
+        .set({ categoryId, ruleId: null })
         .where(eq(transactions.id, row.id))
         .run();
       return reply.code(204).send();

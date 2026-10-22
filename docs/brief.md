@@ -105,11 +105,14 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 
 - Manage categories (income / expense). Two categories can't share a name, ignoring case, even if one is income and the other expense, since lists and pickers show only the name. The Categories page lists income first, then expenses, each by name, with how many transactions use each. Renaming a category or changing its type keeps its transactions. Deleting one that nothing uses just asks for confirmation.
 - Rules match on description (contains / regex), optionally narrowed by amount or account, and assign a category. They run automatically on import.
+  - Both description tests ignore case, and runs of spaces count as one.
+  - The amount narrowing bounds its size, money in or out: at least X, under Y, or both. It's in one currency, and transactions in other currencies never match it. With an account picked, it's the account's currency.
+  - Each rule shows how many transactions it categorized. Picking a category by hand takes the transaction off the rule; deleting a rule keeps the categories it gave.
 - Uncategorized transactions are listed for manual review. When I categorize one by hand, I can turn that choice into a new rule.
 - An account's page shows each transaction's category, or an Uncategorized tag (excluded transactions don't need one). Opening a transaction shows its details with a category picker: the categories of the type that matches the amount come first (expenses for money going out), and a new category can be added from the picker. On a computer the details open beside the list, so I can go from one transaction to the next.
 - When I save a rule, the app offers to apply it to the existing uncategorized transactions that match. Transactions that already have a category are never changed.
-- Rules have no order. If more than one rule matches a transaction, the app doesn't choose: the transaction goes to Review and I pick the category.
-- Rules that overlap (both could match the same transaction) are flagged on the rules page, with a link to the conflicts they caused.
+- Rules have no order. If the rules that match a transaction give different categories, the app doesn't choose: the transaction goes to Review and I pick the category. If they all give the same one, there's nothing to choose and it gets that category.
+- Rules that overlap (both could match the same transaction, with different categories) are flagged on the rules page, with a link to the conflicts they caused. Two rules overlap when one's "contains" text would itself match the other ("AMAZON PRIME" and "AMAZON") and their accounts, currencies and amounts can meet, or when an imported transaction matches both; for two regular expressions, only the second can tell.
 - Deleting a category: its transactions move to a category I pick (its own type is offered first), or become uncategorized. The rules that assign it follow the transactions (or are deleted if the transactions become uncategorized), and its budget is deleted with its history. The app lists what will change before I confirm. Until rules and budgets exist, only the transactions are asked about.
 
 ### 5.4 Transfer detection
@@ -257,3 +260,4 @@ New features and decisions are added here as we go.
 | 2026-10-20 | Categories page and form: unique names across income and expense, counts of the transactions using each, renaming and changing type keep them, unused categories can be deleted |
 | 2026-10-20 | Categorizing by hand: a Category column on the account page, and a transaction panel with the category picker (matching type first, new categories from the picker) and Exclude or Restore |
 | 2026-10-21 | Deleting a category in use: its transactions move to another category, its own type offered first, or become uncategorized |
+| 2026-10-21 | Rules, matching and storage: contains or regex ignoring case and spaces, amount bounds on the size in one currency, an optional account; rules that agree aren't a conflict; overlaps found from the descriptions and from imported transactions; deleting a category moves or deletes its rules with its transactions |

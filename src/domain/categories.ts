@@ -10,6 +10,8 @@ export interface Category {
   type: CategoryType;
   /** Transactions with this category, excluded ones too. */
   transactionCount: number;
+  /** Rules that give this category. */
+  ruleCount: number;
 }
 
 /** The category form's fields, as typed. */

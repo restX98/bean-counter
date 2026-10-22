@@ -81,6 +81,7 @@ describe("categories (S16, D5)", () => {
       name: "Eating out",
       type: "expense",
       transactionCount: 0,
+      ruleCount: 0,
     });
     expect((await list()).categories).toEqual([body]);
   });

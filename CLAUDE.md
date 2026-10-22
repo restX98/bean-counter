@@ -44,7 +44,7 @@ These are easy to get wrong. The brief has the details.
 - Auto-link a transfer only when exactly one same-currency candidate falls inside the transfer window. Cross-currency pairs always need the user's confirmation.
 - A balance mismatch can only be located between the last day the balances match and the first day they don't (the bank reports balances only on days with rows). Never report a more precise date than the data supports.
 - An excluded transaction is ignored by balances, reports and budgets, but it still counts for duplicate detection, so a re-import doesn't bring it back.
-- When more than one rule matches a transaction, never pick one: send the transaction to Review.
+- When the rules that match a transaction give different categories, never pick one: send the transaction to Review. Rules that match and agree on the category aren't a conflict.
 - A dismissed suggestion ("Not a transfer", "It's income") is remembered and never suggested again; manual linking stays possible.
 - A budget's running balance adds each month's limit in force and subtracts that month's spending, from the start month (or the last start-over). The first month counts in full, even if the budget was created mid-month.
 - A payback linked to an expense isn't income: it reduces the expense's category in the expense's month. The paybacks linked to an expense never add up to more than it; the unlinked part of a payment counts normally.

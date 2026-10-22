@@ -6,7 +6,7 @@ import {
   type CategoryFields,
 } from "../domain/categories.ts";
 import type { Db } from "./db/index.ts";
-import { categories, transactions } from "./db/schema.ts";
+import { categories, rules, transactions } from "./db/schema.ts";
 
 const fieldsSchema = {
   type: "object",
@@ -36,20 +36,33 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
       .where(id === undefined ? undefined : ne(categories.id, id))
       .all()
       .map((r) => r.name);
-  /** How many transactions each category has, by id. */
-  const counts = () =>
-    new Map(
+  /** How many transactions and rules each category has, by id. */
+  const counts = () => ({
+    transactions: new Map(
       db
         .select({ id: transactions.categoryId, n: count() })
         .from(transactions)
         .groupBy(transactions.categoryId)
         .all()
         .map(({ id, n }) => [id, n]),
-    );
+    ),
+    rules: new Map(
+      db
+        .select({ id: rules.categoryId, n: count() })
+        .from(rules)
+        .groupBy(rules.categoryId)
+        .all()
+        .map(({ id, n }) => [id, n]),
+    ),
+  });
   const present = (
     row: typeof categories.$inferSelect,
-    n = counts().get(row.id) ?? 0,
-  ): Category => ({ ...row, transactionCount: n });
+    n = counts(),
+  ): Category => ({
+    ...row,
+    transactionCount: n.transactions.get(row.id) ?? 0,
+    ruleCount: n.rules.get(row.id) ?? 0,
+  });
 
   // S16: every category, and how many counted transactions have none yet.
   app.get("/api/categories", () => {
@@ -67,7 +80,7 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
         .from(categories)
         .orderBy(categories.id)
         .all()
-        .map((row) => present(row, n.get(row.id) ?? 0)),
+        .map((row) => present(row, n)),
       uncategorized: uncategorized?.n ?? 0,
     };
   });
@@ -85,7 +98,7 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
         .values(category.value)
         .returning()
         .get();
-      return reply.code(201).send(present(row, 0));
+      return reply.code(201).send(present(row));
     },
   );
 
@@ -111,8 +124,8 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
   );
 
   // D5, deleting. Its transactions move to `moveTo`, or become uncategorized
-  // when it's null. Left out, a category in use isn't deleted: the choice
-  // must be explicit.
+  // when it's null, and the rules that give it follow them, or are deleted.
+  // Left out, a category in use isn't deleted: the choice must be explicit.
   app.delete<WithId & { Body: { moveTo?: number | null } | undefined }>(
     "/api/categories/:id",
     {
@@ -128,10 +141,17 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
       const row = find(req.params.id);
       if (!row) return notFound(reply);
       const moveTo = req.body?.moveTo;
-      const used = counts().get(row.id) ?? 0;
-      if (used > 0 && moveTo === undefined) {
+      const { transactionCount: used, ruleCount } = present(row);
+      if ((used > 0 || ruleCount > 0) && moveTo === undefined) {
+        const uses = [
+          used > 0 &&
+            `${used === 1 ? "1 transaction uses" : `${used} transactions use`} this category`,
+          ruleCount > 0 &&
+            `${ruleCount === 1 ? "1 rule gives" : `${ruleCount} rules give`} it`,
+        ].filter(Boolean);
+        const one = used + ruleCount === 1;
         return reply.code(409).send({
-          error: `${used === 1 ? "1 transaction uses" : `${used} transactions use`} this category. Say where ${used === 1 ? "it goes" : "they go"} first.`,
+          error: `${uses.join(" and ")}. Say where ${one ? "it goes" : "they go"} first.`,
         });
       }
       if (moveTo != null && (moveTo === row.id || !find(moveTo))) {
@@ -144,6 +164,14 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
           .set({ categoryId: moveTo ?? null })
           .where(eq(transactions.categoryId, row.id))
           .run();
+        if (moveTo == null) {
+          tx.delete(rules).where(eq(rules.categoryId, row.id)).run();
+        } else {
+          tx.update(rules)
+            .set({ categoryId: moveTo })
+            .where(eq(rules.categoryId, row.id))
+            .run();
+        }
         tx.delete(categories).where(eq(categories.id, row.id)).run();
       });
       return reply.code(204).send();
