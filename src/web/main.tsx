@@ -18,6 +18,7 @@ import { More } from "./pages/More.tsx";
 import { NotBuilt, NotFound } from "./pages/NotBuilt.tsx";
 import { Review } from "./pages/Review.tsx";
 import { Rules } from "./pages/Rules.tsx";
+import { Settings } from "./pages/Settings.tsx";
 
 const router = createBrowserRouter([
   {
@@ -38,7 +39,7 @@ const router = createBrowserRouter([
       { path: "budgets", element: <NotBuilt title="Budgets" /> },
       { path: "categories", element: <Categories /> },
       { path: "rules", element: <Rules /> },
-      { path: "settings", element: <NotBuilt title="Settings" inMore /> },
+      { path: "settings", element: <Settings /> },
       { path: "*", element: <NotFound /> },
     ],
   },

@@ -29,6 +29,7 @@ import {
   linkTransfers,
   loadDismissed,
   loadTransferPool,
+  transferWindow,
 } from "./transfers.ts";
 
 // The import in three steps, one per screen: upload a file (S7), preview it
@@ -199,6 +200,7 @@ export function importRoutes(
           account,
           pool: loadTransferPool(db),
           dismissed: loadDismissed(db),
+          window: transferWindow(db),
         },
       }),
     };

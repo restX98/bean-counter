@@ -205,3 +205,9 @@ export const balanceChecks = sqliteTable(
   // One a day: a newer one for the same day replaces it.
   (t) => [uniqueIndex("balance_checks_account_date").on(t.accountId, t.date)],
 );
+
+/** My settings, one row each, such as the transfer window. */
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value", { mode: "json" }).notNull(),
+});

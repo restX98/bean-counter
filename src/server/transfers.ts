@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import {
+  exchangeSuggestions,
   linkOptions,
   matchTransfers,
   pairKey,
@@ -11,9 +12,20 @@ import {
   accounts,
   categories,
   rules,
+  settings,
   transactions,
   transferDismissals,
 } from "./db/schema.ts";
+
+/** How many days apart the two sides of a transfer can be (S18). */
+export function transferWindow(db: Db): number {
+  const row = db
+    .select()
+    .from(settings)
+    .where(eq(settings.key, "transferWindow"))
+    .get();
+  return typeof row?.value === "number" ? row.value : TRANSFER_WINDOW;
+}
 
 /**
  * The transactions that could still be part of a transfer: counted, not
@@ -50,15 +62,24 @@ export const loadDismissed = (db: Db) =>
       .map(({ low, high }) => pairKey(low, high)),
   );
 
-/** The pool, what links on its own, and the candidates of everything else. */
+/**
+ * The pool, what links on its own, the candidates of everything else, and
+ * the pairs across currencies to suggest. A transaction that has candidates
+ * waits for that decision before it's paired across currencies.
+ */
 export function findTransfers(db: Db) {
   const pool = loadTransferPool(db);
+  const options = { window: transferWindow(db), dismissed: loadDismissed(db) };
+  const { links, candidates } = matchTransfers(pool, options);
+  const linked = new Set(links.flatMap((l) => [l.out.id, l.in.id]));
   return {
     pool,
-    ...matchTransfers(pool, {
-      window: TRANSFER_WINDOW,
-      dismissed: loadDismissed(db),
-    }),
+    links,
+    candidates,
+    exchanges: exchangeSuggestions(
+      pool.filter((t) => !linked.has(t.id) && !candidates.has(t.id)),
+      options,
+    ),
   };
 }
 
@@ -201,9 +222,10 @@ export function transferRoutes(app: FastifyInstance, { db }: { db: Db }) {
     (req, reply) => {
       const row = unlinked(req.params.id, reply);
       if (!row) return reply;
-      const options = linkOptions(row, loadTransferPool(db), TRANSFER_WINDOW);
+      const window = transferWindow(db);
+      const options = linkOptions(row, loadTransferPool(db), window);
       return {
-        window: TRANSFER_WINDOW,
+        window,
         options: options.map(
           ({ id, accountId, date, amount, description }) => ({
             id,
@@ -233,7 +255,11 @@ export function transferRoutes(app: FastifyInstance, { db }: { db: Db }) {
     (req, reply) => {
       const row = unlinked(req.params.id, reply);
       if (!row) return reply;
-      const options = linkOptions(row, loadTransferPool(db), TRANSFER_WINDOW);
+      const options = linkOptions(
+        row,
+        loadTransferPool(db),
+        transferWindow(db),
+      );
       if (!options.some((o) => o.id === req.body.otherId)) {
         return reply.code(409).send({
           error: "These two can't be linked any more. Pick another one.",
@@ -256,14 +282,29 @@ export function transferRoutes(app: FastifyInstance, { db }: { db: Db }) {
     },
   );
 
-  // S2, Not a transfer: none of its candidates is its other side.
-  app.post<WithId>(
+  // S2, Not a transfer: none of its candidates is its other side. With
+  // `otherId`, only that pair isn't one, such as an exchange I was suggested.
+  app.post<WithId & { Body: { otherId?: number } | undefined }>(
     "/api/transactions/:id/not-a-transfer",
-    { schema: { params: idParams } },
+    {
+      schema: {
+        params: idParams,
+        body: {
+          type: ["object", "null"],
+          properties: { otherId: { type: "integer" } },
+        },
+      },
+    },
     (req, reply) => {
       const row = unlinked(req.params.id, reply);
       if (!row) return reply;
-      const candidates = findTransfers(db).candidates.get(row.id) ?? [];
+      const otherId = req.body?.otherId;
+      const candidates =
+        otherId === undefined
+          ? (findTransfers(db).candidates.get(row.id) ?? [])
+          : linkOptions(row, loadTransferPool(db), transferWindow(db)).filter(
+              (o) => o.id === otherId,
+            );
       if (candidates.length === 0) {
         return reply.code(409).send({
           error: "Nothing in your other accounts could be its other side.",

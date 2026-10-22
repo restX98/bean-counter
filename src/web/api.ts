@@ -473,8 +473,14 @@ export interface ReviewTransfer extends ReviewTarget {
   candidates: TransferSide[];
 }
 
+/** S2: a pair across currencies that could be an exchange, from the side going out. */
+export interface ReviewExchange extends ReviewTarget {
+  other: TransferSide;
+}
+
 export type ReviewList = ReviewGroups<ReviewTarget> & {
   transfers: ReviewTransfer[];
+  exchanges: ReviewExchange[];
   mismatches: ReviewMismatch[];
   count: number;
 };
@@ -559,12 +565,40 @@ export const useLink = () =>
     }),
   );
 
+/** None of its candidates is its other side; with `otherId`, only that one. */
 export const useNotATransfer = () =>
-  useTransferChange((id: number) =>
-    request<TransferChange>("POST", `/api/transactions/${id}/not-a-transfer`),
+  useTransferChange(({ id, otherId }: { id: number; otherId?: number }) =>
+    request<TransferChange>(
+      "POST",
+      `/api/transactions/${id}/not-a-transfer`,
+      otherId === undefined ? undefined : { otherId },
+    ),
   );
 
 export const useUndoTransfer = () =>
   useTransferChange((change: TransferChange) =>
     request<null>("POST", "/api/transfers/undo", change),
   );
+
+const SETTINGS = ["settings"];
+
+/** S18. */
+export const useSettings = () =>
+  useQuery({
+    queryKey: SETTINGS,
+    queryFn: () => request<{ transferWindow: number }>("GET", "/api/settings"),
+  });
+
+/** A new transfer window links what it brings in, so everything may change. */
+export function useUpdateSettings() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { transferWindow: string }) =>
+      request<{ transferWindow: number; linked: number }>(
+        "PATCH",
+        "/api/settings",
+        body,
+      ),
+    onSuccess: () => client.invalidateQueries(),
+  });
+}

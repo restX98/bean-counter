@@ -156,6 +156,34 @@
 .select[aria-invalid="true"] {
   border-color: var(--color-danger-solid);
 }
+/* An input with its unit in the box, such as S18's "3 days". */
+.input.suffix {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 140px;
+}
+.input.suffix input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: var(--numbers);
+}
+.input.suffix input:focus-visible {
+  outline: none;
+}
+.input.suffix:focus-within {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: 0;
+  border-color: var(--color-focus);
+}
+.input.suffix:has(input[aria-invalid="true"]) {
+  border-color: var(--color-danger-solid);
+}
 .input.is-readonly,
 .select:disabled {
   background: var(--color-surface-muted);

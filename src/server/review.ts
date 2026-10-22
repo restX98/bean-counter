@@ -11,12 +11,13 @@ import { findTransfers } from "./transfers.ts";
 export function reviewRoutes(app: FastifyInstance, { db }: { db: Db }) {
   // S2: what the app can't decide on its own, in Review's groups, and how
   // many items wait in all: the transactions waiting for a category, the
-  // transfers whose other side I pick, and each place where an account's
-  // balances and the bank's part ways. A possible transfer and its
+  // transfers whose other side I pick, the pairs across currencies that
+  // could be an exchange, and each place where an account's balances and
+  // the bank's part ways. A possible transfer and its
   // candidates wait for that decision first. Archived accounts can't
   // change, so they're left out.
   app.get("/api/review", () => {
-    const { candidates } = findTransfers(db);
+    const { candidates, exchanges: pairs } = findTransfers(db);
     const { uncategorized, conflicts } = reviewGroups(
       loadUncategorized(db).filter((t) => !candidates.has(t.id)),
       loadRules(db),
@@ -67,15 +68,33 @@ export function reviewRoutes(app: FastifyInstance, { db }: { db: Db }) {
           shownEnd(b).date.localeCompare(shownEnd(a).date) ||
           a.accountId - b.accountId,
       );
+    // Newest first, by the money going out.
+    const side = (t: (typeof pairs)[number]["out"]) => ({
+      id: t.id,
+      accountId: t.accountId,
+      date: t.date,
+      amount: t.amount,
+      description: t.description,
+    });
+    const exchanges = pairs
+      .map((pair) => ({
+        ...side(pair.out),
+        time: pair.out.time,
+        currency: pair.out.currency,
+        other: side(pair.in),
+      }))
+      .reverse();
     return {
       uncategorized,
       conflicts,
       transfers,
+      exchanges,
       mismatches,
       count:
         uncategorized.length +
         conflicts.length +
         transfers.length +
+        exchanges.length +
         mismatches.length,
     };
   });

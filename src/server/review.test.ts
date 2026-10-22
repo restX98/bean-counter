@@ -88,6 +88,7 @@ describe("the Review list (S2)", () => {
       uncategorized: [],
       conflicts: [],
       transfers: [],
+      exchanges: [],
       mismatches: [],
       count: 0,
     });

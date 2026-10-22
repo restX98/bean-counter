@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 async function call(
-  method: "GET" | "POST" | "PUT",
+  method: "GET" | "POST" | "PUT" | "PATCH",
   url: string,
   payload?: object,
 ) {
@@ -403,5 +403,129 @@ describe("a transfer to pick", () => {
     expect(
       (await call("GET", `/api/transactions/${deposit}/link-options`)).body,
     ).toEqual({ error: "It's excluded. Restore it to link it." });
+  });
+});
+
+/** 200.00 € out of Main checking, and 218.00 $ into the US account the next day. */
+async function exchange() {
+  const main = await account("Main checking");
+  const { body: us } = await call("POST", "/api/accounts", {
+    name: "US account",
+    bank: "Bank B",
+    type: "checking",
+    currency: "USD",
+  });
+  await importRows(main, ["28/09/2026;EXCHANGE TO USD;-200,00"]);
+  await importRows(us.id, ["29/09/2026;FROM EUR;218,00"]);
+  return {
+    main,
+    us: us.id as number,
+    out: (await find(main, "EXCHANGE TO USD")).id,
+    into: (await find(us.id, "FROM EUR")).id,
+  };
+}
+
+describe("an exchange between currencies", () => {
+  it("is suggested in Review, never linked on its own", async () => {
+    const { us, out, into } = await exchange();
+    const { exchanges, uncategorized, count } = await review();
+    expect(exchanges).toEqual([
+      {
+        id: out,
+        accountId: expect.any(Number),
+        date: "2026-09-28",
+        time: null,
+        amount: -20000,
+        currency: "EUR",
+        description: "EXCHANGE TO USD",
+        other: {
+          id: into,
+          accountId: us,
+          date: "2026-09-29",
+          amount: 21800,
+          description: "FROM EUR",
+        },
+      },
+    ]);
+    // Still normal transactions, waiting for a category too.
+    expect(uncategorized).toHaveLength(2);
+    expect(count).toBe(3);
+  });
+
+  it("links when I confirm it", async () => {
+    const { us, out, into } = await exchange();
+    const { status } = await call("POST", `/api/transactions/${out}/link`, {
+      otherId: into,
+    });
+    expect(status).toBe(200);
+    expect((await find(us, "FROM EUR")).transfer).toMatchObject({ id: out });
+    expect((await review()).count).toBe(0);
+  });
+
+  it("isn't suggested again once I say it isn't one, until Undo", async () => {
+    const { out, into } = await exchange();
+    const { body: change } = await call(
+      "POST",
+      `/api/transactions/${out}/not-a-transfer`,
+      { otherId: into },
+    );
+    expect(change).toEqual({
+      linked: [],
+      dismissed: [[out, into]],
+      before: [],
+    });
+    expect((await review()).exchanges).toEqual([]);
+    await call("POST", "/api/transfers/undo", change);
+    expect((await review()).exchanges).toHaveLength(1);
+  });
+
+  it("waits while either side has candidates in its own currency", async () => {
+    const { main } = await exchange();
+    const savings = await account("Savings");
+    await importRows(main, ["28/09/2026;TRANSFER TO SAVINGS;-200,00"]);
+    await importRows(savings, [
+      "28/09/2026;FROM CHECKING;200,00",
+      "29/09/2026;FROM CHECKING;200,00",
+    ]);
+    // EXCHANGE TO USD and TRANSFER TO SAVINGS could both go to Savings.
+    expect((await review()).exchanges).toEqual([]);
+  });
+});
+
+describe("the transfer window (S18)", () => {
+  it("is 3 days until I change it", async () => {
+    expect((await call("GET", "/api/settings")).body).toEqual({
+      transferWindow: 3,
+    });
+  });
+
+  it("links what a wider window brings in, and keeps the setting", async () => {
+    const main = await account("Main checking");
+    const savings = await account("Savings");
+    await importRows(main, ["05/10/2026;TRANSFER TO SAVINGS;-500,00"]);
+    // Five days later: outside the window.
+    await importRows(savings, ["10/10/2026;TRANSFER FROM CHECKING;500,00"]);
+    expect((await find(main, "TRANSFER TO SAVINGS")).transfer).toBeNull();
+
+    expect(
+      await call("PATCH", "/api/settings", { transferWindow: "5" }),
+    ).toEqual({ status: 200, body: { transferWindow: 5, linked: 1 } });
+    expect((await find(main, "TRANSFER TO SAVINGS")).transfer).not.toBeNull();
+    expect((await call("GET", "/api/settings")).body).toEqual({
+      transferWindow: 5,
+    });
+  });
+
+  it("refuses what isn't whole days from 0 to 30", async () => {
+    expect(
+      await call("PATCH", "/api/settings", { transferWindow: "31" }),
+    ).toEqual({
+      status: 400,
+      body: {
+        errors: {
+          transferWindow: "Enter a whole number of days, from 0 to 30.",
+        },
+      },
+    });
   });
 });

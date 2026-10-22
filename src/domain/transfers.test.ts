@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  exchangeSuggestions,
   isCandidate,
   linkOptions,
   matchTransfers,
   pairKey,
+  readWindow,
   transfersToPick,
   type TransferTarget,
 } from "./transfers.ts";
@@ -192,5 +194,55 @@ describe("transfersToPick", () => {
 
   it("asks nothing when every pair links", () => {
     expect(pick([toSavings, fromChecking])).toEqual([]);
+  });
+});
+
+describe("exchangeSuggestions", () => {
+  // 200.00 € exchanged into 218.00 $ the next day.
+  const toDollars = tx(1, 1, "2026-09-28", -20000);
+  const dollars = tx(2, 4, "2026-09-29", 21800, "USD");
+
+  it("suggests money out and in across currencies within the window", () => {
+    expect(exchangeSuggestions([dollars, toDollars])).toEqual([
+      { out: toDollars, in: dollars },
+    ]);
+  });
+
+  it("suggests every such pair, whatever the amounts", () => {
+    const coffee = tx(3, 1, "2026-09-30", -120);
+    expect(exchangeSuggestions([toDollars, dollars, coffee])).toEqual([
+      { out: toDollars, in: dollars },
+      { out: coffee, in: dollars },
+    ]);
+  });
+
+  it("skips the same currency, the same direction, the window and dismissed pairs", () => {
+    const savings = tx(3, 2, "2026-09-28", 20000);
+    const fee = tx(4, 4, "2026-09-29", -500, "USD");
+    const later = tx(5, 1, "2026-10-03", -900);
+    expect(exchangeSuggestions([toDollars, savings])).toEqual([]);
+    expect(exchangeSuggestions([toDollars, fee])).toEqual([]);
+    expect(exchangeSuggestions([dollars, later])).toEqual([]);
+    expect(
+      exchangeSuggestions([toDollars, dollars], {
+        dismissed: new Set([pairKey(1, 2)]),
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("readWindow", () => {
+  it("reads whole days from 0 to 30", () => {
+    expect(readWindow(" 5 ")).toEqual({ days: 5 });
+    expect(readWindow("0")).toEqual({ days: 0 });
+    expect(readWindow("30")).toEqual({ days: 30 });
+  });
+
+  it("refuses anything else", () => {
+    for (const text of ["", "31", "-1", "2.5", "three", "1e1"]) {
+      expect(readWindow(text), text).toEqual({
+        error: "Enter a whole number of days, from 0 to 30.",
+      });
+    }
   });
 });

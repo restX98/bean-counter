@@ -175,3 +175,50 @@ export function transfersToPick<T extends TransferTarget>(
   }
   return picks.sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
 }
+
+/**
+ * The pairs across currencies that could be an exchange: money out of one
+ * account and into one with another currency, at most `window` days apart,
+ * and not a pair I dismissed. There's no rate to compare the amounts with,
+ * so every such pair is suggested, and none is ever linked on its own. Money
+ * out first; oldest first.
+ */
+export function exchangeSuggestions<T extends TransferTarget>(
+  pool: T[],
+  { window = TRANSFER_WINDOW, dismissed = new Set() }: MatchOptions = {},
+): { out: T; in: T }[] {
+  const byDate = pool.toSorted(
+    (a, b) => a.date.localeCompare(b.date) || a.id - b.id,
+  );
+  const pairs: { out: T; in: T }[] = [];
+  for (const [i, a] of byDate.entries()) {
+    for (const b of byDate.slice(i + 1)) {
+      if (daysBetween(a.date, b.date) > window) break;
+      if (
+        a.currency !== b.currency &&
+        Math.sign(a.amount) === -Math.sign(b.amount) &&
+        a.amount !== 0 &&
+        !dismissed.has(pairKey(a.id, b.id))
+      ) {
+        pairs.push(a.amount < 0 ? { out: a, in: b } : { out: b, in: a });
+      }
+    }
+  }
+  return pairs.sort(
+    (x, y) => x.out.date.localeCompare(y.out.date) || x.out.id - y.out.id,
+  );
+}
+
+/** The longest transfer window I can set, in days. */
+export const MAX_TRANSFER_WINDOW = 30;
+
+/** A transfer window as I typed it in Settings: whole days, 0 to 30. */
+export function readWindow(text: string): { days: number } | { error: string } {
+  const trimmed = text.trim();
+  const days = Number(trimmed);
+  return /^\d+$/.test(trimmed) && days <= MAX_TRANSFER_WINDOW
+    ? { days }
+    : {
+        error: `Enter a whole number of days, from 0 to ${MAX_TRANSFER_WINDOW}.`,
+      };
+}

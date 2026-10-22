@@ -118,11 +118,14 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 
 ### 5.4 Transfer detection
 
-- **Candidate match**: two transactions in two different accounts of mine, in the same currency, with opposite amounts, dated within the transfer window (3 days by default, adjustable in settings).
+- **Candidate match**: two transactions in two different accounts of mine, in the same currency, with opposite amounts, dated within the transfer window (3 days by default, adjustable in Settings from 0 to 30 days). A new window applies at once: whatever now has a single candidate is linked, and links made before stay.
 - **Exactly one candidate**: when the two are each other's only candidate, the app links them automatically, as soon as the second one is imported (an import also links pairs imported before). Accounts that are archived are left out.
 - **More than one candidate**: the app asks me to pick. Review lists one item per transaction on the smaller side of each group that could pair up in more than one way, with what could be its other side; the rest of the group waits with it, not as uncategorized. The import preview tags these rows "Transfer to pick".
 - After every decision (a pick, "Not a transfer", an unlink), the app links again whatever now has a single candidate, which often settles the rest of a group: with two −100.00 and two +100.00 in the window, one pick links both pairs. Right after a pick or "Not a transfer", Undo puts back everything it changed.
 - **Different currencies (an exchange)**: there's no rate to compare the amounts with, so the app never links these on its own. It suggests pairs that move money in opposite directions within the window, and I confirm. The two amounts record the real rate my bank applied.
+  - Every such pair is its own suggestion in Review, with Link and Not a transfer; whatever the amounts, a busy account can bring many. "Not a transfer" dismisses only that pair.
+  - A transaction that has candidates in its own currency isn't paired across currencies until that's settled.
+  - Both sides stay normal transactions meanwhile: they can still be categorized, and they're listed under Uncategorized too.
 - I can always link or unlink transfers manually. Linking by hand offers the candidates (even a pair I dismissed), then the transactions in other currencies going the other way within the window.
 - If I say a suggested pair is not a transfer, or unlink a pair, the app remembers it and never suggests or links that pair again. I can still link them by hand.
 - A transfer has no category: linking takes away the one a rule or I gave, and unlinking leaves both sides uncategorized. Excluding one side unlinks the other.
@@ -276,3 +279,4 @@ New features and decisions are added here as we go.
 | 2026-10-22 | Review: balance mismatches, one item per gap, with the app's and the bank's balance where they differ most, opening the account at the gap; the review count in the navigation, on the dashboard and in the import's summary; archived accounts left out |
 | 2026-10-22 | Transfers, linked automatically: a pair that's each other's only candidate is linked when an import is saved, losing its category; the account page tags it with the other account, the transaction panel shows the other side with Unlink, which is remembered; excluding one side unlinks the other; the import summary counts the linked ones |
 | 2026-10-22 | Transfers to pick: tagged on the account page and in the import preview, one Review item per transaction on a group's smaller side, picked with Link transfer (D4, also from the transaction panel) or dismissed with "Not a transfer", with Undo; after every decision the app links again whatever has a single candidate left |
+| 2026-10-22 | Exchanges and the transfer window: every pair across currencies within the window is suggested in Review (Link, or Not a transfer for that pair), never linked on its own and still a normal transaction meanwhile; Settings has the transfer window, 0 to 30 days, applied at once |

@@ -9,11 +9,13 @@ import {
   useAccounts,
   useApplyRules,
   useCategories,
+  useLink,
   useNotATransfer,
   useReview,
   useRules,
   useSetCategory,
   useUndoTransfer,
+  type ReviewExchange,
   type ReviewList,
   type ReviewMismatch,
   type ReviewTransfer,
@@ -57,6 +59,8 @@ const isConflict = (item: Item): item is ReviewList["conflicts"][number] =>
 const keyOf = (item: Item) =>
   `${isConflict(item) ? "conflicts" : "uncategorized"} ${item.id}`;
 const transferKey = (item: ReviewTransfer) => `transfers ${item.id}`;
+const exchangeKey = (item: ReviewExchange) =>
+  `exchanges ${item.id} ${item.other.id}`;
 const day = (date: string) => formatDate(date).slice(0, 5);
 
 /**
@@ -74,6 +78,7 @@ export function Review() {
   const rules = useRules();
   const setCategory = useSetCategory();
   const applyRules = useApplyRules();
+  const link = useLink();
   const notATransfer = useNotATransfer();
   const undoTransfer = useUndoTransfer();
   // Items just settled, hidden before the list catches up; Undo brings them
@@ -133,34 +138,69 @@ export function Review() {
     );
   // `others`: the transfers that linked on their own after it.
   const transferDone = (
-    item: ReviewTransfer,
+    key: string,
     text: string,
     change: TransferChange,
     others: number,
   ) => {
-    hide(transferKey(item), true);
+    hide(key, true);
     notify(
       others > 0
         ? `${text} ${plural(others, "more transfer")} linked on ${others === 1 ? "its" : "their"} own.`
         : text,
-      () =>
-        undoTransfer.mutate(change, {
-          onSuccess: () => hide(transferKey(item), false),
-        }),
+      () => undoTransfer.mutate(change, { onSuccess: () => hide(key, false) }),
     );
   };
   const dismiss = (item: ReviewTransfer) => {
-    hide(transferKey(item), true);
-    notATransfer.mutate(item.id, {
-      onSuccess: (change) =>
-        transferDone(
-          item,
-          `${item.description} isn't a transfer.`,
-          change,
-          change.linked.length,
-        ),
-      onError: () => hide(transferKey(item), false),
-    });
+    const key = transferKey(item);
+    hide(key, true);
+    notATransfer.mutate(
+      { id: item.id },
+      {
+        onSuccess: (change) =>
+          transferDone(
+            key,
+            `${item.description} isn't a transfer.`,
+            change,
+            change.linked.length,
+          ),
+        onError: () => hide(key, false),
+      },
+    );
+  };
+  const linkExchange = (item: ReviewExchange) => {
+    const key = exchangeKey(item);
+    hide(key, true);
+    link.mutate(
+      { id: item.id, otherId: item.other.id },
+      {
+        onSuccess: (change) =>
+          transferDone(
+            key,
+            `${item.description} is now linked to ${accountNames.get(item.other.accountId)}.`,
+            change,
+            change.linked.length - 1,
+          ),
+        onError: () => hide(key, false),
+      },
+    );
+  };
+  const dismissExchange = (item: ReviewExchange) => {
+    const key = exchangeKey(item);
+    hide(key, true);
+    notATransfer.mutate(
+      { id: item.id, otherId: item.other.id },
+      {
+        onSuccess: (change) =>
+          transferDone(
+            key,
+            `${item.description} and ${item.other.description} aren't a transfer.`,
+            change,
+            change.linked.length,
+          ),
+        onError: () => hide(key, false),
+      },
+    );
   };
   const pick = (item: Item, categoryId: number, name: string) => {
     hide(keyOf(item), true);
@@ -326,6 +366,58 @@ export function Review() {
     };
   };
 
+  // A pair across currencies: the side going out, with the other side.
+  const exchangeRow = (item: ReviewExchange): Row => {
+    const account = accountNames.get(item.accountId) ?? "";
+    const other = accounts.data.find((a) => a.id === item.other.accountId);
+    return {
+      key: `${item.id} ${item.other.id}`,
+      date: item.date,
+      account,
+      where: `${account} · ${day(item.date)}`,
+      what: (
+        <span className="what">
+          <strong>{item.description}</strong>
+          <span className="caption">
+            ⇄ {item.other.description} · {other?.name} ·{" "}
+            {other &&
+              formatAmount(item.other.amount, other.currency, {
+                signed: true,
+              })}{" "}
+            on {day(item.other.date)}
+          </span>
+        </span>
+      ),
+      amount: (
+        <span className="amount">
+          {formatAmount(item.amount, item.currency, { signed: true })}
+        </span>
+      ),
+      acts: (
+        <span className="acts">
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            aria-label={`Link ${item.description} with ${item.other.description}`}
+            disabled={link.isPending}
+            onClick={() => linkExchange(item)}
+          >
+            Link
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            aria-label={`${item.description} and ${item.other.description} aren't a transfer`}
+            disabled={notATransfer.isPending}
+            onClick={() => dismissExchange(item)}
+          >
+            Not a transfer
+          </button>
+        </span>
+      ),
+    };
+  };
+
   const mismatchRow = (m: ReviewMismatch): Row => {
     const money = (minor: number) => formatAmount(minor, m.currency);
     const account = accountNames.get(m.accountId) ?? "";
@@ -383,9 +475,15 @@ export function Review() {
         key: "transfers",
         title: "Transfers to confirm",
         icon: "transfer",
-        rows: review.data.transfers
-          .filter((t) => !settled.has(transferKey(t)))
-          .map(transferRow),
+        // Newest first, whichever kind.
+        rows: [
+          ...review.data.transfers
+            .filter((t) => !settled.has(transferKey(t)))
+            .map(transferRow),
+          ...review.data.exchanges
+            .filter((x) => !settled.has(exchangeKey(x)))
+            .map(exchangeRow),
+        ].sort((a, b) => b.date.localeCompare(a.date)),
       },
       {
         key: "mismatches",
@@ -413,6 +511,7 @@ export function Review() {
         error={
           setCategory.error ??
           applyRules.error ??
+          link.error ??
           notATransfer.error ??
           undoTransfer.error
         }
@@ -502,7 +601,7 @@ export function Review() {
           onClose={() => setDialog(null)}
           onLinked={(change, other) =>
             transferDone(
-              dialog.item,
+              transferKey(dialog.item),
               `${dialog.item.description} is now linked to ${accountNames.get(other.accountId)}.`,
               change,
               change.linked.length - 1,
