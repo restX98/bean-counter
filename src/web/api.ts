@@ -11,7 +11,7 @@ import type {
   AnchorFields,
   FieldErrors,
 } from "../domain/accounts.ts";
-import type { SuspectReason } from "../domain/balances.ts";
+import type { BothBalances, SuspectReason } from "../domain/balances.ts";
 import type { Category, CategoryFields } from "../domain/categories.ts";
 import type {
   LeftOutRow,
@@ -79,6 +79,7 @@ async function request<T>(
 }
 
 const ACCOUNTS = ["accounts"];
+const REVIEW = ["review"];
 
 /** Every account, archived ones included, in the order they were added. */
 export function useAccounts() {
@@ -95,7 +96,13 @@ function useAccountChange<V, R = Account>(change: (vars: V) => Promise<R>) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: change,
-    onSuccess: () => client.invalidateQueries({ queryKey: ACCOUNTS }),
+    // Imports, exclusions and balances change what waits in Review too.
+    onSuccess: () =>
+      Promise.all(
+        [ACCOUNTS, REVIEW].map((queryKey) =>
+          client.invalidateQueries({ queryKey }),
+        ),
+      ),
   });
 }
 
@@ -276,7 +283,6 @@ export const useExclude = () =>
 
 const CATEGORIES = ["categories"];
 const RULES = ["rules"];
-const REVIEW = ["review"];
 
 /** S16: every category, and how many counted transactions have none yet. */
 export const useCategories = () =>
@@ -433,7 +439,22 @@ export const useRulePreview = (fields: RuleFields, id: number | null) =>
   });
 
 /** S2: the transactions waiting for a category, and how many items wait. */
-export type ReviewList = ReviewGroups<ReviewTarget> & { count: number };
+/** S2: a place where an account's balances and the bank's part ways. */
+export interface ReviewMismatch {
+  accountId: number;
+  currency: string;
+  /** Its place among the account's gaps, as S4 lists them. */
+  index: number;
+  after: string;
+  until: string;
+  amount: number;
+  balances: { after: BothBalances; until: BothBalances };
+}
+
+export type ReviewList = ReviewGroups<ReviewTarget> & {
+  mismatches: ReviewMismatch[];
+  count: number;
+};
 
 export const useReview = () =>
   useQuery({

@@ -1,6 +1,7 @@
+import type { BalanceGap, BothBalances } from "./balances.ts";
 import { ruleChecker, type Rule, type RuleTarget } from "./rules.ts";
 
-// S2: the transactions waiting for a category, in Review's groups.
+// S2: what waits for a decision, in Review's groups.
 
 /** An uncategorized, counted transaction. */
 export interface ReviewTarget extends RuleTarget {
@@ -57,4 +58,22 @@ export function reviewGroups<T extends ReviewTarget>(
     }
   }
   return groups;
+}
+
+/**
+ * The end of a gap that Review shows: where the app's balance and the
+ * bank's differ more, the later on a tie. With one gap that's the end where
+ * they differ; the other end is where they match, often the anchor.
+ */
+export function shownEnd({
+  after,
+  until,
+  balances,
+}: Pick<BalanceGap<unknown>, "after" | "until" | "balances">): BothBalances & {
+  date: string;
+} {
+  const off = ({ app, bank }: BothBalances) => Math.abs(bank - app);
+  return off(balances.after) > off(balances.until)
+    ? { date: after, ...balances.after }
+    : { date: until, ...balances.until };
 }

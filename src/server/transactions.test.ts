@@ -106,6 +106,10 @@ describe("an account's transactions (S4)", () => {
             description: "ESSELUNGA MILANO",
           }),
         ],
+        balances: {
+          after: { app: 329680, bank: 324050 },
+          until: { app: 318420, bank: 318420 },
+        },
       },
     ]);
     expect(body.offDays).toEqual(["2026-10-01"]);

@@ -169,6 +169,9 @@ Amounts in different currencies are never added together. Every report is shown 
 - A Review inbox gathers everything waiting for my decision: uncategorized transactions, rule conflicts, transfers to confirm, possible paybacks and balance mismatches. During an import, the same items can be settled right away for that file.
   - Picking a category in Review takes the transaction off the list, and a message offers Undo.
   - When a rule would categorize an uncategorized transaction now (it was saved without applying it, or the other rule of a conflict was deleted), Review names the rule and its category, and one click accepts it. Nothing changes until I do.
+  - Each place where an account's balances and the bank's part ways is its own item: the app's balance and the bank's, how far apart they are, and between which days. It opens the account at that place, and leaves Review once it's fixed there.
+  - Archived accounts can't change, so their items are left out.
+  - How many items are waiting shows next to Review in the navigation (on a phone, on More) and on the dashboard. An import says how many of its transactions it sent to Review.
 - There's no setup wizard. On first launch, empty screens explain the next step (add an account, then import a statement).
 
 The screens and flows are listed in [plan.md](plan.md).
@@ -267,3 +270,4 @@ New features and decisions are added here as we go.
 | 2026-10-22 | Rules page and form: each rule with what it needs, its category and how many it categorized, overlaps flagged with the conflicts they caused; the form shows overlaps while typing and offers to apply the rule to matching uncategorized transactions, or to re-check the conflicts an edit settles; categories show the rules that give them, and deleting one lists what happens to its rules |
 | 2026-10-22 | Rules run on import: the preview tags rows auto-categorized, uncategorized or rule conflict, and the summary counts them; the account page tags rule conflicts; a transaction categorized by hand offers "Create rule from this", with the form filled in, and one a rule categorized names the rule |
 | 2026-10-22 | Review: picking a category takes the item off the list with an Undo message; an uncategorized transaction a rule would now categorize names the rule and its category, with Use it |
+| 2026-10-22 | Review: balance mismatches, one item per gap, with the app's and the bank's balance where they differ most, opening the account at the gap; the review count in the navigation, on the dashboard and in the import's summary; archived accounts left out |

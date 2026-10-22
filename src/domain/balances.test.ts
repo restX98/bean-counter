@@ -209,6 +209,10 @@ describe("checkBalances", () => {
         until: "2026-10-03",
         amount: -120,
         suspects: [{ transaction: coffee, reason: "skipped" }],
+        balances: {
+          after: { app: 318300, bank: 318420 },
+          until: { app: 318300, bank: 318300 },
+        },
       },
     ]);
   });
@@ -227,6 +231,10 @@ describe("checkBalances", () => {
         until: "2026-10-01",
         amount: 200000,
         suspects: [{ transaction: salary, reason: "skipped" }],
+        balances: {
+          after: { app: 124050, bank: 124050 },
+          until: { app: 124050, bank: 324050 },
+        },
       },
     ]);
   });
@@ -244,6 +252,10 @@ describe("checkBalances", () => {
         until: "2026-10-02",
         amount: -5630,
         suspects: [{ transaction: groceries, reason: "excluded" }],
+        balances: {
+          after: { app: 318420, bank: 324050 },
+          until: { app: 318420, bank: 318420 },
+        },
       },
     ]);
   });
@@ -276,6 +288,10 @@ describe("checkBalances", () => {
           { transaction: kept, reason: "kept-near-match" },
           { transaction: original, reason: "same-amount" },
         ],
+        balances: {
+          after: { app: 111980, bank: 108490 },
+          until: { app: 105000, bank: 105000 },
+        },
       },
     ]);
   });
@@ -294,6 +310,10 @@ describe("checkBalances", () => {
         until: "2026-10-03",
         amount: 450,
         suspects: [{ transaction: reversed, reason: "same-amount" }],
+        balances: {
+          after: { app: 318870, bank: 318420 },
+          until: { app: 318420, bank: 318420 },
+        },
       },
     ]);
   });
@@ -315,6 +335,10 @@ describe("checkBalances", () => {
         until: "2026-10-20",
         amount: -40000,
         suspects: [],
+        balances: {
+          after: { app: 100000, bank: 140000 },
+          until: { app: 100000, bank: 100000 },
+        },
       },
     ]);
   });
@@ -327,7 +351,16 @@ describe("checkBalances", () => {
         bank: [{ date: "2026-10-05", balance: 268420 }],
       }),
     ).toEqual([
-      { after: "2026-10-05", until: "2026-10-05", amount: 420, suspects: [] },
+      {
+        after: "2026-10-05",
+        until: "2026-10-05",
+        amount: 420,
+        suspects: [],
+        balances: {
+          after: { app: 268000, bank: 268000 },
+          until: { app: 268000, bank: 268420 },
+        },
+      },
     ]);
   });
 
@@ -345,12 +378,20 @@ describe("checkBalances", () => {
         until: "2026-10-01",
         amount: 200000,
         suspects: [],
+        balances: {
+          after: { app: 124050, bank: 124050 },
+          until: { app: 124050, bank: 324050 },
+        },
       },
       {
         after: "2026-10-02",
         until: "2026-10-05",
         amount: 5630,
         suspects: [{ transaction: twice, reason: "same-amount" }],
+        balances: {
+          after: { app: 118420, bank: 318420 },
+          until: { app: 62790, bank: 268420 },
+        },
       },
     ]);
   });

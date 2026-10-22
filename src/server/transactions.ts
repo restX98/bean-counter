@@ -35,53 +35,9 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       const account = findAccount(req.params.id);
       if (!account) return reply.code(404).send({ error: "Not found" });
 
-      const rows = db
-        .select({
-          id: transactions.id,
-          importId: transactions.importId,
-          line: transactions.line,
-          date: transactions.date,
-          time: transactions.time,
-          amount: transactions.amount,
-          description: transactions.description,
-          reference: transactions.reference,
-          bankBalance: transactions.bankBalance,
-          excluded: transactions.excluded,
-          nearMatchOf: transactions.nearMatchOf,
-          categoryId: transactions.categoryId,
-          ruleId: transactions.ruleId,
-        })
-        .from(transactions)
-        .where(eq(transactions.accountId, account.id))
-        .all()
-        .map((row) => ({ ...row, keptNearMatch: row.nearMatchOf !== null }));
-
-      const entered = db
-        .select({
-          id: balanceChecks.id,
-          date: balanceChecks.date,
-          balance: balanceChecks.amount,
-        })
-        .from(balanceChecks)
-        .where(eq(balanceChecks.accountId, account.id))
-        .all();
-
-      // Every import sets an anchor, so an account with transactions has one.
-      const { entries, gaps, offDays, checks } =
-        account.anchorAmount !== null && account.anchorDate !== null
-          ? ledger(
-              { amount: account.anchorAmount, date: account.anchorDate },
-              rows,
-              entered,
-            )
-          : {
-              entries: inOrder(rows).map((row) => ({ ...row, balance: null })),
-              gaps: [],
-              offDays: [],
-              checks: [],
-            };
+      const { entries, gaps, offDays, checks } = loadLedger(db, account);
       const check = ruleChecker(loadRules(db));
-      const conflict = (t: (typeof rows)[number]) => {
+      const conflict = (t: (typeof entries)[number]) => {
         if (t.categoryId !== null || t.excluded) return null;
         const outcome = check({
           ...t,
@@ -245,4 +201,55 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
     { schema: { params: idParams } },
     setExcluded(false),
   );
+}
+
+/**
+ * An account's transactions in order with their balances, and where the
+ * bank's balances disagree (see `ledger`). Without an anchor there's nothing
+ * to compare, but every import sets one.
+ */
+export function loadLedger(db: Db, account: typeof accounts.$inferSelect) {
+  const rows = db
+    .select({
+      id: transactions.id,
+      importId: transactions.importId,
+      line: transactions.line,
+      date: transactions.date,
+      time: transactions.time,
+      amount: transactions.amount,
+      description: transactions.description,
+      reference: transactions.reference,
+      bankBalance: transactions.bankBalance,
+      excluded: transactions.excluded,
+      nearMatchOf: transactions.nearMatchOf,
+      categoryId: transactions.categoryId,
+      ruleId: transactions.ruleId,
+    })
+    .from(transactions)
+    .where(eq(transactions.accountId, account.id))
+    .all()
+    .map((row) => ({ ...row, keptNearMatch: row.nearMatchOf !== null }));
+
+  const entered = db
+    .select({
+      id: balanceChecks.id,
+      date: balanceChecks.date,
+      balance: balanceChecks.amount,
+    })
+    .from(balanceChecks)
+    .where(eq(balanceChecks.accountId, account.id))
+    .all();
+
+  return account.anchorAmount !== null && account.anchorDate !== null
+    ? ledger(
+        { amount: account.anchorAmount, date: account.anchorDate },
+        rows,
+        entered,
+      )
+    : {
+        entries: inOrder(rows).map((row) => ({ ...row, balance: null })),
+        gaps: [],
+        offDays: [],
+        checks: [],
+      };
 }

@@ -171,6 +171,16 @@ export interface BalanceGap<T> {
   amount: number;
   /** Transactions in those days that would explain it, most likely first. */
   suspects: Suspect<T>[];
+  /**
+   * The app's balance and the bank's at the end of `after` and of `until`.
+   * On the anchor's day, the bank's is the anchor.
+   */
+  balances: { after: BothBalances; until: BothBalances };
+}
+
+export interface BothBalances {
+  app: number;
+  bank: number;
 }
 
 /** A transaction as the balance check sees it. */
@@ -200,10 +210,11 @@ export function checkBalances<T extends Checked, S extends Movement>({
   const history = balanceHistory(anchor, transactions);
   const points = [
     // First on its day, so a bank balance that day is compared with it.
-    { date: anchor.date, difference: 0, order: 0 },
+    { date: anchor.date, app: anchor.amount, bank: anchor.amount, order: 0 },
     ...bank.map(({ date, balance }) => ({
       date,
-      difference: balance - history.on(date),
+      app: history.on(date),
+      bank: balance,
       order: 1,
     })),
   ].sort((a, b) =>
@@ -222,7 +233,7 @@ export function checkBalances<T extends Checked, S extends Movement>({
   const gaps: BalanceGap<T | S>[] = [];
   for (let i = 1; i < points.length; i++) {
     const [previous, next] = [points[i - 1]!, points[i]!];
-    const amount = next.difference - previous.difference;
+    const amount = next.bank - next.app - (previous.bank - previous.app);
     if (amount === 0) continue;
     gaps.push({
       after: previous.date,
@@ -238,6 +249,10 @@ export function checkBalances<T extends Checked, S extends Movement>({
           )
           .map((transaction) => ({ transaction, reason })),
       ),
+      balances: {
+        after: { app: previous.app, bank: previous.bank },
+        until: { app: next.app, bank: next.bank },
+      },
     });
   }
   return gaps;

@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation, useMatches } from "react-router";
-import { useAccounts } from "../api.ts";
+import { useAccounts, useReview } from "../api.ts";
 import { useIsMobile } from "../useIsMobile.ts";
 import { Icon, Logo } from "./Icon.tsx";
 import type { IconName } from "./icons.ts";
@@ -69,6 +69,7 @@ function Sidebar() {
             <NavLink key={item.to} to={item.to} end={item.to === "/"}>
               <Icon name={item.icon} />
               {item.label}
+              {item.to === "/review" && <ReviewBadge />}
             </NavLink>
           ),
         )}
@@ -94,11 +95,26 @@ function TabBar() {
         >
           <span className="tab-icon">
             <Icon name={tab.icon} />
+            {/* Review lives under More. */}
+            {tab.to === "/more" && <ReviewBadge />}
           </span>
           {tab.label}
         </Link>
       ))}
     </nav>
+  );
+}
+
+/** How many items wait in Review, when there are any. */
+export function ReviewBadge() {
+  const count = useReview().data?.count ?? 0;
+  if (count === 0) return null;
+  return (
+    <span className="badge">
+      <span className="visually-hidden">, </span>
+      {count}
+      <span className="visually-hidden"> waiting</span>
+    </span>
   );
 }
 

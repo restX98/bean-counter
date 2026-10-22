@@ -16,6 +16,32 @@
 .card-title {
   font: var(--type-section-title);
 }
+.card-foot {
+  display: flex;
+  justify-content: flex-start;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+/* Counts with a label, such as the Review card's. */
+.counts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+.counts li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.counts .badge {
+  min-width: 28px;
+}
 .summary-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -355,6 +381,8 @@ button.m-tx:hover {
   color: var(--color-text-muted);
 }
 .more-row .chev {
+  /* The last column, so chevrons line up whether or not a badge comes first. */
+  grid-column: 4;
   color: var(--color-text-subtle);
 }
 
@@ -492,7 +520,8 @@ button.m-tx:hover {
 }
 
 @media (max-width: 767px) {
-  .summary-cards {
+  .summary-cards,
+  .grid-2 {
     grid-template-columns: 1fr;
     gap: var(--space-3);
   }

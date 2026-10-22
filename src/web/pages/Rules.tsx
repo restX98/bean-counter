@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import type { Account } from "../../domain/accounts.ts";
 import {
   useAccounts,
@@ -137,6 +138,11 @@ function Overlaps({
           ? `${plural(conflicts, "transaction")} ${conflicts === 1 ? "is" : "are"} waiting in Review as rule conflicts. Narrow one of the rules to stop new conflicts.`
           : `A transaction ${overlapping.length > 2 ? "two of them" : "they both"} match goes to Review instead of getting a category. Narrow one of the rules to avoid it.`}
       </span>
+      {conflicts > 0 && (
+        <Link className="btn btn-secondary btn-sm" to="/review">
+          Open Review
+        </Link>
+      )}
     </div>
   );
 }

@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
+import type { BothBalances } from "../../domain/balances.ts";
 import { formatDate } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
+import { shownEnd } from "../../domain/review.ts";
 import { suggestText } from "../../domain/rules.ts";
 import {
   useAccounts,
@@ -11,6 +13,7 @@ import {
   useRules,
   useSetCategory,
   type ReviewList,
+  type ReviewMismatch,
 } from "../api.ts";
 import { CategorySelect } from "../components/CategorySelect.tsx";
 import { FormError } from "../components/Dialog.tsx";
@@ -29,16 +32,29 @@ const SHOWN = 5;
 
 type Item =
   ReviewList["uncategorized"][number] | ReviewList["conflicts"][number];
-type GroupKey = "uncategorized" | "conflicts";
+type GroupKey = "uncategorized" | "conflicts" | "mismatches";
+
+/** One item of a group, laid out the same way in every group. */
+interface Row {
+  key: string;
+  date: string;
+  account: string;
+  /** On a phone, above the item: the account, and the day if it matters. */
+  where: string;
+  what: ReactNode;
+  amount: ReactNode;
+  acts: ReactNode;
+}
 
 const isConflict = (item: Item): item is ReviewList["conflicts"][number] =>
   "categoryIds" in item;
 const day = (date: string) => formatDate(date).slice(0, 5);
 
 /**
- * S2: what the app can't decide on its own. For now, the transactions
- * waiting for a category: picking one takes the item off the list, with
- * Undo; a rule's category can be taken with one click.
+ * S2: what the app can't decide on its own. Transactions waiting for a
+ * category: picking one takes the item off the list, with Undo; a rule's
+ * category can be taken with one click. Places where an account's balances
+ * and the bank's part ways: fixed on the account's page.
  */
 export function Review() {
   const isMobile = useIsMobile();
@@ -114,40 +130,6 @@ export function Review() {
       onError: () => hide(item.id, false),
     });
   };
-
-  const groups = (
-    [
-      {
-        key: "uncategorized",
-        title: "Uncategorized",
-        icon: "tag",
-        items: review.data.uncategorized,
-      },
-      {
-        key: "conflicts",
-        title: "Rule conflicts",
-        icon: "rules",
-        items: review.data.conflicts,
-      },
-    ] satisfies {
-      key: GroupKey;
-      title: string;
-      icon: IconName;
-      items: Item[];
-    }[]
-  )
-    .map((g) => ({ ...g, items: g.items.filter((t) => !settled.has(t.id)) }))
-    .filter((g) => g.items.length > 0);
-  const count = groups.reduce((n, g) => n + g.items.length, 0);
-  const summary =
-    count === 0
-      ? "Nothing needs your decision"
-      : `${plural(count, "item")} ${count === 1 ? "needs" : "need"} your decision`;
-
-  const money = (item: Item) =>
-    formatAmount(item.amount, item.currency, { signed: true });
-  const amountClass = (item: Item) =>
-    item.amount > 0 ? "amount income" : "amount";
 
   const what = (item: Item) => {
     if (isConflict(item)) {
@@ -228,6 +210,95 @@ export function Review() {
     );
   };
 
+  const transactionRow = (item: Item): Row => {
+    const account = accountNames.get(item.accountId) ?? "";
+    return {
+      key: String(item.id),
+      date: item.date,
+      account,
+      where: `${account} · ${day(item.date)}`,
+      what: what(item),
+      amount: (
+        <span className={item.amount > 0 ? "amount income" : "amount"}>
+          {formatAmount(item.amount, item.currency, { signed: true })}
+        </span>
+      ),
+      acts: acts(item),
+    };
+  };
+
+  const mismatchRow = (m: ReviewMismatch): Row => {
+    const money = (minor: number) => formatAmount(minor, m.currency);
+    const account = accountNames.get(m.accountId) ?? "";
+    const end = shownEnd(m);
+    return {
+      key: `${m.accountId}-${m.index}`,
+      date: end.date,
+      account,
+      where: account,
+      what: (
+        <span className="what">
+          <strong>
+            App {money(end.app)} · bank {money(end.bank)}
+          </strong>
+          <span className="caption">{mismatchText(m, money)}</span>
+        </span>
+      ),
+      amount: (
+        <span className="amount">
+          <span className="tag tone-warning">
+            Off by {money(Math.abs(end.bank - end.app))}
+          </span>
+        </span>
+      ),
+      acts: (
+        <span className="acts">
+          <Link
+            className="btn btn-secondary btn-sm"
+            to={`/accounts/${m.accountId}?gap=${m.index}`}
+          >
+            Open {account}
+          </Link>
+        </span>
+      ),
+    };
+  };
+
+  const unsettled = (items: Item[]) =>
+    items.filter((t) => !settled.has(t.id)).map(transactionRow);
+  const groups = (
+    [
+      {
+        key: "uncategorized",
+        title: "Uncategorized",
+        icon: "tag",
+        rows: unsettled(review.data.uncategorized),
+      },
+      {
+        key: "conflicts",
+        title: "Rule conflicts",
+        icon: "rules",
+        rows: unsettled(review.data.conflicts),
+      },
+      {
+        key: "mismatches",
+        title: "Balance mismatches",
+        icon: "scale",
+        rows: review.data.mismatches.map(mismatchRow),
+      },
+    ] satisfies {
+      key: GroupKey;
+      title: string;
+      icon: IconName;
+      rows: Row[];
+    }[]
+  ).filter((g) => g.rows.length > 0);
+  const count = groups.reduce((n, g) => n + g.rows.length, 0);
+  const summary =
+    count === 0
+      ? "Nothing needs your decision"
+      : `${plural(count, "item")} ${count === 1 ? "needs" : "need"} your decision`;
+
   return (
     <Page {...page} subtitle={summary}>
       {isMobile && <p className="muted">{summary}</p>}
@@ -244,13 +315,13 @@ export function Review() {
             </Link>
           }
         >
-          Every transaction has a category. New items show up here after your
-          next import.
+          Every transaction has a category and every balance matches the bank.
+          New items show up here after your next import.
         </EmptyState>
       ) : (
-        groups.map(({ key, title, icon, items }) => {
-          const shown = expanded.has(key) ? items : items.slice(0, SHOWN);
-          const more = items.length - shown.length;
+        groups.map(({ key, title, icon, rows }) => {
+          const shown = expanded.has(key) ? rows : rows.slice(0, SHOWN);
+          const more = rows.length - shown.length;
           const showMore = more > 0 && (
             <button
               type="button"
@@ -260,7 +331,7 @@ export function Review() {
               Show {more} more {title.toLowerCase()}
             </button>
           );
-          const badge = <span className="badge neutral">{items.length}</span>;
+          const badge = <span className="badge neutral">{rows.length}</span>;
           return isMobile ? (
             <details key={key} className="m-group" open>
               <summary>
@@ -270,14 +341,12 @@ export function Review() {
                 <Icon name="chevron" className="icon chev" />
               </summary>
               <div className="m-group-body">
-                {shown.map((item) => (
-                  <div key={item.id} className="card m-item">
-                    <span className="where">
-                      {accountNames.get(item.accountId)} · {day(item.date)}
-                    </span>
-                    <span className={amountClass(item)}>{money(item)}</span>
-                    {what(item)}
-                    {acts(item)}
+                {shown.map((row) => (
+                  <div key={row.key} className="card m-item">
+                    <span className="where">{row.where}</span>
+                    {row.amount}
+                    {row.what}
+                    {row.acts}
                   </div>
                 ))}
                 {showMore}
@@ -290,15 +359,13 @@ export function Review() {
                 {title}
                 {badge}
               </h2>
-              {shown.map((item) => (
-                <div key={item.id} className="item">
-                  <span className="date">{formatDate(item.date)}</span>
-                  <span className="acct">
-                    {accountNames.get(item.accountId)}
-                  </span>
-                  {what(item)}
-                  <span className={amountClass(item)}>{money(item)}</span>
-                  {acts(item)}
+              {shown.map((row) => (
+                <div key={row.key} className="item">
+                  <span className="date">{formatDate(row.date)}</span>
+                  <span className="acct">{row.account}</span>
+                  {row.what}
+                  {row.amount}
+                  {row.acts}
                 </div>
               ))}
               {showMore && <div className="item-more">{showMore}</div>}
@@ -330,4 +397,24 @@ export function Review() {
       )}
     </Page>
   );
+}
+
+/**
+ * Where a mismatch lies: the last day the balances match and the first day
+ * they don't, in date order. Where an account has more than one gap, both
+ * ends can differ, each by its own amount.
+ */
+function mismatchText(m: ReviewMismatch, money: (minor: number) => string) {
+  if (m.after === m.until) {
+    return `On ${formatDate(m.until)}, the bank's balance differs from the balance anchor`;
+  }
+  const off = ({ app, bank }: BothBalances) => bank - app;
+  const [first, second] = [off(m.balances.after), off(m.balances.until)];
+  const state = (difference: number, other: number) =>
+    difference === 0
+      ? "match"
+      : other === 0
+        ? "differ"
+        : `differ by ${money(Math.abs(difference))}`;
+  return `They ${state(first, second)} up to ${formatDate(m.after)} and ${state(second, first)} from ${formatDate(m.until)}`;
 }

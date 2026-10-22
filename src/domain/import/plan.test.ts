@@ -171,6 +171,10 @@ describe("planImport", () => {
             line: null,
           },
         ],
+        balances: {
+          after: { app: 329680, bank: 324050 },
+          until: { app: 318420, bank: 318420 },
+        },
       },
     ]);
   });

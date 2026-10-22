@@ -3,6 +3,7 @@ import type { SuspectReason } from "../../../domain/balances.ts";
 import { formatDate } from "../../../domain/dates.ts";
 import type { PlanGap } from "../../../domain/import/plan.ts";
 import { formatAmount } from "../../../domain/money.ts";
+import { Link } from "react-router";
 import type { ImportResult } from "../../api.ts";
 import { Icon } from "../../components/Icon.tsx";
 import { plural } from "../../labels.ts";
@@ -40,6 +41,20 @@ export function DoneStep({
 }: Props) {
   const { anchor, gaps } = result;
   const money = (minor: number) => formatAmount(minor, account.currency);
+  // Waiting for a category, the rules' conflicts among them.
+  const sent = result.imported - result.categorized;
+  const mismatch = gaps !== null && gaps.length > 0;
+  const open = (
+    <button
+      type="button"
+      className={
+        mismatch || sent === 0 ? "btn btn-primary" : "btn btn-secondary"
+      }
+      onClick={onOpen}
+    >
+      Open {account.name}
+    </button>
+  );
   return (
     <Flow step={4} skipped={skipped} onClose={onClose}>
       <div className="narrow">
@@ -63,6 +78,10 @@ export function DoneStep({
             <div className="stat">
               <strong>{result.leftOut + result.unreadable}</strong>
               <span>left out or unreadable</span>
+            </div>
+            <div className="stat">
+              <strong>{sent}</strong>
+              <span>sent to Review</span>
             </div>
           </div>
           {result.imported > 0 && (
@@ -106,14 +125,25 @@ export function DoneStep({
                 {gaps.map((gap) => (
                   <Gap key={gap.until + gap.after} gap={gap} money={money} />
                 ))}
+                {gaps.length === 1
+                  ? " It's also listed in Review."
+                  : " They're also listed in Review."}
               </span>
             </div>
           )}
 
+          {/* A mismatch is fixed on the account's page, so that comes first. */}
           <div className="actions">
-            <button type="button" className="btn btn-primary" onClick={onOpen}>
-              Open {account.name}
-            </button>
+            {mismatch && open}
+            {(mismatch || sent > 0) && (
+              <Link
+                className={mismatch ? "btn btn-secondary" : "btn btn-primary"}
+                to="/review"
+              >
+                {mismatch ? "Go to Review" : `Go to Review (${sent})`}
+              </Link>
+            )}
+            {!mismatch && open}
             <button type="button" className="btn btn-ghost" onClick={onAnother}>
               Import another file
             </button>

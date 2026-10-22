@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 import type { Account } from "../../domain/accounts.ts";
 import type { SuspectReason } from "../../domain/balances.ts";
 import { formatDate } from "../../domain/dates.ts";
@@ -76,11 +77,21 @@ export function AccountLedger({ account }: { account: Account }) {
   const money = (minor: number, signed = false) =>
     formatAmount(minor, account.currency, { signed });
   const readOnly = account.archivedOn !== null;
+  // Review links to a gap with ?gap=N: it's shown, and scrolled to once.
+  const [params] = useSearchParams();
+  const linked = params.has("gap") ? Number(params.get("gap")) : null;
+  const scrolled = useRef(false);
+  useEffect(() => {
+    if (scrolled.current || linked === null || !ledger.data) return;
+    scrolled.current = true;
+    document.getElementById(gapId(linked))?.scrollIntoView({ block: "center" });
+  }, [ledger.data, linked]);
 
   if (!ledger.data) return <Loading error={ledger.error} />;
   const { transactions, gaps, offDays, checks } = ledger.data;
   const all = lines(ledger.data);
-  const visible = all.slice(0, shown);
+  const linkedAt = all.findIndex((l) => l.kind === "gap" && l.index === linked);
+  const visible = all.slice(0, Math.max(shown, linkedAt + 1));
   const hasBank =
     checks.length > 0 || transactions.some((t) => t.bankBalance !== null);
   const off = new Set(offDays);
@@ -373,7 +384,7 @@ export function AccountLedger({ account }: { account: Account }) {
               </div>
             ),
           )}
-          {all.length > shown && (
+          {all.length > visible.length && (
             <div className="table-foot">
               <span>
                 Showing the{" "}
@@ -383,7 +394,7 @@ export function AccountLedger({ account }: { account: Account }) {
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                onClick={() => setShown(shown + PAGE)}
+                onClick={() => setShown(visible.length + PAGE)}
               >
                 Load more
               </button>
@@ -391,11 +402,11 @@ export function AccountLedger({ account }: { account: Account }) {
           )}
         </section>
       )}
-      {isMobile && all.length > shown && (
+      {isMobile && all.length > visible.length && (
         <button
           type="button"
           className="btn btn-secondary btn-block"
-          onClick={() => setShown(shown + PAGE)}
+          onClick={() => setShown(visible.length + PAGE)}
         >
           Load more
         </button>

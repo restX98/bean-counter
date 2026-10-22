@@ -35,21 +35,22 @@ const rule = async (text: string, categoryId: number, more: object = {}) =>
     })
   ).body.id as number;
 
-/** An account with four imported transactions; returns their ids by description. */
-async function imported(name = "Main checking") {
+const FOUR = [
+  "01/10/2026;SALARY ACME SPA;2.000,00;3.240,50",
+  "02/10/2026;AMAZON PRIME;-4,99;3.235,51",
+  "03/10/2026;AMAZON EU SARL;-34,90;3.200,61",
+  "04/10/2026;PHARMACY 24;-18,50;3.182,11",
+];
+
+/** An account with imported transactions; returns their ids by description. */
+async function imported(name = "Main checking", rows = FOUR) {
   const { body: account } = await call("POST", "/api/accounts", {
     name,
     bank: "Bank A",
     type: "checking",
     currency: "EUR",
   });
-  const text = [
-    "Data;Descrizione;Importo;Saldo",
-    "01/10/2026;SALARY ACME SPA;2.000,00;3.240,50",
-    "02/10/2026;AMAZON PRIME;-4,99;3.235,51",
-    "03/10/2026;AMAZON EU SARL;-34,90;3.200,61",
-    "04/10/2026;PHARMACY 24;-18,50;3.182,11",
-  ].join("\n");
+  const text = ["Data;Descrizione;Importo;Saldo", ...rows].join("\n");
   const upload = await app.inject({
     method: "POST",
     url: `/api/imports?account=${account.id}&file=statement.csv`,
@@ -86,6 +87,7 @@ describe("the Review list (S2)", () => {
     expect(await review()).toEqual({
       uncategorized: [],
       conflicts: [],
+      mismatches: [],
       count: 0,
     });
   });
@@ -121,11 +123,43 @@ describe("the Review list (S2)", () => {
   it("leaves out excluded transactions and archived accounts", async () => {
     const { ids } = await imported();
     await call("POST", `/api/transactions/${ids["PHARMACY 24"]}/exclude`);
-    expect((await review()).count).toBe(3);
+    const { uncategorized, mismatches } = await review();
+    expect(descriptions(uncategorized)).not.toContain("PHARMACY 24");
+    // The bank's balances still include it.
+    expect(mismatches).toMatchObject([{ amount: -1850 }]);
 
     const { account } = await imported("Old account");
     await call("POST", `/api/accounts/${account}/archive`);
-    expect((await review()).count).toBe(3);
+    expect((await review()).count).toBe(4);
+  });
+
+  it("lists each place where an account's balances and the bank's part ways", async () => {
+    // The bank's balance is 10.00 lower from the 3rd: something it took out
+    // that day isn't in the file.
+    const { account } = await imported("Main checking", [
+      ...FOUR.slice(0, 2),
+      "03/10/2026;AMAZON EU SARL;-34,90;3.190,61",
+      "04/10/2026;PHARMACY 24;-18,50;3.172,11",
+    ]);
+    const { mismatches, count } = await review();
+    expect(mismatches).toEqual([
+      {
+        accountId: account,
+        currency: "EUR",
+        index: 0,
+        after: "2026-10-02",
+        until: "2026-10-03",
+        amount: -1000,
+        balances: {
+          after: { app: 322551, bank: 323551 },
+          until: { app: 319061, bank: 319061 },
+        },
+      },
+    ]);
+    expect(count).toBe(5);
+
+    await call("POST", `/api/accounts/${account}/archive`);
+    expect(await review()).toMatchObject({ mismatches: [], count: 0 });
   });
 
   it("suggests the category a rule would give now, and Use it takes it", async () => {

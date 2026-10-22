@@ -3,7 +3,7 @@ import { useAccounts } from "../api.ts";
 import { Icon } from "../components/Icon.tsx";
 import type { IconName } from "../components/icons.ts";
 import { Page } from "../components/Page.tsx";
-import { ImportButton } from "../components/Shell.tsx";
+import { ImportButton, ReviewBadge } from "../components/Shell.tsx";
 import { plural } from "../labels.ts";
 
 /** The mobile More tab: everything without a tab of its own. */
@@ -60,6 +60,7 @@ export function More() {
               <strong>{row.title}</strong>
               <span className="caption">{row.caption}</span>
             </span>
+            {row.to === "/review" && <ReviewBadge />}
             <Icon name="next" className="icon chev" />
           </Link>
         ))}
