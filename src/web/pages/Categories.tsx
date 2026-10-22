@@ -1,16 +1,17 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import {
   groupCategories,
   type Category,
   type CategoryGroup,
 } from "../../domain/categories.ts";
-import { useCategories } from "../api.ts";
+import { useAccounts, useCategories, useRules } from "../api.ts";
 import { EmptyState } from "../components/EmptyState.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { Loading, Page } from "../components/Page.tsx";
 import { CategoryForm } from "../dialogs/CategoryForm.tsx";
 import { DeleteCategory } from "../dialogs/DeleteCategory.tsx";
-import { plural } from "../labels.ts";
+import { plural, ruleName } from "../labels.ts";
 import { useIsMobile } from "../useIsMobile.ts";
 
 type Open =
@@ -29,10 +30,15 @@ function summary(income: number, expense: number): string {
   return `${income} income and ${expense} expense ${word(expense)}`;
 }
 
-/** S16: income and expense categories, with how many transactions use each. */
+/**
+ * S16: income and expense categories, with how many transactions use each
+ * and the rules that give them.
+ */
 export function Categories() {
   const isMobile = useIsMobile();
   const { data, error } = useCategories();
+  const rules = useRules();
+  const { data: accounts = [] } = useAccounts();
   const [open, setOpen] = useState<Open>(null);
   const close = () => setOpen(null);
 
@@ -51,10 +57,10 @@ export function Categories() {
     back: { to: "/more", label: "Back to More" },
   };
 
-  if (!data) {
+  if (!data || !rules.data) {
     return (
       <Page {...page}>
-        <Loading error={error} />
+        <Loading error={error ?? rules.error} />
       </Page>
     );
   }
@@ -64,6 +70,11 @@ export function Categories() {
   const count = (type: Category["type"]) =>
     categories.filter((c) => c.type === type).length;
   const List = isMobile ? MobileGroup : DesktopGroup;
+  const ruleList = rules.data.rules;
+  const usedBy = (category: Category) =>
+    ruleList
+      .filter((r) => r.categoryId === category.id)
+      .map((r) => `rule: ${ruleName(r, accounts)}`);
 
   return (
     <Page
@@ -97,6 +108,7 @@ export function Categories() {
           <List
             key={group.type}
             group={group}
+            usedBy={usedBy}
             onEdit={(category) => setOpen({ kind: "edit", category })}
             onDelete={(category) => setOpen({ kind: "delete", category })}
           />
@@ -127,50 +139,67 @@ export function Categories() {
 
 interface GroupProps {
   group: CategoryGroup;
+  /** What uses a category besides its transactions: "rule: “ESSELUNGA”". */
+  usedBy: (category: Category) => string[];
   onEdit: (category: Category) => void;
   onDelete: (category: Category) => void;
 }
 
-function DesktopGroup({ group, onEdit, onDelete }: GroupProps) {
+function DesktopGroup({ group, usedBy, onEdit, onDelete }: GroupProps) {
   return (
     <section className="card group">
       <h2 className="group-head">{GROUP_TITLES[group.type]}</h2>
       <div className="cat-row head" aria-hidden="true">
         <span>Category</span>
         <span className="r">Transactions</span>
+        <span>Used by</span>
         <span />
       </div>
-      {group.categories.map((c) => (
-        <div key={c.id} className="cat-row">
-          <span className="name">{c.name}</span>
-          <span className="num">
-            {c.transactionCount > 0 ? c.transactionCount : "—"}
-          </span>
-          <span className="acts">
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              aria-label={`Edit ${c.name}`}
-              onClick={() => onEdit(c)}
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              aria-label={`Delete ${c.name}`}
-              onClick={() => onDelete(c)}
-            >
-              Delete
-            </button>
-          </span>
-        </div>
-      ))}
+      {group.categories.map((c) => {
+        const uses = usedBy(c);
+        return (
+          <div key={c.id} className="cat-row">
+            <span className="name">{c.name}</span>
+            <span className="num">
+              {c.transactionCount > 0 ? c.transactionCount : "—"}
+            </span>
+            {uses.length > 0 ? (
+              <span className="used">
+                {uses.map((use) => (
+                  <Link key={use} className="link" to="/rules">
+                    {use}
+                  </Link>
+                ))}
+              </span>
+            ) : (
+              <span className="muted-cell">—</span>
+            )}
+            <span className="acts">
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                aria-label={`Edit ${c.name}`}
+                onClick={() => onEdit(c)}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                aria-label={`Delete ${c.name}`}
+                onClick={() => onDelete(c)}
+              >
+                Delete
+              </button>
+            </span>
+          </div>
+        );
+      })}
     </section>
   );
 }
 
-function MobileGroup({ group, onEdit }: GroupProps) {
+function MobileGroup({ group, usedBy, onEdit }: GroupProps) {
   return (
     <section className="day">
       <h2 className="day-head">{GROUP_TITLES[group.type]}</h2>
@@ -186,6 +215,9 @@ function MobileGroup({ group, onEdit }: GroupProps) {
             <span className="amount count">
               {plural(c.transactionCount, "transaction")}
             </span>
+            {usedBy(c).length > 0 && (
+              <span className="meta">{usedBy(c).join(" · ")}</span>
+            )}
           </button>
         ))}
       </div>

@@ -111,6 +111,13 @@
   flex: none;
   width: auto;
 }
+/* A select beside an input, such as "contains": as wide as its options. */
+.field-row > .select-wrap {
+  flex: none;
+}
+.field-row > .select-wrap .select {
+  width: auto;
+}
 .field-error {
   display: flex;
   align-items: flex-start;
@@ -370,6 +377,10 @@
   /* Too narrow for an amount and a date side by side. */
   .field-row {
     flex-direction: column;
+  }
+  /* Short controls still fit, such as a rule's two bounds and currency. */
+  .field-row.inline {
+    flex-direction: row;
   }
   .field-row .input[type="date"] {
     width: 100%;

@@ -1,5 +1,5 @@
 import { tidy, type FieldErrors, type Validated } from "./accounts.ts";
-import { findCurrency, parseAmount } from "./money.ts";
+import { findCurrency, formatAmount, parseAmount } from "./money.ts";
 
 // "If a transaction looks like this, it gets that category." Rules have no
 // order: when the ones that match a transaction disagree, none is picked.
@@ -15,6 +15,16 @@ export interface AmountRange {
   min: number | null;
   /** Under this much; null for no upper bound. */
   max: number | null;
+}
+
+/** "under 10.00 €", "15.00 € or more", "10.00 € or more, under 15.00 €". */
+export function describeAmount({ currency, min, max }: AmountRange): string {
+  return [
+    min !== null && `${formatAmount(min, currency)} or more`,
+    max !== null && `under ${formatAmount(max, currency)}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 /** What a transaction must look like for a rule to match it. */
@@ -189,6 +199,60 @@ export function ruleChecker<R extends Rule>(
     }
     return { kind: "category", categoryId: first.categoryId, ruleId: first.id };
   };
+}
+
+/** A transaction that gets a category, and the rule credited with it. */
+export interface Categorized {
+  id: number;
+  categoryId: number;
+  ruleId: number;
+}
+
+/** What saving a rule would do to the uncategorized transactions. */
+export interface RuleEffect {
+  /** It matches these, and every rule that does agrees: they get its category. */
+  matching: Categorized[];
+  /** It matches these too, but another rule that does gives another category. */
+  conflicts: number;
+  /**
+   * Editing: conflicts its old version was part of, which it no longer
+   * matches, so the rules left can settle them.
+   */
+  settled: Categorized[];
+}
+
+/**
+ * What saving `rule`, a new one or an edit of one of `rules`, would do to
+ * `uncategorized` transactions. Only those can change: a transaction with a
+ * category keeps it. A new rule's id must be above every other's, as the
+ * database gives it.
+ */
+export function ruleEffect(
+  rules: Rule[],
+  rule: Rule,
+  uncategorized: (RuleTarget & { id: number })[],
+): RuleEffect {
+  const old = rules.find((r) => r.id === rule.id);
+  const before = ruleChecker(rules);
+  const after = ruleChecker([...rules.filter((r) => r.id !== rule.id), rule]);
+  const matches = matcher(rule);
+  const matchedBefore = old ? matcher(old) : () => false;
+
+  const effect: RuleEffect = { matching: [], conflicts: 0, settled: [] };
+  for (const t of uncategorized) {
+    const now = matches(t);
+    if (!now && !(matchedBefore(t) && before(t).kind === "conflict")) continue;
+    const outcome = after(t);
+    if (outcome.kind === "category") {
+      const { categoryId, ruleId } = outcome;
+      (now ? effect.matching : effect.settled).push({
+        id: t.id,
+        categoryId,
+        ruleId,
+      });
+    } else if (now) effect.conflicts += 1;
+  }
+  return effect;
 }
 
 /**

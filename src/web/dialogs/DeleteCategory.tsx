@@ -1,15 +1,21 @@
 import { useId, useState } from "react";
 import { groupCategories, type Category } from "../../domain/categories.ts";
-import { useCategories, useDeleteCategory } from "../api.ts";
+import {
+  useAccounts,
+  useCategories,
+  useDeleteCategory,
+  useRules,
+} from "../api.ts";
 import { Dialog, FormError } from "../components/Dialog.tsx";
 import { Icon } from "../components/Icon.tsx";
-import { plural } from "../labels.ts";
+import { plural, ruleName } from "../labels.ts";
 
 const GROUP_TITLES = { income: "Income", expense: "Expenses" };
 
 /**
  * D5's delete variant. A category in use asks where its transactions go: to
- * another category, or back to uncategorized.
+ * another category, or back to uncategorized. The rules that give it follow
+ * them, or are deleted, and the dialog lists them.
  */
 export function DeleteCategory({
   category,
@@ -21,7 +27,16 @@ export function DeleteCategory({
   const id = useId();
   const remove = useDeleteCategory();
   const { data } = useCategories();
+  const rules = useRules(category.ruleCount > 0);
+  const { data: accounts = [] } = useAccounts();
   const used = category.transactionCount;
+  const inUse = used > 0 || category.ruleCount > 0;
+  // The question is about its transactions, or its rules if it has none.
+  const count = used > 0 ? used : category.ruleCount;
+  const them = count === 1 ? "it" : "them";
+  const itsRules = (rules.data?.rules ?? []).filter(
+    (r) => r.categoryId === category.id,
+  );
   // The others, its own type first, as the place to move them to.
   const groups = groupCategories(
     (data?.categories ?? []).filter((c) => c.id !== category.id),
@@ -35,19 +50,22 @@ export function DeleteCategory({
   const target = moveTo ?? first?.id;
   const canMove = target !== undefined;
   const moving = mode === "move" && canMove;
+  const targetName = groups
+    .flatMap((g) => g.categories)
+    .find((c) => c.id === target)?.name;
 
   const submit = () =>
     remove.mutate(
-      used === 0
-        ? { id: category.id }
-        : { id: category.id, moveTo: moving ? target : null },
+      inUse
+        ? { id: category.id, moveTo: moving ? target : null }
+        : { id: category.id },
       { onSuccess: onClose },
     );
 
   return (
     <Dialog
       title={`Delete “${category.name}”?`}
-      size={used === 0 ? "sm" : undefined}
+      size={inUse ? undefined : "sm"}
       onClose={onClose}
       onSubmit={submit}
       actions={
@@ -58,8 +76,8 @@ export function DeleteCategory({
           <button
             type="submit"
             className="btn btn-danger"
-            disabled={remove.isPending || (used > 0 && !data)}
-            data-autofocus={used === 0 || undefined}
+            disabled={remove.isPending || (inUse && !data)}
+            data-autofocus={!inUse || undefined}
           >
             Delete category
           </button>
@@ -67,18 +85,24 @@ export function DeleteCategory({
       }
     >
       <FormError error={remove.error} />
-      {used === 0 ? (
+      {!inUse ? (
         <p className="muted">No transactions use this category.</p>
       ) : (
         <div className="form">
           <p className="muted">
-            {plural(used, "transaction")} {used === 1 ? "uses" : "use"} this
-            category. What should happen to {used === 1 ? "it" : "them"}?
+            {used > 0
+              ? `${plural(used, "transaction")} ${used === 1 ? "uses" : "use"} this category.`
+              : `${plural(count, "rule")} ${count === 1 ? "gives" : "give"} this category.`}{" "}
+            What should happen to {them}?
           </p>
           <div
             className="choices"
             role="radiogroup"
-            aria-label="Where its transactions go"
+            aria-label={
+              used > 0
+                ? "Where its transactions go"
+                : "What happens to its rules"
+            }
           >
             <label
               className={moving ? "choice is-selected" : "choice"}
@@ -95,7 +119,7 @@ export function DeleteCategory({
               />
               <span className="radio" aria-hidden="true" />
               <span className="what">
-                <strong>Move {used === 1 ? "it" : "them"} to</strong>
+                <strong>Move {them} to</strong>
                 {!canMove && (
                   <span className="caption">There's no other category.</span>
                 )}
@@ -141,11 +165,29 @@ export function DeleteCategory({
               <span className="radio" aria-hidden="true" />
               <span className="what">
                 <strong>
-                  Leave {used === 1 ? "it" : "them"} uncategorized
+                  {used > 0 ? `Leave ${them} uncategorized` : `Delete ${them}`}
                 </strong>
               </span>
             </label>
           </div>
+          {itsRules.length > 0 && (
+            <div className="banner tone-warning" role="status">
+              <Icon name="alert" />
+              <span className="text">
+                <strong>
+                  {used > 0 ? "This also changes" : "This changes"}
+                </strong>
+                <span className="change-list">
+                  {itsRules.map((r) => (
+                    <span key={r.id}>
+                      Rule {ruleName(r, accounts)} →{" "}
+                      {moving ? `now gives ${targetName}` : "deleted"}
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </div>
+          )}
         </div>
       )}
     </Dialog>

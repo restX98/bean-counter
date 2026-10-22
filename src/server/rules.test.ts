@@ -212,6 +212,102 @@ describe("rules (S17, D6)", () => {
   });
 });
 
+describe("applying a rule to uncategorized transactions (D6)", () => {
+  const categoryOf = (id: number) =>
+    db
+      .select({
+        categoryId: transactions.categoryId,
+        ruleId: transactions.ruleId,
+      })
+      .from(transactions)
+      .where(eq(transactions.id, id))
+      .get();
+  const preview = (body: object) => call("POST", "/api/rules/preview", body);
+
+  it("categorizes the ones it matches, only when asked", async () => {
+    const { ids } = await imported();
+    const [, esselunga] = ids;
+    const groceries = await category("Groceries");
+    const { body: rule } = await add(groceries);
+    expect(categoryOf(esselunga!)).toEqual({ categoryId: null, ruleId: null });
+
+    await call("PATCH", `/api/rules/${rule.id}`, {
+      ...fields(groceries),
+      apply: true,
+    });
+    expect(categoryOf(esselunga!)).toEqual({
+      categoryId: groceries,
+      ruleId: rule.id,
+    });
+  });
+
+  it("never changes a category, an excluded transaction or an archived account", async () => {
+    const { account, ids } = await imported();
+    const [salary, esselunga, savings] = ids;
+    const income = await category("Income", "income");
+    const other = await category("Other");
+    await call("PUT", `/api/transactions/${salary}/category`, {
+      categoryId: income,
+    });
+    await call("POST", `/api/transactions/${savings}/exclude`);
+    await add(other, { text: "A", apply: true });
+    expect(categoryOf(salary!)).toMatchObject({ categoryId: income });
+    expect(categoryOf(savings!)).toMatchObject({ categoryId: null });
+    expect(categoryOf(esselunga!)).toMatchObject({ categoryId: other });
+
+    await call("PUT", `/api/transactions/${esselunga}/category`, {
+      categoryId: null,
+    });
+    await call("POST", `/api/accounts/${account}/archive`);
+    await add(other, { text: "MILANO", apply: true });
+    expect(categoryOf(esselunga!)).toMatchObject({ categoryId: null });
+  });
+
+  it("previews what saving would do, and the rules it would overlap", async () => {
+    await imported();
+    const shopping = await category("Shopping");
+    const groceries = await category("Groceries");
+    const { body: milano } = await add(shopping, { text: "MILANO" });
+
+    expect((await preview({ ...fields(groceries), id: null })).body).toEqual({
+      valid: true,
+      matching: 0,
+      conflicts: 1,
+      settled: [],
+      overlaps: [milano.id],
+    });
+    expect(
+      (await preview({ ...fields(shopping), text: "SALARY", id: null })).body,
+    ).toMatchObject({ matching: 1, conflicts: 0, overlaps: [] });
+    expect(
+      (await preview({ ...fields(groceries), text: " ", id: null })).body,
+    ).toEqual({ valid: false });
+    expect((await preview({ ...fields(groceries), id: 99 })).status).toBe(404);
+  });
+
+  it("settles the conflicts an edit takes the rule out of", async () => {
+    const { ids } = await imported();
+    const [, esselunga] = ids;
+    const shopping = await category("Shopping");
+    const groceries = await category("Groceries");
+    const { body: milano } = await add(shopping, { text: "MILANO" });
+    const { body: rule } = await add(groceries);
+    expect((await list()).conflicts).toBe(1);
+
+    const edit = { ...fields(shopping), text: "ROMA" };
+    expect((await preview({ ...edit, id: milano.id })).body).toMatchObject({
+      settled: [{ categoryId: groceries, count: 1 }],
+      overlaps: [],
+    });
+    await call("PATCH", `/api/rules/${milano.id}`, { ...edit, settle: true });
+    expect(categoryOf(esselunga!)).toEqual({
+      categoryId: groceries,
+      ruleId: rule.id,
+    });
+    expect((await list()).conflicts).toBe(0);
+  });
+});
+
 describe("deleting a category with rules (D5)", () => {
   it("asks where they go, then moves them along", async () => {
     const food = await category("Food");

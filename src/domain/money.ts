@@ -71,14 +71,19 @@ export function formatAmount(
   currency: string,
   { signed = false }: { signed?: boolean } = {},
 ): string {
+  const sign = minor < 0 ? MINUS : signed && minor > 0 ? "+" : "";
+  return `${sign}${formatSize(minor, currency)} ${currencySymbol(currency)}`;
+}
+
+/** An amount's size without sign or symbol, as typed in a field: "3,240.50". */
+export function formatSize(minor: number, currency: string): string {
   const digits = digitsOf(currency);
   const abs = Math.abs(minor);
   const scale = 10 ** digits;
   const rest = abs % scale;
   const whole = grouping.format((abs - rest) / scale);
   const fraction = digits > 0 ? "." + String(rest).padStart(digits, "0") : "";
-  const sign = minor < 0 ? MINUS : signed && minor > 0 ? "+" : "";
-  return `${sign}${whole}${fraction} ${currencySymbol(currency)}`;
+  return `${whole}${fraction}`;
 }
 
 export type ParseResult =

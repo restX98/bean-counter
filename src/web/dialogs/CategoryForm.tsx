@@ -5,11 +5,16 @@ import {
   type CategoryFields,
   type CategoryType,
 } from "../../domain/categories.ts";
-import { useCreateCategory, useUpdateCategory } from "../api.ts";
+import {
+  useAccounts,
+  useCreateCategory,
+  useRules,
+  useUpdateCategory,
+} from "../api.ts";
 import { Dialog, FormError, fieldErrors } from "../components/Dialog.tsx";
 import { describedBy, Field } from "../components/Field.tsx";
 import { Icon } from "../components/Icon.tsx";
-import { CATEGORY_TYPE_LABELS, plural } from "../labels.ts";
+import { CATEGORY_TYPE_LABELS, plural, ruleName } from "../labels.ts";
 
 interface Props {
   /** The category to edit; left out to add one. */
@@ -41,6 +46,21 @@ export function CategoryForm({
       : { name: "", type },
   );
   const used = category?.transactionCount ?? 0;
+  const ruleCount = category?.ruleCount ?? 0;
+  const rules = useRules(ruleCount > 0);
+  const { data: accounts = [] } = useAccounts();
+  const itsRules = (rules.data?.rules ?? []).filter(
+    (r) => r.categoryId === category?.id,
+  );
+  // "3 transactions · 1 rule (“SATISPAY”, amount under 10.00 €)"
+  const uses = [
+    used > 0 && plural(used, "transaction"),
+    ruleCount > 0 &&
+      plural(ruleCount, "rule") +
+        (itsRules.length > 0
+          ? ` (${itsRules.map((r) => ruleName(r, accounts)).join("; ")})`
+          : ""),
+  ].filter(Boolean);
 
   const save = () =>
     saving.mutate(fields, {
@@ -107,13 +127,13 @@ export function CategoryForm({
           </div>
         </Field>
 
-        {used > 0 && (
+        {uses.length > 0 && (
           <div className="banner tone-neutral">
             <Icon name="info" />
             <span className="text">
-              <strong>Used by {plural(used, "transaction")}</strong>
-              Renaming the category or changing its type doesn't move{" "}
-              {used === 1 ? "it" : "them"}.
+              <strong>Used by</strong>
+              {uses.join(" · ")}. Renaming the category or changing its type
+              keeps {used + ruleCount === 1 ? "it" : "them all"}.
             </span>
           </div>
         )}

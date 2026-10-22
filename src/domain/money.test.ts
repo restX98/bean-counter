@@ -4,6 +4,7 @@ import {
   currencySymbol,
   findCurrency,
   formatAmount,
+  formatSize,
   parseAmount,
   rescale,
 } from "./money.ts";
@@ -55,6 +56,17 @@ describe("formatAmount", () => {
     expect(formatAmount(Number.MAX_SAFE_INTEGER, "EUR")).toBe(
       "90,071,992,547,409.91 €",
     );
+  });
+});
+
+describe("formatSize", () => {
+  it("writes the size alone, which parseAmount reads back", () => {
+    expect(formatSize(-324050, "EUR")).toBe("3,240.50");
+    expect(formatSize(1500, "JPY")).toBe("1,500");
+    expect(parseAmount(formatSize(1234567, "KWD"), "KWD")).toEqual({
+      ok: true,
+      minor: 1234567,
+    });
   });
 });
 

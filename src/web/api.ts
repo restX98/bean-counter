@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type {
   Account,
   AccountFields,
@@ -15,6 +20,7 @@ import type {
 } from "../domain/import/mapping.ts";
 import type { Decision, PlanGap, PlannedRow } from "../domain/import/plan.ts";
 import type { TableRow } from "../domain/import/table.ts";
+import type { Rule, RuleFields } from "../domain/rules.ts";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -256,6 +262,7 @@ export const useExclude = () =>
   );
 
 const CATEGORIES = ["categories"];
+const RULES = ["rules"];
 
 /** S16: every category, and how many counted transactions have none yet. */
 export const useCategories = () =>
@@ -299,11 +306,12 @@ export function useDeleteCategory() {
         `/api/categories/${id}`,
         moveTo === undefined ? undefined : { moveTo },
       ),
-    // The transactions it had change too.
+    // The transactions and rules it had change too.
     onSuccess: () =>
       Promise.all([
         client.invalidateQueries({ queryKey: CATEGORIES }),
         client.invalidateQueries({ queryKey: ACCOUNTS }),
+        client.invalidateQueries({ queryKey: RULES }),
       ]),
   });
 }
@@ -320,10 +328,92 @@ export function useSetCategory() {
       categoryId: number | null;
     }) =>
       request<null>("PUT", `/api/transactions/${id}/category`, { categoryId }),
+    // A rule's count of the transactions it categorized can change too.
     onSuccess: () =>
       Promise.all([
         client.invalidateQueries({ queryKey: ACCOUNTS }),
         client.invalidateQueries({ queryKey: CATEGORIES }),
+        client.invalidateQueries({ queryKey: RULES }),
       ]),
   });
 }
+
+/** S17: a rule, with what it did and the rules it overlaps. */
+export interface RuleListItem extends Rule {
+  /** How many transactions it categorized. */
+  matches: number;
+  /** The ids of the rules it overlaps. */
+  overlaps: number[];
+}
+
+/** S17: every rule, oldest first, and the transactions the rules can't decide. */
+export const useRules = (enabled = true) =>
+  useQuery({
+    enabled,
+    queryKey: RULES,
+    queryFn: () =>
+      request<{ rules: RuleListItem[]; conflicts: number }>(
+        "GET",
+        "/api/rules",
+      ),
+  });
+
+/** A rule's change shows in categories' counts, and can categorize transactions. */
+function useRuleChange<V, R>(change: (vars: V) => Promise<R>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: change,
+    onSuccess: () =>
+      Promise.all(
+        [RULES, CATEGORIES, ACCOUNTS].map((queryKey) =>
+          client.invalidateQueries({ queryKey }),
+        ),
+      ),
+  });
+}
+
+/** D6's offers, ticked: what to categorize when the rule is saved. */
+export interface RuleSaveOptions {
+  /** The uncategorized transactions it matches. */
+  apply: boolean;
+  /** Editing: the conflicts it no longer takes part in. */
+  settle: boolean;
+}
+
+export const useCreateRule = () =>
+  useRuleChange((body: RuleFields & RuleSaveOptions) =>
+    request<Rule>("POST", "/api/rules", body),
+  );
+
+export const useUpdateRule = (id: number) =>
+  useRuleChange((body: RuleFields & RuleSaveOptions) =>
+    request<Rule>("PATCH", `/api/rules/${id}`, body),
+  );
+
+export const useDeleteRule = () =>
+  useRuleChange((id: number) => request<null>("DELETE", `/api/rules/${id}`));
+
+/** D6: what saving the rule as typed would do. */
+export type RulePreview =
+  | { valid: false }
+  | {
+      valid: true;
+      /** Uncategorized transactions it would give its category. */
+      matching: number;
+      /** Uncategorized ones it matches that another rule disagrees on. */
+      conflicts: number;
+      /** Editing: the conflicts it leaves that would get a category. */
+      settled: { categoryId: number; count: number }[];
+      /** The ids of the rules it would overlap. */
+      overlaps: number[];
+    };
+
+/** `id` is the rule being edited; null for a new one. */
+export const useRulePreview = (fields: RuleFields, id: number | null) =>
+  useQuery({
+    queryKey: [...RULES, "preview", id, fields],
+    queryFn: () =>
+      request<RulePreview>("POST", "/api/rules/preview", { ...fields, id }),
+    // Keeps the last answer on screen while typing.
+    placeholderData: keepPreviousData,
+  });

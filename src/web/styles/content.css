@@ -104,11 +104,12 @@ a.ar:focus-visible {
   color: var(--color-text-subtle);
 }
 
-/* ---------- Categories (S16) ---------- */
+/* ---------- Categories and rules (S16, S17) ---------- */
 
-.cat-row {
+.cat-row,
+.rule-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px 160px;
+  grid-template-columns: minmax(0, 220px) 120px minmax(0, 1fr) 160px;
   align-items: center;
   gap: var(--space-4);
   min-height: var(--row-height);
@@ -116,7 +117,16 @@ a.ar:focus-visible {
   border-top: var(--border-width) solid var(--color-border);
   font: var(--type-table);
 }
-.cat-row.head {
+.rule-row {
+  grid-template-columns:
+    minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr)
+    80px 160px;
+}
+.rule-row:first-child {
+  border-top: 0;
+}
+.cat-row.head,
+.rule-row.head {
   min-height: 0;
   padding-top: var(--space-3);
   padding-bottom: var(--space-3);
@@ -131,14 +141,52 @@ a.ar:focus-visible {
   overflow-wrap: anywhere;
 }
 .cat-row .num,
-.cat-row.head .r {
+.cat-row.head .r,
+.rule-row .num,
+.rule-row.head .r {
   text-align: right;
   font-variant-numeric: var(--numbers);
 }
-.cat-row .acts {
+.cat-row .muted-cell,
+.rule-row .muted-cell {
+  color: var(--color-text-muted);
+}
+.cat-row .used {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+}
+.cat-row .used .link {
+  overflow-wrap: anywhere;
+}
+.cat-row .acts,
+.rule-row .acts {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-1);
+}
+.rule-row .match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-weight: var(--weight-medium);
+}
+.rule-row .match .text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* What a change does to each item, such as a deleted category's rules. */
+.change-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-1) 0;
+}
+.change-list span::before {
+  content: "•";
+  margin-right: var(--space-2);
 }
 /* Radio cards: one choice each, such as where a deleted category's
    transactions go (D5). */
