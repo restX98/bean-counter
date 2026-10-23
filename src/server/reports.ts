@@ -2,7 +2,7 @@ import { inArray } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { addMonths } from "../domain/dates.ts";
 import {
-  monthReport,
+  periodReport,
   reportCurrencies,
   type ReportData,
 } from "../domain/reports.ts";
@@ -83,7 +83,7 @@ export function reportRoutes(
         .sort();
       const thisMonth = today().slice(0, 7);
       const month = req.query.month ?? months.at(-1) ?? thisMonth;
-      const report = monthReport(data, currency, month);
+      const report = periodReport(data, currency, { from: month, to: month });
 
       // What Review can still change in this month: what has no category
       // yet, what may be a transfer, and the suggested exchanges.
@@ -151,7 +151,9 @@ export function reportRoutes(
         months: Array.from({ length: 12 }, (_, i) => {
           const m = addMonths(month, i - 11);
           const { income, expenses } =
-            m === month ? report : monthReport(data, currency, m);
+            m === month
+              ? report
+              : periodReport(data, currency, { from: m, to: m });
           return { month: m, income: income.total, expenses: expenses.total };
         }),
       };

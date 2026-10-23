@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  monthReport,
+  periodChoices,
+  periodReport,
   reportCurrencies,
+  spending,
   type ReportAccount,
   type ReportTransaction,
 } from "./reports.ts";
@@ -25,6 +27,11 @@ const INTEREST = 11;
 const RENT = 20;
 const GROCERIES = 21;
 const SHOPPING = 22;
+const EATING_OUT = 23;
+const TRANSPORT = 24;
+const HEALTH = 25;
+const PETS = 26;
+const GIFTS = 27;
 const categories = [
   { id: SALARY, type: "income" as const },
   { id: INTEREST, type: "income" as const },
@@ -59,15 +66,17 @@ const transfer = (out: ReportTransaction, into: ReportTransaction) => {
 const report = (
   transactions: ReportTransaction[],
   currency = "EUR",
-  month = "2026-10",
-) => monthReport({ accounts, categories, transactions }, currency, month);
+  from = "2026-10",
+  to = from,
+) =>
+  periodReport({ accounts, categories, transactions }, currency, { from, to });
 const line = (categoryId: number | null, amount: number, count = 1) => ({
   categoryId,
   amount,
   count,
 });
 
-describe("monthReport", () => {
+describe("periodReport", () => {
   it("adds up the brief's October (§6.1)", () => {
     const [out, into] = transfer(
       tx(CHECKING, "2026-10-05", -50000),
@@ -107,6 +116,22 @@ describe("monthReport", () => {
     expect(report(transactions).expenses.total).toBe(-2000);
     expect(report(transactions, "USD").expenses.total).toBe(-3000);
     expect(report(transactions, "EUR", "2026-09").expenses.total).toBe(-1000);
+  });
+
+  it("adds up several months, and only those", () => {
+    const { expenses } = report(
+      [
+        tx(CHECKING, "2026-07-31", -4000, { categoryId: GROCERIES }),
+        tx(CHECKING, "2026-08-01", -33000, { categoryId: GROCERIES }),
+        tx(CHECKING, "2026-09-12", -25000, { categoryId: GROCERIES }),
+        tx(CHECKING, "2026-10-31", -32000, { categoryId: GROCERIES }),
+        tx(CHECKING, "2026-11-01", -5000, { categoryId: GROCERIES }),
+      ],
+      "EUR",
+      "2026-08",
+      "2026-10",
+    );
+    expect(expenses.lines).toEqual([line(GROCERIES, -90000, 3)]);
   });
 
   it("adds up each category, refunds included", () => {
@@ -212,6 +237,150 @@ describe("monthReport", () => {
     ]);
     expect(october.net).toBe(-70000);
     expect(october.savingsRate).toBe(null);
+  });
+});
+
+describe("spending", () => {
+  const side = (...lines: ReturnType<typeof line>[]) => ({
+    lines,
+    total: lines.reduce((sum, l) => sum + l.amount, 0),
+  });
+
+  it("gives each category its share of the design's three months", () => {
+    const threeMonths = spending(
+      side(
+        line(RENT, -135000, 3),
+        line(GROCERIES, -90000, 21),
+        line(EATING_OUT, -24000, 6),
+        line(SHOPPING, -21000, 4),
+        line(TRANSPORT, -15000, 3),
+        line(HEALTH, -7990, 2),
+        line(null, -7010, 3),
+      ),
+    );
+    expect(threeMonths.total).toBe(300000);
+    expect(threeMonths.lines.map((l) => [l.amount, l.share])).toEqual([
+      [135000, 450],
+      [90000, 300],
+      [24000, 80],
+      [21000, 70],
+      [15000, 50],
+      [7990, 27],
+      [7010, 23],
+    ]);
+    expect(threeMonths.lines.map((l) => l.colour)).toEqual([
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      null,
+    ]);
+    expect(threeMonths.refunded).toEqual([]);
+  });
+
+  it("names a category that got more back than it spent, out of the shares and the total", () => {
+    // Shopping bought for 60.00 € in September, returned in October.
+    const october = spending(
+      side(
+        line(RENT, -45000),
+        line(GROCERIES, -32000, 8),
+        line(EATING_OUT, -8000, 3),
+        line(SHOPPING, 6000),
+        line(TRANSPORT, 0, 2),
+        line(null, -3000),
+      ),
+    );
+    expect(october.lines).toEqual([
+      { ...line(RENT, 45000), share: 511, colour: 1 },
+      { ...line(GROCERIES, 32000, 8), share: 364, colour: 2 },
+      { ...line(EATING_OUT, 8000, 3), share: 91, colour: 3 },
+      { ...line(null, 3000), share: 34, colour: null },
+    ]);
+    expect(october.total).toBe(88000);
+    expect(october.refunded).toEqual([line(SHOPPING, 6000)]);
+  });
+
+  it("colours the six largest categories, the rest are Other", () => {
+    const { lines } = spending(
+      side(
+        line(null, -90000),
+        line(PETS, -1000),
+        line(RENT, -70000),
+        line(GIFTS, -1000),
+        line(GROCERIES, -30000),
+        line(EATING_OUT, -8000),
+        line(SHOPPING, -6000),
+        line(TRANSPORT, -4000),
+        line(HEALTH, -2000),
+      ),
+    );
+    expect(lines.map((l) => [l.categoryId, l.colour])).toEqual([
+      [RENT, 1],
+      [GROCERIES, 2],
+      [EATING_OUT, 3],
+      [SHOPPING, 4],
+      [TRANSPORT, 5],
+      [HEALTH, 6],
+      [PETS, null],
+      [GIFTS, null],
+      [null, null],
+    ]);
+    expect(lines.reduce((sum, l) => sum + l.share, 0)).toBe(1000);
+  });
+
+  it("has nothing to share without spending", () => {
+    expect(spending(side())).toEqual({ lines: [], total: 0, refunded: [] });
+    expect(spending(side(line(SHOPPING, 6000)))).toEqual({
+      lines: [],
+      total: 0,
+      refunded: [line(SHOPPING, 6000)],
+    });
+  });
+});
+
+describe("periodChoices", () => {
+  const choices = (first: string, last: string, thisMonth = "2026-10") =>
+    periodChoices(first, last, thisMonth).map(
+      (c) => `${c.label}: ${c.period.from}..${c.period.to}`,
+    );
+
+  it("offers the last months, each year and all time", () => {
+    expect(choices("2025-03", "2026-10")).toEqual([
+      "Last 3 months: 2026-08..2026-10",
+      "Last 6 months: 2026-05..2026-10",
+      "Last 12 months: 2025-11..2026-10",
+      "2026 so far: 2026-01..2026-10",
+      "2025: 2025-03..2025-12",
+      "All time: 2025-03..2026-10",
+    ]);
+  });
+
+  it("ends at the newest month with transactions", () => {
+    expect(choices("2025-03", "2026-09")[0]).toBe(
+      "Last 3 months: 2026-07..2026-09",
+    );
+  });
+
+  it("leaves out what comes to all time", () => {
+    expect(choices("2026-08", "2026-10")).toEqual([
+      "All time: 2026-08..2026-10",
+    ]);
+    expect(choices("2026-06", "2026-10")).toEqual([
+      "Last 3 months: 2026-08..2026-10",
+      "All time: 2026-06..2026-10",
+    ]);
+  });
+
+  it("calls the last 12 months by their year when they're one", () => {
+    expect(choices("2025-07", "2026-12", "2027-01")).toEqual([
+      "Last 3 months: 2026-10..2026-12",
+      "Last 6 months: 2026-07..2026-12",
+      "2026: 2026-01..2026-12",
+      "2025: 2025-07..2025-12",
+      "All time: 2025-07..2026-12",
+    ]);
   });
 });
 

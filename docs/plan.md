@@ -243,8 +243,9 @@ All three reports share a currency switcher (EUR first) and a period control.
 #### S13 Spending by category
 
 - **Shows**:
-  - a period picker;
-  - a chart and a ranked list of expense categories, with amount and share.
+  - a period picker: the last 3 months (where it opens), 6 or 12 months up to the newest month with transactions in that currency, each calendar year, All time, or a custom range with From and To months; the period and currency are in the address;
+  - a chart and a ranked list of expense categories, with amount and share; the six largest each have their own colour, and the rest and Uncategorized are Other, in gray;
+  - under the list, the categories that got more back than they spent (brief §5.5).
 - **Actions**: open a category → S5, filtered.
 - **States**: no spending in the period.
 
