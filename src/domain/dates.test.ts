@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addMonths,
   daysBetween,
   formatDate,
   formatDay,
@@ -56,6 +57,16 @@ describe("formatMonth", () => {
     expect(formatMonth("2026-10")).toBe("October 2026");
     expect(formatMonth("2026-01", { short: true })).toBe("Jan 2026");
     expect(formatMonth("2025-12", { short: true })).toBe("Dec 2025");
+  });
+});
+
+describe("addMonths", () => {
+  it("moves by whole months, across years", () => {
+    expect(addMonths("2026-10", -1)).toBe("2026-09");
+    expect(addMonths("2026-10", 3)).toBe("2027-01");
+    expect(addMonths("2026-01", -1)).toBe("2025-12");
+    expect(addMonths("2026-10", -11)).toBe("2025-11");
+    expect(addMonths("2026-10", 0)).toBe("2026-10");
   });
 });
 

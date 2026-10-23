@@ -141,8 +141,12 @@ Amounts in different currencies are never added together. Every report is shown 
 - **Total balance over time**: a chart of the total across all accounts in a currency, with a per-account breakdown.
 - **Monthly in vs. out**: for each month, it shows:
   - income, expenses and net cashflow (income − expenses);
-  - savings rate (net cashflow ÷ income);
+    - each category adds up under its type, so a refund reduces its expense category;
+    - a transaction without a category goes to an "Uncategorized" line: under expenses for money going out, under income for money coming in;
+  - savings rate (net cashflow ÷ income), none in a month without income;
   - a separate **Moved to savings** line: net transfers from checking into savings accounts (withdrawals from savings reduce it).
+    - Only linked transfers between a checking and a savings account count, not between two savings or two checking accounts.
+    - Each counts on the savings side: in that account's currency and on that side's date. An exchange from a EUR checking account into a USD savings account counts in the USD report.
 - **Spending by category**: for any period, with drill-down to the individual transactions.
 - **Transactions still in Review**: uncategorized ones (including rule conflicts) count under an "Uncategorized" line. Possible transfers (a transfer to pick or a cross-currency suggestion, with their candidate matches) and possible paybacks (§5.10) are left out of income, expenses and Moved to savings until I link or dismiss them. While items are waiting, reports say the numbers can still change.
 
@@ -283,3 +287,4 @@ New features and decisions are added here as we go.
 | 2026-10-23 | Times: a transaction's time, when its file had one, is shown next to its date everywhere it's listed: Review, Link transfer, the other side of a transfer, near-matches and the transactions that could explain a balance mismatch |
 | 2026-10-23 | Transactions (S5), first part: every account's transactions newest first, archived accounts included, tagged as on the account page and opening the transaction panel; a search on the description that ignores case and repeated spaces; 50 rows at a time with Load more; grouped by day on a phone. Money in shows green only once it has a category and can't be a transfer, on the account page too |
 | 2026-10-23 | Transactions (S5), filters: account, period (whole months, All time by default), category and type (as reports count it: a possible transfer is a transfer, an excluded one only excluded), kept in the address so reports can link to them; on a phone they're in a sheet, with chips for those set; an empty result says which filters, with Clear filters; the open transaction's panel stays open when a change takes it out of the list |
+| 2026-10-23 | Monthly in vs out, the sums: per category under its type (refunds reduce their category), uncategorized money out and in on their own lines, net and savings rate; excluded transactions, transfers and possible transfers left out, the possible ones listed; Moved to savings counted on the savings side, in its currency and on its date |

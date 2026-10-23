@@ -70,6 +70,14 @@ export function formatMonth(month: string, { short = false } = {}): string {
   return `${short ? name.slice(0, 3) : name} ${year}`;
 }
 
+/** "2026-10" moved by whole months: −1 gives "2026-09", +3 "2027-01". */
+export function addMonths(month: string, count: number): string {
+  const [year, number] = month.split("-").map(Number) as [number, number];
+  const index = year * 12 + number - 1 + count;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${Math.floor(index / 12)}-${pad((index % 12) + 1)}`;
+}
+
 /**
  * A transaction's date, with its time when its file had one: "16/10/2026
  * 21:02". Short leaves out the year: "16/10 21:02". Seconds keeps them, to
