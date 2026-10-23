@@ -1,7 +1,7 @@
 import { eq, inArray } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { inOrder, ledger } from "../domain/ledger.ts";
-import { ruleChecker } from "../domain/rules.ts";
+import { contains, ruleChecker } from "../domain/rules.ts";
 import type { Db } from "./db/index.ts";
 import {
   accounts,
@@ -27,9 +27,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
     db.select().from(accounts).where(eq(accounts.id, id)).get();
 
   // S4: the account's transactions, newest first, each with the balance
-  // after it, and where the bank's balances disagree with the app's. An
-  // uncategorized one says which categories its rules disagree on, if any;
-  // a transfer gives its other side, and a possible one says so.
+  // after it, and where the bank's balances disagree with the app's.
   app.get<WithId>(
     "/api/accounts/:id/transactions",
     { schema: { params: idParams } },
@@ -38,71 +36,11 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       if (!account) return reply.code(404).send({ error: "Not found" });
 
       const { entries, gaps, offDays, checks } = loadLedger(db, account);
-      const { candidates } = findTransfers(db);
-      // A possible transfer: how many could be its other side, and where.
-      const toPick = (id: number) => {
-        const list = candidates.get(id);
-        return list
-          ? {
-              count: list.length,
-              accountIds: [...new Set(list.map((c) => c.accountId))],
-            }
-          : null;
-      };
-      const check = ruleChecker(loadRules(db));
-      const conflict = (t: (typeof entries)[number]) => {
-        if (t.categoryId !== null || t.transferWith !== null || t.excluded) {
-          return null;
-        }
-        const outcome = check({
-          ...t,
-          accountId: account.id,
-          currency: account.currency,
-        });
-        return outcome.kind === "conflict"
-          ? [...new Set(outcome.rules.map((r) => r.categoryId))]
-          : null;
-      };
-      // The other side of each transfer.
-      const linkedIds = entries.flatMap((t) =>
-        t.transferWith === null ? [] : [t.transferWith],
-      );
-      const others = new Map(
-        (linkedIds.length === 0
-          ? []
-          : db
-              .select({
-                id: transactions.id,
-                accountId: transactions.accountId,
-                date: transactions.date,
-                time: transactions.time,
-                amount: transactions.amount,
-                description: transactions.description,
-              })
-              .from(transactions)
-              .where(inArray(transactions.id, linkedIds))
-              .all()
-        ).map((other) => [other.id, other]),
-      );
+      const list = lister(db, entries);
       return {
         transactions: entries.toReversed().map((t) => ({
-          id: t.id,
-          date: t.date,
-          time: t.time,
-          amount: t.amount,
-          description: t.description,
-          reference: t.reference,
+          ...list(t, account),
           bankBalance: t.bankBalance,
-          excluded: t.excluded,
-          nearMatchOf: t.nearMatchOf,
-          categoryId: t.categoryId,
-          ruleId: t.ruleId,
-          conflict: conflict(t),
-          toPick: toPick(t.id),
-          transfer:
-            t.transferWith === null
-              ? null
-              : (others.get(t.transferWith) ?? null),
           balance: t.balance,
         })),
         gaps: gaps.map(({ suspects, ...gap }) => ({
@@ -124,6 +62,57 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           amount: c.balance,
           app: c.app,
         })),
+      };
+    },
+  );
+
+  // S5: every account's transactions, archived ones included, newest
+  // first: the first `limit` of those that match the search, and how many
+  // match in all.
+  app.get<{ Querystring: { q: string; limit: number } }>(
+    "/api/transactions",
+    {
+      schema: {
+        querystring: {
+          type: "object",
+          properties: {
+            q: { type: "string", default: "" },
+            limit: { type: "integer", minimum: 1, default: 50 },
+          },
+        },
+      },
+    },
+    (req) => {
+      const { q, limit } = req.query;
+      const owners = new Map(
+        db
+          .select()
+          .from(accounts)
+          .all()
+          .map((a) => [a.id, a]),
+      );
+      const matches = contains(q);
+      const found = inOrder(
+        db
+          .select({
+            ...LISTED,
+            accountId: transactions.accountId,
+            importId: transactions.importId,
+            line: transactions.line,
+          })
+          .from(transactions)
+          .all(),
+      )
+        .toReversed()
+        .filter((t) => matches(t.description));
+      const page = found.slice(0, limit);
+      const list = lister(db, page);
+      return {
+        transactions: page.map((t) => ({
+          ...list(t, owners.get(t.accountId)!),
+          accountId: t.accountId,
+        })),
+        total: found.length,
       };
     },
   );
@@ -265,6 +254,85 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
   );
 }
 
+/** The columns a list shows a transaction with (S4, S5). */
+const LISTED = {
+  id: transactions.id,
+  date: transactions.date,
+  time: transactions.time,
+  amount: transactions.amount,
+  description: transactions.description,
+  reference: transactions.reference,
+  excluded: transactions.excluded,
+  nearMatchOf: transactions.nearMatchOf,
+  categoryId: transactions.categoryId,
+  ruleId: transactions.ruleId,
+  transferWith: transactions.transferWith,
+};
+
+type Listed = Pick<typeof transactions.$inferSelect, keyof typeof LISTED>;
+
+/**
+ * Shows the rows as a list does (S4, S5). An uncategorized one says which
+ * categories its rules disagree on, if any; a transfer gives its other
+ * side, and a possible one says how many could be that side, and where.
+ */
+function lister(db: Db, rows: Listed[]) {
+  const { candidates } = findTransfers(db);
+  const check = ruleChecker(loadRules(db));
+  const linkedIds = rows.flatMap((t) =>
+    t.transferWith === null ? [] : [t.transferWith],
+  );
+  const others = new Map(
+    (linkedIds.length === 0
+      ? []
+      : db
+          .select({
+            id: transactions.id,
+            accountId: transactions.accountId,
+            date: transactions.date,
+            time: transactions.time,
+            amount: transactions.amount,
+            description: transactions.description,
+          })
+          .from(transactions)
+          .where(inArray(transactions.id, linkedIds))
+          .all()
+    ).map((other) => [other.id, other]),
+  );
+
+  return (t: Listed, account: { id: number; currency: string }) => {
+    const toPick = candidates.get(t.id);
+    const outcome =
+      t.categoryId !== null || t.transferWith !== null || t.excluded
+        ? null
+        : check({ ...t, accountId: account.id, currency: account.currency });
+    return {
+      id: t.id,
+      date: t.date,
+      time: t.time,
+      amount: t.amount,
+      description: t.description,
+      reference: t.reference,
+      excluded: t.excluded,
+      nearMatchOf: t.nearMatchOf,
+      categoryId: t.categoryId,
+      ruleId: t.ruleId,
+      conflict:
+        outcome?.kind === "conflict"
+          ? [...new Set(outcome.rules.map((r) => r.categoryId))]
+          : null,
+      toPick: toPick
+        ? {
+            count: toPick.length,
+            accountIds: [...new Set(toPick.map((c) => c.accountId))],
+          }
+        : null,
+      transfer:
+        t.transferWith === null ? null : (others.get(t.transferWith) ?? null),
+    };
+  };
+}
+
 /**
  * An account's transactions in order with their balances, and where the
  * bank's balances disagree (see `ledger`). Without an anchor there's nothing
@@ -273,20 +341,10 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
 export function loadLedger(db: Db, account: typeof accounts.$inferSelect) {
   const rows = db
     .select({
-      id: transactions.id,
+      ...LISTED,
       importId: transactions.importId,
       line: transactions.line,
-      date: transactions.date,
-      time: transactions.time,
-      amount: transactions.amount,
-      description: transactions.description,
-      reference: transactions.reference,
       bankBalance: transactions.bankBalance,
-      excluded: transactions.excluded,
-      nearMatchOf: transactions.nearMatchOf,
-      categoryId: transactions.categoryId,
-      ruleId: transactions.ruleId,
-      transferWith: transactions.transferWith,
     })
     .from(transactions)
     .where(eq(transactions.accountId, account.id))

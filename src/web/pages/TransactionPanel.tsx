@@ -10,7 +10,7 @@ import {
   useRules,
   useSetCategory,
   useUnlink,
-  type LedgerTransaction,
+  type ListedTransaction,
   type TransferSide,
 } from "../api.ts";
 import { CategorySelect } from "../components/CategorySelect.tsx";
@@ -34,7 +34,7 @@ export function TransactionPanel({
   onClose,
 }: {
   account: Account;
-  transaction: LedgerTransaction;
+  transaction: ListedTransaction;
   onClose: () => void;
 }) {
   const isMobile = useIsMobile();

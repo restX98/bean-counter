@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   daysBetween,
   formatDate,
+  formatDay,
   formatWhen,
   isIsoDate,
   todayIso,
@@ -38,6 +39,14 @@ describe("todayIso", () => {
 describe("formatDate", () => {
   it("shows day/month/year", () => {
     expect(formatDate("2026-10-16")).toBe("16/10/2026");
+  });
+});
+
+describe("formatDay", () => {
+  it("starts with the day of the week", () => {
+    expect(formatDay("2026-10-15")).toBe("Thursday 15/10/2026");
+    expect(formatDay("2026-10-11")).toBe("Sunday 11/10/2026");
+    expect(formatDay("2028-02-29")).toBe("Tuesday 29/02/2028");
   });
 });
 

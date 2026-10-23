@@ -32,6 +32,22 @@ export function formatDate(iso: string): string {
   return `${day}/${month}/${year}`;
 }
 
+const WEEKDAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+/** "2026-10-15" → "Thursday 15/10/2026", heading a day's transactions. */
+export function formatDay(iso: string): string {
+  const weekday = new Date(utcDay(iso)).getUTCDay();
+  return `${WEEKDAYS[weekday]} ${formatDate(iso)}`;
+}
+
 /**
  * A transaction's date, with its time when its file had one: "16/10/2026
  * 21:02". Short leaves out the year: "16/10 21:02". Seconds keeps them, to
@@ -49,13 +65,15 @@ export function formatWhen(
 
 /** How many days apart two dates are, whichever comes first. */
 export function daysBetween(a: string, b: string): number {
-  const day = (iso: string) => {
-    const [year, month, date] = iso.split("-").map(Number) as [
-      number,
-      number,
-      number,
-    ];
-    return Date.UTC(year, month - 1, date) / 86_400_000;
-  };
-  return Math.abs(day(a) - day(b));
+  return Math.abs(utcDay(a) - utcDay(b)) / 86_400_000;
+}
+
+/** Midnight UTC of the day, in milliseconds. */
+function utcDay(iso: string): number {
+  const [year, month, day] = iso.split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  return Date.UTC(year, month - 1, day);
 }

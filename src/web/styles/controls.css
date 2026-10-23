@@ -156,27 +156,57 @@
 .select[aria-invalid="true"] {
   border-color: var(--color-danger-solid);
 }
-/* An input with its unit in the box, such as S18's "3 days". */
+/*
+ * An input with more in its box: its unit, such as S18's "3 days", or a
+ * search's icon and a button to clear it (S5).
+ */
 .input.suffix {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
   width: 140px;
 }
-.input.suffix input {
+.input.search {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-right: var(--space-1);
+}
+.input.search > .icon {
+  color: var(--color-text-muted);
+}
+.input.search .icon-btn {
+  width: 28px;
+  height: 28px;
+}
+.input.suffix input,
+.input.search input {
   flex: 1;
+  align-self: stretch;
   min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
+}
+.input.suffix input {
   font-variant-numeric: var(--numbers);
 }
-.input.suffix input:focus-visible {
+.input.search input::placeholder {
+  color: var(--color-text-subtle);
+  opacity: 1;
+}
+/* It has its own button to clear it. */
+.input.search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+.input.suffix input:focus-visible,
+.input.search input:focus-visible {
   outline: none;
 }
-.input.suffix:focus-within {
+.input.suffix:focus-within,
+.input.search:focus-within {
   outline: var(--focus-width) solid var(--color-focus);
   outline-offset: 0;
   border-color: var(--color-focus);

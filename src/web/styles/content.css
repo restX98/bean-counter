@@ -621,7 +621,7 @@ button.m-tx:hover {
   }
 }
 
-/* ---------- An account's transactions (S4) ---------- */
+/* ---------- Transaction lists: an account's (S4), every account's (S5) ---------- */
 
 .card.table {
   padding: 0;
@@ -651,20 +651,24 @@ button.m-tx:hover {
 .lr.bank {
   grid-template-columns: 96px minmax(0, 1fr) 150px 112px 120px 128px 88px;
 }
-.lr.tx {
+.lr.tx,
+.tr.tx {
   cursor: pointer;
 }
-.lr.tx:hover {
+.lr.tx:hover,
+.tr.tx:hover {
   background: var(--color-hover);
 }
 .lr.tx.is-open,
+.tr.tx.is-open,
 .m-tx.tx.is-open {
   background: var(--color-accent-subtle);
 }
 .m-tx.tx {
   cursor: pointer;
 }
-.lr .cat {
+.lr .cat,
+.tr .cat {
   min-width: 0;
   display: flex;
   flex-wrap: wrap;
@@ -686,7 +690,8 @@ button.m-tx:hover {
 .row-open:focus-visible {
   border-radius: var(--radius-sm);
 }
-.lr.head {
+.lr.head,
+.tr.head {
   min-height: 0;
   padding-top: var(--space-3);
   padding-bottom: var(--space-3);
@@ -695,7 +700,8 @@ button.m-tx:hover {
   font: var(--type-label);
   color: var(--color-text-muted);
 }
-.lr .date {
+.lr .date,
+.tr .date {
   display: flex;
   flex-direction: column;
   color: var(--color-text-muted);
@@ -717,7 +723,9 @@ button.m-tx:hover {
 .lr > .amount,
 .lr .bal,
 .lr .bank-bal,
-.lr.head > .r {
+.lr.head > .r,
+.tr > .amount,
+.tr.head > .r {
   text-align: right;
 }
 .lr .bal {
@@ -746,7 +754,14 @@ button.m-tx:hover {
 .lr.is-excluded,
 .lr.is-excluded .date,
 .lr.is-excluded .amount,
-.lr.is-excluded .bal {
+.lr.is-excluded .bal,
+.tr.is-excluded,
+.tr.is-excluded .date,
+.tr.is-excluded .acct,
+.tr.is-excluded .amount,
+.m-tx.is-excluded,
+.m-tx.is-excluded .desc,
+.m-tx.is-excluded .amount {
   color: var(--color-text-subtle);
 }
 .is-excluded .amount {
@@ -805,6 +820,35 @@ button.m-tx:hover {
 .m-gap .icon {
   flex: none;
   color: var(--color-warning-solid);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.filters .search {
+  flex: 1;
+  min-width: 220px;
+}
+.tr {
+  display: grid;
+  grid-template-columns: 96px 124px minmax(0, 1fr) 224px 120px;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--row-height);
+  padding: var(--space-2) var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+  font: var(--type-table);
+}
+.tr .acct {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+.tr .desc {
+  min-width: 0;
+  font-weight: var(--weight-medium);
 }
 
 /* ---------- Transaction panel (S6) ---------- */

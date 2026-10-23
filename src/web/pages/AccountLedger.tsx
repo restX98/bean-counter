@@ -17,6 +17,10 @@ import {
 import { FormError } from "../components/Dialog.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { Loading } from "../components/Page.tsx";
+import {
+  amountClass,
+  TransactionCategory,
+} from "../components/TransactionCategory.tsx";
 import { useIsMobile } from "../useIsMobile.ts";
 import { TransactionPanel } from "./TransactionPanel.tsx";
 
@@ -99,9 +103,6 @@ export function AccountLedger({ account }: { account: Account }) {
   const off = new Set(offDays);
   const last = transactions[0]?.date;
   const open = transactions.find((t) => t.id === openId);
-  const names = new Map(
-    categories.data?.categories.map((c) => [c.id, c.name]) ?? [],
-  );
 
   const showGap = (index: number) => {
     const at = all.findIndex((l) => l.kind === "gap" && l.index === index);
@@ -129,33 +130,13 @@ export function AccountLedger({ account }: { account: Account }) {
         {t.excluded ? "Restore" : "Exclude"}
       </button>
     );
-  // A transfer names its other side's account instead, and a possible one
-  // waits for that decision first. Excluded transactions don't count
-  // anywhere, so they don't need a category.
-  const category = (t: LedgerTransaction) =>
-    t.transfer ? (
-      <span className="tag tone-neutral">
-        <Icon name="transfer" />
-        <span className="visually-hidden">Transfer with </span>
-        {accounts.find((a) => a.id === t.transfer?.accountId)?.name}
-      </span>
-    ) : t.toPick ? (
-      <span className="tag tone-warning">
-        <Icon name="transfer" />
-        Transfer to pick
-      </span>
-    ) : t.categoryId !== null ? (
-      <span>{names.get(t.categoryId)}</span>
-    ) : t.excluded || !categories.data ? null : t.conflict ? (
-      <span
-        className="tag tone-warning"
-        title={`Rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}`}
-      >
-        Rule conflict
-      </span>
-    ) : (
-      <span className="tag tone-warning">Uncategorized</span>
-    );
+  const category = (t: LedgerTransaction) => (
+    <TransactionCategory
+      transaction={t}
+      accounts={accounts}
+      categories={categories.data?.categories}
+    />
+  );
   const rowClass = (t: LedgerTransaction, base: string) =>
     [base, t.excluded && "is-excluded", t.id === openId && "is-open"]
       .filter(Boolean)
@@ -185,12 +166,6 @@ export function AccountLedger({ account }: { account: Account }) {
       )}
     </>
   );
-  const amountClass = (t: LedgerTransaction) =>
-    t.transfer
-      ? "amount transfer"
-      : t.amount > 0 && !t.excluded
-        ? "amount income"
-        : "amount";
   const remove = (c: Check) =>
     !readOnly && (
       <button

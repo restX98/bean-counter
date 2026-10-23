@@ -148,15 +148,22 @@ function compiles(pattern: string): boolean {
 
 const squeeze = (text: string) => text.replace(/\s+/g, " ").trim();
 
+/**
+ * Whether a description contains the text, ignoring case and repeated
+ * spaces: a rule's "contains", and S5's search. Empty text matches any.
+ */
+export function contains(text: string): (description: string) => boolean {
+  const needle = squeeze(text).toLowerCase();
+  return (description) => squeeze(description).toLowerCase().includes(needle);
+}
+
 /** A rule's description test, compiled once for many transactions. */
 function describes(rule: Pick<RuleCondition, "match" | "text">) {
   if (rule.match === "regex") {
     const pattern = new RegExp(rule.text, "i");
     return (description: string) => pattern.test(squeeze(description));
   }
-  const needle = squeeze(rule.text).toLowerCase();
-  return (description: string) =>
-    squeeze(description).toLowerCase().includes(needle);
+  return contains(rule.text);
 }
 
 function inRange(range: AmountRange | null, t: RuleTarget): boolean {

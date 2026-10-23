@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  contains,
   describeAmount,
   findOverlaps,
   matcher,
@@ -146,6 +147,20 @@ const rule = (id: number, more: Partial<Rule> = {}): Rule => ({
   amount: null,
   categoryId: SHOPPING,
   ...more,
+});
+
+describe("contains", () => {
+  it("finds the text ignoring case and repeated spaces", () => {
+    const test = contains("  bar   centrale ");
+    expect(test("SATISPAY*BAR CENTRALE MILANO")).toBe(true);
+    expect(test("SATISPAY*BAR\tCENTRALE")).toBe(true);
+    expect(test("SATISPAY*BARCENTRALE")).toBe(false);
+  });
+
+  it("matches every description when the text is empty", () => {
+    expect(contains("")("SALARY ACME SPA")).toBe(true);
+    expect(contains("   ")("SALARY ACME SPA")).toBe(true);
+  });
 });
 
 describe("matcher", () => {

@@ -116,6 +116,91 @@ describe("an account's transactions (S4)", () => {
   });
 });
 
+describe("every account's transactions (S5)", () => {
+  const list = (query = "") => call("GET", `/api/transactions${query}`);
+  const described = (body: { transactions: { description: string }[] }) =>
+    body.transactions.map((t) => t.description);
+
+  async function twoAccounts() {
+    const main = await setup();
+    const { body } = await call("POST", "/api/accounts", {
+      name: "Savings",
+      bank: "Bank B",
+      type: "savings",
+      currency: "EUR",
+    });
+    await importText(
+      body.id,
+      [
+        "Data;Descrizione;Importo;Saldo",
+        "03/10/2026;INTEREST;5,00;1.005,00",
+        "05/10/2026;TRANSFER FROM CHECKING;500,00;1.505,00",
+      ].join("\n"),
+    );
+    return { main, savings: body.id as number };
+  }
+
+  it("lists them newest first, each with its account", async () => {
+    const { main, savings } = await twoAccounts();
+    const { status, body } = await list();
+    expect(status).toBe(200);
+    expect(
+      body.transactions.map(
+        (t: { date: string; accountId: number; description: string }) => [
+          t.date,
+          t.accountId,
+          t.description,
+        ],
+      ),
+    ).toEqual([
+      ["2026-10-05", savings, "TRANSFER FROM CHECKING"],
+      ["2026-10-05", main, "TRANSFER TO SAVINGS"],
+      ["2026-10-03", savings, "INTEREST"],
+      ["2026-10-02", main, "ESSELUNGA MILANO"],
+      ["2026-10-01", main, "SALARY ACME SPA"],
+    ]);
+    expect(body.total).toBe(5);
+  });
+
+  it("gives a transfer's other side, as the account's list does", async () => {
+    const { main } = await twoAccounts();
+    const { body } = await list();
+    expect(body.transactions[0]).toEqual(
+      expect.objectContaining({
+        categoryId: null,
+        conflict: null,
+        toPick: null,
+        transfer: expect.objectContaining({
+          accountId: main,
+          description: "TRANSFER TO SAVINGS",
+        }),
+      }),
+    );
+  });
+
+  it("finds the descriptions that contain the search, ignoring case and spaces", async () => {
+    await twoAccounts();
+    const { body } = await list("?q=transfer%20%20to");
+    expect(described(body)).toEqual(["TRANSFER TO SAVINGS"]);
+    expect(body.total).toBe(1);
+    expect((await list("?q=netflix")).body).toEqual({
+      transactions: [],
+      total: 0,
+    });
+  });
+
+  it("sends the first ones, and how many there are in all", async () => {
+    await twoAccounts();
+    const { body } = await list("?q=r&limit=2");
+    expect(described(body)).toEqual([
+      "TRANSFER FROM CHECKING",
+      "TRANSFER TO SAVINGS",
+    ]);
+    expect(body.total).toBe(4);
+    expect((await list("?limit=0")).status).toBe(400);
+  });
+});
+
 describe("excluding a transaction", () => {
   it("takes it out of the balances until it's restored", async () => {
     const id = await setup();

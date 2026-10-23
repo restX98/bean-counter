@@ -19,6 +19,7 @@ import { NotBuilt, NotFound } from "./pages/NotBuilt.tsx";
 import { Review } from "./pages/Review.tsx";
 import { Rules } from "./pages/Rules.tsx";
 import { Settings } from "./pages/Settings.tsx";
+import { Transactions } from "./pages/Transactions.tsx";
 
 const router = createBrowserRouter([
   {
@@ -34,7 +35,7 @@ const router = createBrowserRouter([
         handle: { fullScreen: true } satisfies RouteHandle,
       },
       { path: "review", element: <Review /> },
-      { path: "transactions", element: <NotBuilt title="Transactions" /> },
+      { path: "transactions", element: <Transactions /> },
       { path: "reports", element: <NotBuilt title="Reports" /> },
       { path: "budgets", element: <NotBuilt title="Budgets" /> },
       { path: "categories", element: <Categories /> },

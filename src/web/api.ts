@@ -215,16 +215,14 @@ export const useSaveImport = (upload: string) =>
     }) => request<ImportResult>("POST", `/api/imports/${upload}/save`, body),
   );
 
-/** S4: one of the account's transactions, with the balance after it. */
-export interface LedgerTransaction {
+/** A transaction as the lists show it (S4, S5), and the panel (S6). */
+export interface ListedTransaction {
   id: number;
   date: string;
   time: string | null;
   amount: number;
   description: string;
   reference: string | null;
-  /** The bank's balance after it, if its file had one. */
-  bankBalance: number | null;
   excluded: boolean;
   /** Kept although the import flagged it as a near-match of this one. */
   nearMatchOf: number | null;
@@ -238,6 +236,12 @@ export interface LedgerTransaction {
   toPick: { count: number; accountIds: number[] } | null;
   /** The other side, when it's a transfer. */
   transfer: TransferSide | null;
+}
+
+/** S4: one of the account's transactions, with the balance after it. */
+export interface LedgerTransaction extends ListedTransaction {
+  /** The bank's balance after it, if its file had one. */
+  bankBalance: number | null;
   /** Null when it's excluded. */
   balance: number | null;
 }
@@ -289,6 +293,30 @@ export const useLedger = (account: number, enabled = true) =>
     queryKey: [...ACCOUNTS, account, "transactions"],
     queryFn: () =>
       request<AccountLedger>("GET", `/api/accounts/${account}/transactions`),
+  });
+
+/** S5: the transactions that match the search, in any account. */
+export interface FoundTransactions {
+  /** Newest first: the first `limit` of them. */
+  transactions: (ListedTransaction & { accountId: number })[];
+  /** How many match in all. */
+  total: number;
+}
+
+// Under the accounts, so that what changes an account's list changes this too.
+export const useTransactions = (search: { q: string; limit: number }) =>
+  useQuery({
+    queryKey: [...ACCOUNTS, "transactions", search],
+    queryFn: () =>
+      request<FoundTransactions>(
+        "GET",
+        `/api/transactions?${new URLSearchParams({
+          q: search.q,
+          limit: String(search.limit),
+        })}`,
+      ),
+    // Load more and a new search keep the rows until the new ones come.
+    placeholderData: keepPreviousData,
   });
 
 /** Excludes a transaction, or restores an excluded one. */
