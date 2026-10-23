@@ -88,6 +88,7 @@ describe("periods", () => {
 describe("filterer", () => {
   const none: Filters = {
     accountId: null,
+    currency: null,
     period: null,
     categoryId: null,
     type: null,
@@ -96,6 +97,7 @@ describe("filterer", () => {
   const rows: Filtered[] = [
     {
       accountId: 1,
+      currency: "EUR",
       date: "2026-10-02",
       description: "ESSELUNGA MILANO",
       categoryId: 10,
@@ -103,6 +105,7 @@ describe("filterer", () => {
     },
     {
       accountId: 1,
+      currency: "EUR",
       date: "2026-09-30",
       description: "NETFLIX.COM",
       categoryId: 11,
@@ -110,6 +113,7 @@ describe("filterer", () => {
     },
     {
       accountId: 2,
+      currency: "EUR",
       date: "2026-08-01",
       description: "INTEREST",
       categoryId: 12,
@@ -117,17 +121,26 @@ describe("filterer", () => {
     },
     {
       accountId: 2,
+      currency: "EUR",
       date: "2026-10-06",
       description: "TRANSFER FROM CHECKING",
       categoryId: null,
       type: "transfer",
     },
   ];
+  rows.push({
+    accountId: 3,
+    currency: "USD",
+    date: "2026-10-03",
+    description: "COFFEE",
+    categoryId: 13,
+    type: "expense",
+  });
   const found = (filters: Partial<Filters>) =>
     rows.filter(filterer({ ...none, ...filters })).map((t) => t.description);
 
   it("keeps everything with no filter", () => {
-    expect(found({})).toHaveLength(4);
+    expect(found({})).toHaveLength(5);
   });
 
   it("keeps one account, a period's months, a category or a type", () => {
@@ -139,6 +152,12 @@ describe("filterer", () => {
       "ESSELUNGA MILANO",
       "NETFLIX.COM",
       "TRANSFER FROM CHECKING",
+      "COFFEE",
+    ]);
+    expect(found({ currency: "USD" })).toEqual(["COFFEE"]);
+    expect(found({ currency: "EUR", type: "expense" })).toEqual([
+      "ESSELUNGA MILANO",
+      "NETFLIX.COM",
     ]);
     expect(found({ categoryId: 11 })).toEqual(["NETFLIX.COM"]);
     expect(found({ type: "transfer" })).toEqual(["TRANSFER FROM CHECKING"]);

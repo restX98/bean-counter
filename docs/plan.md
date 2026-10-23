@@ -122,6 +122,7 @@ These are the screens to design and the flows that connect them. Each entry cove
   - The type is how reports count a transaction: a possible transfer counts as a transfer, an excluded one only as excluded, the rest by their category's type or as uncategorized.
   - The search finds descriptions that contain the text, like a rule's "contains": ignoring case and repeated spaces.
   - The filters are in the address, so reports can link to them; the search isn't.
+  - With accounts in more than one currency, the account filter also offers every account in one currency ("All EUR accounts"), which reports link to.
 - **Actions**: open a transaction (S6). Its panel stays open when a change takes it out of the filtered list.
 - **States**: no transactions yet, or no results for the current filters (saying which, with Clear filters).
 - **Mobile**: rows grouped by day. The filters open in a sheet that says how many transactions they show; chips show the filters set, each with ✕ to take it off.
@@ -230,13 +231,13 @@ All three reports share a currency switcher (EUR first) and a period control.
 #### S12 Monthly in vs out
 
 - **Shows**:
-  - a month picker;
+  - a month picker: arrows from the first month with transactions to this one; it opens on the newest month with transactions, and the month and currency are in the address;
   - income and expenses by category;
   - net cashflow and savings rate;
   - Moved to savings, with its transfers (layout as in brief §6.1);
   - a 12-month bar chart of income vs. expenses;
   - a note when items in Review can still change the numbers (brief §5.5).
-- **Actions**: open a category → S5, filtered to that month and category.
+- **Actions**: open a category → S5, filtered to that month, category and type (and currency, with accounts in several), so it lists what the line adds up; open a month from the chart.
 - **States**: no data for the month; items still in Review.
 
 #### S13 Spending by category

@@ -16,6 +16,7 @@ import { Dashboard } from "./pages/Dashboard.tsx";
 import { Import } from "./pages/import/Import.tsx";
 import { More } from "./pages/More.tsx";
 import { NotBuilt, NotFound } from "./pages/NotBuilt.tsx";
+import { Reports } from "./pages/Reports.tsx";
 import { Review } from "./pages/Review.tsx";
 import { Rules } from "./pages/Rules.tsx";
 import { Settings } from "./pages/Settings.tsx";
@@ -36,7 +37,7 @@ const router = createBrowserRouter([
       },
       { path: "review", element: <Review /> },
       { path: "transactions", element: <Transactions /> },
-      { path: "reports", element: <NotBuilt title="Reports" /> },
+      { path: "reports", element: <Reports /> },
       { path: "budgets", element: <NotBuilt title="Budgets" /> },
       { path: "categories", element: <Categories /> },
       { path: "rules", element: <Rules /> },

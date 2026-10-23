@@ -7,6 +7,7 @@ import {
   formatMonth,
   formatWhen,
   isIsoDate,
+  isMonth,
   todayIso,
 } from "./dates.ts";
 
@@ -49,6 +50,21 @@ describe("formatDay", () => {
     expect(formatDay("2026-10-15")).toBe("Thursday 15/10/2026");
     expect(formatDay("2026-10-11")).toBe("Sunday 11/10/2026");
     expect(formatDay("2028-02-29")).toBe("Tuesday 29/02/2028");
+  });
+});
+
+describe("isMonth", () => {
+  it("accepts a year and a month", () => {
+    expect(isMonth("2026-10")).toBe(true);
+    for (const text of [
+      "2026-13",
+      "2026-00",
+      "2026-1",
+      "10/2026",
+      "2026-10-01",
+    ]) {
+      expect(isMonth(text), text).toBe(false);
+    }
   });
 });
 

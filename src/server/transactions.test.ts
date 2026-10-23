@@ -226,6 +226,8 @@ describe("every account's transactions (S5)", () => {
       "TRANSFER FROM CHECKING",
       "INTEREST",
     ]);
+    expect(await found("?currency=EUR")).toHaveLength(5);
+    expect(await found("?currency=USD")).toEqual([]);
     expect(await found("?period=2026-09")).toEqual(["INTEREST"]);
     expect(await found("?period=2026-09..2026-10")).toHaveLength(5);
     expect(await found(`?category=${groceries}`)).toEqual(["ESSELUNGA MILANO"]);

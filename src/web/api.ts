@@ -20,6 +20,7 @@ import type {
   RowError,
 } from "../domain/import/mapping.ts";
 import type { Decision, PlanGap, PlannedRow } from "../domain/import/plan.ts";
+import type { ReportSide } from "../domain/reports.ts";
 import type { TableRow } from "../domain/import/table.ts";
 import type {
   ReviewGroups,
@@ -318,6 +319,7 @@ export const useTransactions = (filters: Filters, limit: number) =>
       if (filters.accountId !== null) {
         query.set("account", String(filters.accountId));
       }
+      if (filters.currency) query.set("currency", filters.currency);
       if (filters.period) query.set("period", writePeriod(filters.period));
       if (filters.categoryId !== null) {
         query.set("category", String(filters.categoryId));
@@ -335,6 +337,65 @@ export const useTransaction = (id: number | null) =>
     enabled: id !== null,
     queryKey: [...ACCOUNTS, "transaction", id],
     queryFn: () => request<FoundTransaction>("GET", `/api/transactions/${id}`),
+  });
+
+/** A transaction a report names. */
+export interface NamedTransaction {
+  id: number;
+  accountId: number;
+  date: string;
+  amount: number;
+  description: string;
+}
+
+/** S12: one month in one currency, and the 12 months up to it. */
+export interface MonthlyReport {
+  /** EUR first. */
+  currencies: string[];
+  currency: string;
+  /** "2026-10". */
+  month: string;
+  /** Today's month: the one that's still going. */
+  thisMonth: string;
+  /** The oldest month with transactions in this currency. */
+  first: string | null;
+  income: ReportSide;
+  expenses: ReportSide;
+  net: number;
+  /** Net ÷ income; null without income. */
+  savingsRate: number | null;
+  movedToSavings: {
+    total: number;
+    /** Positive into savings. */
+    transfers: {
+      amount: number;
+      savings: NamedTransaction;
+      other: NamedTransaction;
+    }[];
+  };
+  /** The possible transfers left out until I decide. */
+  pending: NamedTransaction[];
+  /** How many of the month's transactions Review can still change. */
+  waiting: number;
+  /** Oldest first, ending with this month. */
+  months: { month: string; income: number; expenses: number }[];
+}
+
+// Under the accounts, so that what changes a transaction changes this too.
+export const useMonthlyReport = (query: {
+  currency: string | null;
+  month: string | null;
+}) =>
+  useQuery({
+    queryKey: [...ACCOUNTS, "report", "monthly", query],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (query.currency) params.set("currency", query.currency);
+      if (query.month) params.set("month", query.month);
+      return request<MonthlyReport>("GET", `/api/reports/monthly?${params}`);
+    },
+    // Another month keeps the last one on screen until it comes.
+    placeholderData: keepPreviousData,
   });
 
 /** Excludes a transaction, or restores an excluded one. */

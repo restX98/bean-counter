@@ -81,6 +81,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       q: string;
       limit: number;
       account?: number;
+      currency?: string;
       period?: string;
       category?: number;
       type?: TransactionType;
@@ -95,6 +96,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
             q: { type: "string", default: "" },
             limit: { type: "integer", minimum: 1, default: 50 },
             account: { type: "integer" },
+            currency: { type: "string" },
             period: { type: "string" },
             category: { type: "integer" },
             type: { type: "string", enum: [...TRANSACTION_TYPES] },
@@ -103,7 +105,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       },
     },
     (req, reply) => {
-      const { q, limit, account, period, category, type } = req.query;
+      const { q, limit, account, currency, period, category, type } = req.query;
       const months = period === undefined ? null : readPeriod(period);
       if (period !== undefined && !months) {
         return reply.code(400).send({
@@ -139,6 +141,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       ).toReversed();
       const passes = filterer({
         accountId: account ?? null,
+        currency: currency ?? null,
         period: months,
         categoryId: category ?? null,
         type: type ?? null,
@@ -147,6 +150,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       const found = all.filter((t) =>
         passes({
           ...t,
+          currency: owners.get(t.accountId)!.currency,
           type: transactionType({
             excluded: t.excluded,
             transfer: t.transferWith !== null || candidates.has(t.id),

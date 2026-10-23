@@ -63,6 +63,13 @@ const MONTHS = [
   "December",
 ];
 
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** A month as the app writes it: "2026-10". */
+export function isMonth(text: string): boolean {
+  return MONTH.test(text);
+}
+
 /** "2026-10" → "October 2026"; short, "Oct 2026". */
 export function formatMonth(month: string, { short = false } = {}): string {
   const [year, number] = month.split("-");

@@ -1,8 +1,9 @@
-// S5's filters: an account, a period of whole months, a category, a type and
-// a search. Each is optional, and a transaction must pass all of them.
+// S5's filters: an account (or every account in a currency), a period of
+// whole months, a category, a type and a search. Each is optional, and a
+// transaction must pass all of them.
 
 import type { CategoryType } from "./categories.ts";
-import { formatMonth } from "./dates.ts";
+import { formatMonth, isMonth } from "./dates.ts";
 import { contains } from "./rules.ts";
 
 export const TRANSACTION_TYPES = [
@@ -41,12 +42,10 @@ export interface Period {
   to: string;
 }
 
-const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
-
 /** "2026-10", or "2026-08..2026-10" for several; null when it's neither. */
 export function readPeriod(text: string): Period | null {
   const [from = "", to = from, ...rest] = text.split("..");
-  return rest.length === 0 && MONTH.test(from) && MONTH.test(to) && from <= to
+  return rest.length === 0 && isMonth(from) && isMonth(to) && from <= to
     ? { from, to }
     : null;
 }
@@ -74,6 +73,8 @@ export function formatPeriod({ from, to }: Period): string {
 
 export interface Filters {
   accountId: number | null;
+  /** Every account in this currency, as a report counts them. */
+  currency: string | null;
   /** Null for all time. */
   period: Period | null;
   categoryId: number | null;
@@ -84,6 +85,8 @@ export interface Filters {
 
 export interface Filtered {
   accountId: number;
+  /** Its account's. */
+  currency: string;
   date: string;
   description: string;
   categoryId: number | null;
@@ -93,6 +96,7 @@ export interface Filtered {
 /** A test for transactions, compiled once from the filters. */
 export function filterer({
   accountId,
+  currency,
   period,
   categoryId,
   type,
@@ -103,6 +107,7 @@ export function filterer({
     const month = t.date.slice(0, 7);
     return (
       (accountId === null || t.accountId === accountId) &&
+      (currency === null || t.currency === currency) &&
       (period === null || (month >= period.from && month <= period.to)) &&
       (categoryId === null || t.categoryId === categoryId) &&
       (type === null || t.type === type) &&

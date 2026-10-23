@@ -1122,6 +1122,189 @@ button.m-tx:hover {
   color: var(--color-success-solid);
 }
 
+/* ---------- Reports (S12) ---------- */
+
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  transition: opacity 0.15s;
+}
+/* Another month or currency loading: the last one stays, fainter. */
+.report.is-loading {
+  opacity: 0.6;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.controls .push {
+  margin-left: auto;
+}
+.month-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--weight-semibold);
+}
+.month-nav .icon-btn {
+  width: 32px;
+  height: 32px;
+}
+.month-nav .icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.month-nav .icon-btn:disabled:hover {
+  background: transparent;
+}
+.month-nav .caption {
+  font-weight: var(--weight-regular);
+}
+.kv {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: var(--space-2);
+  align-items: baseline;
+}
+.kv > :nth-child(odd) {
+  padding-right: var(--space-4);
+}
+.kv > :nth-child(even) {
+  text-align: right;
+}
+.kv .total {
+  padding-top: var(--space-2);
+  border-top: var(--border-width) solid var(--color-border);
+  font-weight: var(--weight-semibold);
+}
+.kv .indent {
+  padding-left: var(--space-4);
+}
+.kv a.indent {
+  color: var(--color-text);
+  text-decoration: none;
+}
+.kv a.indent:hover {
+  color: var(--color-accent-text);
+  text-decoration: underline;
+}
+.kv .sub {
+  font: var(--type-table);
+  color: var(--color-text-muted);
+}
+
+/* The last 12 months: an SVG, with a button over each month. */
+.barchart {
+  position: relative;
+}
+.barchart svg {
+  display: block;
+  overflow: visible;
+}
+.barchart .grid {
+  stroke: var(--color-border);
+}
+.barchart .baseline {
+  stroke: var(--color-border-strong);
+}
+.barchart .tick {
+  fill: var(--color-text-muted);
+  font: var(--type-caption);
+  font-variant-numeric: var(--numbers);
+}
+.barchart .band {
+  fill: var(--color-hover);
+}
+.barchart .income {
+  fill: var(--chart-income);
+}
+.barchart .expenses {
+  fill: var(--chart-expense);
+}
+.barchart .is-current path {
+  opacity: 0.55;
+}
+.bar-hit {
+  position: absolute;
+  top: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.bar-hit:focus-visible {
+  outline-offset: calc(-1 * var(--focus-width));
+}
+.chart-tip {
+  position: absolute;
+  top: var(--space-2);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-overlay);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font: var(--type-caption);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.chart-tip strong {
+  color: var(--color-text);
+  font-variant-numeric: var(--numbers);
+}
+.tip-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* Tooltips key their series with a short stroke, the legend with a box. */
+.tip-key {
+  width: 12px;
+  height: 3px;
+  border-radius: var(--radius-full);
+}
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font: var(--type-caption);
+  color: var(--color-text-muted);
+}
+.key > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.swatch {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+}
+.swatch.income,
+.tip-key.income {
+  background: var(--chart-income);
+}
+.swatch.expenses,
+.tip-key.expenses {
+  background: var(--chart-expense);
+}
+
+@media (max-width: 767px) {
+  .month-nav .icon-btn {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+}
+
 /* ---------- Toasts ---------- */
 
 .toast {

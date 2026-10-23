@@ -26,8 +26,8 @@ export interface ReportTransaction {
   /** The other side of its transfer. */
   transferWith: number | null;
   /**
-   * A possible transfer, or one of its possible other sides, in the same
-   * currency or across currencies: left out until I decide.
+   * A possible transfer in one currency, or one of its possible other
+   * sides: left out until I decide. A suggested exchange counts as it is.
    */
   pending: boolean;
 }

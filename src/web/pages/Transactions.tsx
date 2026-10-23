@@ -12,6 +12,7 @@ import {
   type Filters,
 } from "../../domain/filters.ts";
 import { formatAmount } from "../../domain/money.ts";
+import { reportCurrencies } from "../../domain/reports.ts";
 import {
   useAccounts,
   useCategories,
@@ -41,11 +42,15 @@ import { TransactionPanel } from "./TransactionPanel.tsx";
 /** Rows shown at first, and added by "Load more". */
 const PAGE = 50;
 
+/** The Account dropdown's value for every account in a currency. */
+const CURRENCY = "currency:";
+
 /** The filters but the search, which stays on the page. */
 type Picked = Omit<Filters, "q">;
 
 const NONE: Picked = {
   accountId: null,
+  currency: null,
   period: null,
   categoryId: null,
   type: null,
@@ -53,8 +58,9 @@ const NONE: Picked = {
 
 /**
  * The filters in the address, so that a report can link to them:
- * ?account=2&period=2026-08..2026-10&category=5&type=expense. Whatever
- * isn't valid is left out.
+ * ?account=2&period=2026-08..2026-10&category=5&type=expense, or
+ * ?currency=EUR for every account in a currency. Whatever isn't valid is
+ * left out.
  */
 function readFilters(params: URLSearchParams): Picked {
   const id = (name: string) => {
@@ -62,8 +68,10 @@ function readFilters(params: URLSearchParams): Picked {
     return Number.isInteger(value) && value > 0 ? value : null;
   };
   const type = params.get("type") ?? "";
+  const currency = params.get("currency") ?? "";
   return {
     accountId: id("account"),
+    currency: /^[A-Z]{3}$/.test(currency) ? currency : null,
     period: readPeriod(params.get("period") ?? ""),
     categoryId: id("category"),
     type: isTransactionType(type) ? type : null,
@@ -72,12 +80,14 @@ function readFilters(params: URLSearchParams): Picked {
 
 function writeFilters({
   accountId,
+  currency,
   period,
   categoryId,
   type,
 }: Picked): URLSearchParams {
   const params = new URLSearchParams();
   if (accountId !== null) params.set("account", String(accountId));
+  if (currency) params.set("currency", currency);
   if (period) params.set("period", writePeriod(period));
   if (categoryId !== null) params.set("category", String(categoryId));
   if (type) params.set("type", type);
@@ -190,6 +200,10 @@ export function Transactions() {
     picked.accountId !== null && {
       label: account(picked.accountId)?.name ?? "Unknown account",
       off: { accountId: null },
+    },
+    picked.currency !== null && {
+      label: `${picked.currency} accounts`,
+      off: { currency: null },
     },
     picked.categoryId !== null && {
       label: categoryName(picked.categoryId) ?? "Unknown category",
@@ -315,9 +329,11 @@ export function Transactions() {
             picked={picked}
             q={q}
             account={
-              picked.accountId === null
-                ? undefined
-                : account(picked.accountId)?.name
+              picked.accountId !== null
+                ? account(picked.accountId)?.name
+                : picked.currency
+                  ? `${picked.currency} accounts`
+                  : undefined
             }
             category={
               picked.categoryId === null
@@ -462,6 +478,7 @@ function FilterSelects({
   const period = picked.period && writePeriod(picked.period);
   const years = [...new Set(months.map((m) => m.slice(0, 4)))];
   const archived = accounts.filter((a) => a.archivedOn !== null);
+  const currencies = reportCurrencies(accounts);
   const toId = (value: string) => (value === "" ? null : Number(value));
   return (
     <>
@@ -469,10 +486,26 @@ function FilterSelects({
         id={`${id}-account`}
         label="Account"
         labelled={labelled}
-        value={picked.accountId ?? ""}
-        onChange={(value) => onPick({ accountId: toId(value) })}
+        value={
+          picked.accountId ??
+          (picked.currency ? `${CURRENCY}${picked.currency}` : "")
+        }
+        onChange={(value) =>
+          onPick(
+            value.startsWith(CURRENCY)
+              ? { accountId: null, currency: value.slice(CURRENCY.length) }
+              : { accountId: toId(value), currency: null },
+          )
+        }
       >
         <option value="">All accounts</option>
+        {/* With more than one currency, a report links to one of them. */}
+        {currencies.length > 1 &&
+          currencies.map((c) => (
+            <option key={c} value={`${CURRENCY}${c}`}>
+              All {c} accounts
+            </option>
+          ))}
         {accounts
           .filter((a) => a.archivedOn === null)
           .map((a) => (
