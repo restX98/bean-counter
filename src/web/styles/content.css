@@ -26,6 +26,39 @@
   gap: var(--space-4);
   align-items: start;
 }
+/* Cards stacked in a column of .grid-2, such as the dashboard's. */
+.grid-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+/* The dashboard's accounts, each with its balance (S1). */
+.accounts {
+  display: flex;
+  flex-direction: column;
+}
+.account {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: var(--border-width) solid var(--color-border);
+}
+.account .name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.account .caption {
+  grid-column: 1;
+}
+.account .amount {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+}
 /* Counts with a label, such as the Review card's. */
 .counts {
   display: flex;
@@ -556,6 +589,9 @@ button.m-tx:hover {
   .summary-cards,
   .grid-2 {
     grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  .grid-col {
     gap: var(--space-3);
   }
   .card {

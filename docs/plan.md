@@ -57,8 +57,8 @@ These are the screens to design and the flows that connect them. Each entry cove
 
 - **Purpose**: shows at a glance where I stand. It's the home screen.
 - **Shows**:
-  - total balance in the selected currency, plus each account's balance;
-  - this month's income, expenses and net cashflow;
+  - total balance in the selected currency, plus each account's balance, and how far off the bank an account is when its balances part;
+  - this month's income, expenses and net cashflow: the newest month with transactions in that currency, as S12 opens on;
   - budgets at a glance, over-budget ones first;
   - "N items to review".
 - **Actions**: switch currency, Import, or open an account, the monthly report, a budget or Review.

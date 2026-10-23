@@ -1,4 +1,4 @@
-import { Fragment, useId } from "react";
+import { Fragment } from "react";
 import { Link, useSearchParams } from "react-router";
 import type { Category, CategoryType } from "../../domain/categories.ts";
 import {
@@ -16,6 +16,7 @@ import {
   type MonthlyReport,
   type NamedTransaction,
 } from "../api.ts";
+import { CurrencySwitch } from "../components/CurrencySwitch.tsx";
 import { EmptyState } from "../components/EmptyState.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { MonthBars } from "../components/MonthBars.tsx";
@@ -42,7 +43,6 @@ export function Reports() {
   const report = useMonthlyReport(asked);
   const accounts = useAccounts();
   const categories = useCategories();
-  const id = useId();
 
   const page = { title: "Reports" };
   if (!report.data || !accounts.data) {
@@ -114,22 +114,12 @@ export function Reports() {
               <Icon name="next" />
             </button>
           </span>
-          {r.currencies.length > 1 && (
-            <div className="seg push" role="radiogroup" aria-label="Currency">
-              {r.currencies.map((currency) => (
-                <label key={currency}>
-                  <input
-                    type="radio"
-                    className="visually-hidden"
-                    name={`${id}-currency`}
-                    checked={currency === r.currency}
-                    onChange={() => go({ currency })}
-                  />
-                  {currency}
-                </label>
-              ))}
-            </div>
-          )}
+          <CurrencySwitch
+            className="seg push"
+            currencies={r.currencies}
+            value={r.currency}
+            onChange={(currency) => go({ currency })}
+          />
         </div>
 
         {r.waiting > 0 && (
