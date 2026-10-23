@@ -828,6 +828,13 @@ button.m-tx:hover {
   align-items: center;
   gap: var(--space-2);
 }
+.filters .select-wrap {
+  flex: none;
+}
+.filters .select {
+  width: auto;
+  min-width: 156px;
+}
 .filters .search {
   flex: 1;
   min-width: 220px;

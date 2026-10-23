@@ -117,10 +117,14 @@ These are the screens to design and the flows that connect them. Each entry cove
 
 - **Purpose**: search and filter transactions across all accounts.
 - **Shows**: date, account, description, category (or transfer badge), and amount in the account's currency. Excluded transactions are greyed out. Archived accounts' transactions are listed too, and open read-only.
-- **Filters**: account, period, category, type (income / expense / transfer / uncategorized / excluded), text search. The search finds descriptions that contain the text, like a rule's "contains": ignoring case and repeated spaces.
-- **Actions**: open a transaction (S6).
-- **States**: no transactions yet, or no results for the current filters.
-- **Mobile**: rows grouped by day. The filters open in a sheet.
+- **Filters**: account, period, category, type (income / expense / transfer / uncategorized / excluded), text search.
+  - The period is whole months: one month picked from those with transactions, or several when a report links to them. It opens on All time.
+  - The type is how reports count a transaction: a possible transfer counts as a transfer, an excluded one only as excluded, the rest by their category's type or as uncategorized.
+  - The search finds descriptions that contain the text, like a rule's "contains": ignoring case and repeated spaces.
+  - The filters are in the address, so reports can link to them; the search isn't.
+- **Actions**: open a transaction (S6). Its panel stays open when a change takes it out of the filtered list.
+- **States**: no transactions yet, or no results for the current filters (saying which, with Clear filters).
+- **Mobile**: rows grouped by day. The filters open in a sheet that says how many transactions they show; chips show the filters set, each with ✕ to take it off.
 
 #### S6 Transaction detail
 

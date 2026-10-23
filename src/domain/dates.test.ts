@@ -3,6 +3,7 @@ import {
   daysBetween,
   formatDate,
   formatDay,
+  formatMonth,
   formatWhen,
   isIsoDate,
   todayIso,
@@ -47,6 +48,14 @@ describe("formatDay", () => {
     expect(formatDay("2026-10-15")).toBe("Thursday 15/10/2026");
     expect(formatDay("2026-10-11")).toBe("Sunday 11/10/2026");
     expect(formatDay("2028-02-29")).toBe("Tuesday 29/02/2028");
+  });
+});
+
+describe("formatMonth", () => {
+  it("names the month, in full or in three letters", () => {
+    expect(formatMonth("2026-10")).toBe("October 2026");
+    expect(formatMonth("2026-01", { short: true })).toBe("Jan 2026");
+    expect(formatMonth("2025-12", { short: true })).toBe("Dec 2025");
   });
 });
 

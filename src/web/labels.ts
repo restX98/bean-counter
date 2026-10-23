@@ -1,5 +1,6 @@
 import type { Account, AccountType } from "../domain/accounts.ts";
 import type { CategoryType } from "../domain/categories.ts";
+import type { TransactionType } from "../domain/filters.ts";
 import { describeAmount, type Rule, type RuleMatch } from "../domain/rules.ts";
 
 export const TYPE_LABELS: Record<AccountType, string> = {
@@ -10,6 +11,23 @@ export const TYPE_LABELS: Record<AccountType, string> = {
 export const CATEGORY_TYPE_LABELS: Record<CategoryType, string> = {
   income: "Income",
   expense: "Expense",
+};
+
+export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
+  income: "Income",
+  expense: "Expense",
+  transfer: "Transfer",
+  uncategorized: "Uncategorized",
+  excluded: "Excluded",
+};
+
+/** In a sentence: "among expenses". */
+export const TRANSACTION_TYPE_PLURALS: Record<TransactionType, string> = {
+  income: "income",
+  expense: "expenses",
+  transfer: "transfers",
+  uncategorized: "uncategorized transactions",
+  excluded: "excluded transactions",
 };
 
 /** "1 account", "3 accounts"; irregular plurals are passed in. */

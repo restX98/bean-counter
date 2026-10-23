@@ -317,11 +317,17 @@
   font: var(--type-table);
   cursor: pointer;
 }
+/* A filter that's set, with an ✕ to take it off (S5). */
+.chip .icon {
+  width: 14px;
+  height: 14px;
+}
 .chip .count {
   font-variant-numeric: var(--numbers);
   color: var(--color-text-muted);
 }
-.chip[aria-pressed="true"] {
+.chip[aria-pressed="true"],
+.chip.is-active {
   background: var(--color-accent-subtle);
   color: var(--color-accent-text);
   border-color: var(--color-accent);

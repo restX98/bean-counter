@@ -13,6 +13,7 @@ import type {
 } from "../domain/accounts.ts";
 import type { BothBalances, SuspectReason } from "../domain/balances.ts";
 import type { Category, CategoryFields } from "../domain/categories.ts";
+import { writePeriod, type Filters } from "../domain/filters.ts";
 import type {
   LeftOutRow,
   Mapping,
@@ -295,28 +296,45 @@ export const useLedger = (account: number, enabled = true) =>
       request<AccountLedger>("GET", `/api/accounts/${account}/transactions`),
   });
 
-/** S5: the transactions that match the search, in any account. */
+/** A transaction in any account (S5). */
+export type FoundTransaction = ListedTransaction & { accountId: number };
+
+/** S5: the transactions that pass the filters, in any account. */
 export interface FoundTransactions {
   /** Newest first: the first `limit` of them. */
-  transactions: (ListedTransaction & { accountId: number })[];
-  /** How many match in all. */
+  transactions: FoundTransaction[];
+  /** How many pass in all. */
   total: number;
+  /** The months that have transactions, newest first: "2026-10". */
+  months: string[];
 }
 
 // Under the accounts, so that what changes an account's list changes this too.
-export const useTransactions = (search: { q: string; limit: number }) =>
+export const useTransactions = (filters: Filters, limit: number) =>
   useQuery({
-    queryKey: [...ACCOUNTS, "transactions", search],
-    queryFn: () =>
-      request<FoundTransactions>(
-        "GET",
-        `/api/transactions?${new URLSearchParams({
-          q: search.q,
-          limit: String(search.limit),
-        })}`,
-      ),
-    // Load more and a new search keep the rows until the new ones come.
+    queryKey: [...ACCOUNTS, "transactions", filters, limit],
+    queryFn: () => {
+      const query = new URLSearchParams({ q: filters.q, limit: String(limit) });
+      if (filters.accountId !== null) {
+        query.set("account", String(filters.accountId));
+      }
+      if (filters.period) query.set("period", writePeriod(filters.period));
+      if (filters.categoryId !== null) {
+        query.set("category", String(filters.categoryId));
+      }
+      if (filters.type) query.set("type", filters.type);
+      return request<FoundTransactions>("GET", `/api/transactions?${query}`);
+    },
+    // Load more and new filters keep the rows until the new ones come.
     placeholderData: keepPreviousData,
+  });
+
+/** S6 over S5: the open transaction, even once a filter leaves it out. */
+export const useTransaction = (id: number | null) =>
+  useQuery({
+    enabled: id !== null,
+    queryKey: [...ACCOUNTS, "transaction", id],
+    queryFn: () => request<FoundTransaction>("GET", `/api/transactions/${id}`),
   });
 
 /** Excludes a transaction, or restores an excluded one. */

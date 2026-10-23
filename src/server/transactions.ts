@@ -1,7 +1,14 @@
 import { eq, inArray } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import {
+  filterer,
+  readPeriod,
+  TRANSACTION_TYPES,
+  transactionType,
+  type TransactionType,
+} from "../domain/filters.ts";
 import { inOrder, ledger } from "../domain/ledger.ts";
-import { contains, ruleChecker } from "../domain/rules.ts";
+import { ruleChecker } from "../domain/rules.ts";
 import type { Db } from "./db/index.ts";
 import {
   accounts,
@@ -67,9 +74,18 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
   );
 
   // S5: every account's transactions, archived ones included, newest
-  // first: the first `limit` of those that match the search, and how many
-  // match in all.
-  app.get<{ Querystring: { q: string; limit: number } }>(
+  // first: the first `limit` of those that pass the filters, how many pass
+  // in all, and the months that have any, newest first, to pick a period.
+  app.get<{
+    Querystring: {
+      q: string;
+      limit: number;
+      account?: number;
+      period?: string;
+      category?: number;
+      type?: TransactionType;
+    };
+  }>(
     "/api/transactions",
     {
       schema: {
@@ -78,12 +94,23 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           properties: {
             q: { type: "string", default: "" },
             limit: { type: "integer", minimum: 1, default: 50 },
+            account: { type: "integer" },
+            period: { type: "string" },
+            category: { type: "integer" },
+            type: { type: "string", enum: [...TRANSACTION_TYPES] },
           },
         },
       },
     },
-    (req) => {
-      const { q, limit } = req.query;
+    (req, reply) => {
+      const { q, limit, account, period, category, type } = req.query;
+      const months = period === undefined ? null : readPeriod(period);
+      if (period !== undefined && !months) {
+        return reply.code(400).send({
+          error:
+            "Give the period as a month, 2026-10, or months, 2026-08..2026-10.",
+        });
+      }
       const owners = new Map(
         db
           .select()
@@ -91,8 +118,15 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           .all()
           .map((a) => [a.id, a]),
       );
-      const matches = contains(q);
-      const found = inOrder(
+      const categoryTypes = new Map(
+        db
+          .select({ id: categories.id, type: categories.type })
+          .from(categories)
+          .all()
+          .map((c) => [c.id, c.type]),
+      );
+      const { candidates } = findTransfers(db);
+      const all = inOrder(
         db
           .select({
             ...LISTED,
@@ -102,17 +136,55 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           })
           .from(transactions)
           .all(),
-      )
-        .toReversed()
-        .filter((t) => matches(t.description));
+      ).toReversed();
+      const passes = filterer({
+        accountId: account ?? null,
+        period: months,
+        categoryId: category ?? null,
+        type: type ?? null,
+        q,
+      });
+      const found = all.filter((t) =>
+        passes({
+          ...t,
+          type: transactionType({
+            excluded: t.excluded,
+            transfer: t.transferWith !== null || candidates.has(t.id),
+            categoryType:
+              t.categoryId === null
+                ? null
+                : (categoryTypes.get(t.categoryId) ?? null),
+          }),
+        }),
+      );
       const page = found.slice(0, limit);
-      const list = lister(db, page);
+      const list = lister(db, page, candidates);
       return {
         transactions: page.map((t) => ({
           ...list(t, owners.get(t.accountId)!),
           accountId: t.accountId,
         })),
         total: found.length,
+        months: [...new Set(all.map((t) => t.date.slice(0, 7)))],
+      };
+    },
+  );
+
+  // S6 over S5: one transaction as the lists show it, so that its panel
+  // stays open when a filter leaves it out of the list.
+  app.get<WithId>(
+    "/api/transactions/:id",
+    { schema: { params: idParams } },
+    (req, reply) => {
+      const row = db
+        .select({ ...LISTED, accountId: transactions.accountId })
+        .from(transactions)
+        .where(eq(transactions.id, req.params.id))
+        .get();
+      if (!row) return reply.code(404).send({ error: "Not found" });
+      return {
+        ...lister(db, [row])(row, findAccount(row.accountId)!),
+        accountId: row.accountId,
       };
     },
   );
@@ -276,8 +348,11 @@ type Listed = Pick<typeof transactions.$inferSelect, keyof typeof LISTED>;
  * categories its rules disagree on, if any; a transfer gives its other
  * side, and a possible one says how many could be that side, and where.
  */
-function lister(db: Db, rows: Listed[]) {
-  const { candidates } = findTransfers(db);
+function lister(
+  db: Db,
+  rows: Listed[],
+  candidates = findTransfers(db).candidates,
+) {
   const check = ruleChecker(loadRules(db));
   const linkedIds = rows.flatMap((t) =>
     t.transferWith === null ? [] : [t.transferWith],

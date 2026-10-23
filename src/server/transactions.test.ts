@@ -133,7 +133,7 @@ describe("every account's transactions (S5)", () => {
       body.id,
       [
         "Data;Descrizione;Importo;Saldo",
-        "03/10/2026;INTEREST;5,00;1.005,00",
+        "28/09/2026;INTEREST;5,00;1.005,00",
         "05/10/2026;TRANSFER FROM CHECKING;500,00;1.505,00",
       ].join("\n"),
     );
@@ -155,11 +155,12 @@ describe("every account's transactions (S5)", () => {
     ).toEqual([
       ["2026-10-05", savings, "TRANSFER FROM CHECKING"],
       ["2026-10-05", main, "TRANSFER TO SAVINGS"],
-      ["2026-10-03", savings, "INTEREST"],
       ["2026-10-02", main, "ESSELUNGA MILANO"],
       ["2026-10-01", main, "SALARY ACME SPA"],
+      ["2026-09-28", savings, "INTEREST"],
     ]);
     expect(body.total).toBe(5);
+    expect(body.months).toEqual(["2026-10", "2026-09"]);
   });
 
   it("gives a transfer's other side, as the account's list does", async () => {
@@ -186,6 +187,7 @@ describe("every account's transactions (S5)", () => {
     expect((await list("?q=netflix")).body).toEqual({
       transactions: [],
       total: 0,
+      months: ["2026-10", "2026-09"],
     });
   });
 
@@ -198,6 +200,108 @@ describe("every account's transactions (S5)", () => {
     ]);
     expect(body.total).toBe(4);
     expect((await list("?limit=0")).status).toBe(400);
+  });
+
+  it("keeps an account, a period's months, a category or a type", async () => {
+    const { main, savings } = await twoAccounts();
+    const category = async (name: string, type: string) =>
+      (await call("POST", "/api/categories", { name, type })).body.id;
+    const salary = await category("Salary", "income");
+    const groceries = await category("Groceries", "expense");
+    const ids = new Map(
+      (await list()).body.transactions.map(
+        (t: { description: string; id: number }) => [t.description, t.id],
+      ),
+    );
+    const put = (description: string, categoryId: number) =>
+      call("PUT", `/api/transactions/${ids.get(description)}/category`, {
+        categoryId,
+      });
+    await put("SALARY ACME SPA", salary);
+    await put("ESSELUNGA MILANO", groceries);
+    await call("POST", `/api/transactions/${ids.get("INTEREST")}/exclude`);
+
+    const found = async (query: string) => described((await list(query)).body);
+    expect(await found(`?account=${savings}`)).toEqual([
+      "TRANSFER FROM CHECKING",
+      "INTEREST",
+    ]);
+    expect(await found("?period=2026-09")).toEqual(["INTEREST"]);
+    expect(await found("?period=2026-09..2026-10")).toHaveLength(5);
+    expect(await found(`?category=${groceries}`)).toEqual(["ESSELUNGA MILANO"]);
+    expect(await found("?type=income")).toEqual(["SALARY ACME SPA"]);
+    expect(await found("?type=expense")).toEqual(["ESSELUNGA MILANO"]);
+    expect(await found("?type=transfer")).toEqual([
+      "TRANSFER FROM CHECKING",
+      "TRANSFER TO SAVINGS",
+    ]);
+    expect(await found("?type=excluded")).toEqual(["INTEREST"]);
+    expect(await found("?type=uncategorized")).toEqual([]);
+    expect(
+      await found(`?account=${main}&period=2026-10&type=expense&q=esselunga`),
+    ).toEqual(["ESSELUNGA MILANO"]);
+    // The months to pick from don't depend on the filters.
+    expect((await list("?period=2026-09")).body.months).toEqual([
+      "2026-10",
+      "2026-09",
+    ]);
+  });
+
+  it("counts a possible transfer among transfers", async () => {
+    // Two accounts could take Main's 500.00 €, so nothing links on its own.
+    for (const name of ["Savings", "Card"]) {
+      const { body } = await call("POST", "/api/accounts", {
+        name,
+        bank: "Bank B",
+        type: "savings",
+        currency: "EUR",
+      });
+      await importText(
+        body.id,
+        "Data;Descrizione;Importo;Saldo\n05/10/2026;FROM CHECKING;500,00;500,00",
+      );
+    }
+    await setup();
+    const { body } = await list("?type=transfer");
+    expect(
+      body.transactions.map(
+        (t: { description: string; toPick: { count: number } | null }) => [
+          t.description,
+          t.toPick?.count,
+        ],
+      ),
+    ).toEqual([
+      ["TRANSFER TO SAVINGS", 2],
+      ["FROM CHECKING", 1],
+      ["FROM CHECKING", 1],
+    ]);
+  });
+
+  it("refuses a period that isn't one", async () => {
+    for (const period of ["2026-13", "october", "2026-10..2026-08"]) {
+      expect((await list(`?period=${period}`)).status, period).toBe(400);
+    }
+    expect((await list("?type=refund")).status).toBe(400);
+  });
+});
+
+describe("one transaction (S6 over S5)", () => {
+  it("gives it as the lists do, with its account", async () => {
+    const id = await setup();
+    const [first] = (await ledger(id)).body.transactions;
+    const { status, body } = await call("GET", `/api/transactions/${first.id}`);
+    expect(status).toBe(200);
+    // The account's list adds the balances; toEqual ignores undefined ones.
+    expect(body).toEqual({
+      ...first,
+      bankBalance: undefined,
+      balance: undefined,
+      accountId: id,
+    });
+  });
+
+  it("refuses an unknown one", async () => {
+    expect((await call("GET", "/api/transactions/99")).status).toBe(404);
   });
 });
 

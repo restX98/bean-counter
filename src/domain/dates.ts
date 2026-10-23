@@ -48,6 +48,28 @@ export function formatDay(iso: string): string {
   return `${WEEKDAYS[weekday]} ${formatDate(iso)}`;
 }
 
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+/** "2026-10" → "October 2026"; short, "Oct 2026". */
+export function formatMonth(month: string, { short = false } = {}): string {
+  const [year, number] = month.split("-");
+  const name = MONTHS[Number(number) - 1] ?? "";
+  return `${short ? name.slice(0, 3) : name} ${year}`;
+}
+
 /**
  * A transaction's date, with its time when its file had one: "16/10/2026
  * 21:02". Short leaves out the year: "16/10 21:02". Seconds keeps them, to
