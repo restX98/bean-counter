@@ -10,7 +10,8 @@ export interface Currency {
 }
 
 const MAIN_CURRENCY = "EUR";
-const MINUS = "−";
+/** The sign of a negative amount: "−20.00 €", not a hyphen. */
+export const MINUS = "−";
 
 const names = new Intl.DisplayNames(["en"], { type: "currency" });
 

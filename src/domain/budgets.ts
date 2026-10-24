@@ -121,6 +121,23 @@ export interface BudgetMonths {
   thisMonth: string;
 }
 
+/** The months D7 offers, newest first: from next month back to `first`. */
+export function monthChoices(first: string, thisMonth: string): string[] {
+  const months: string[] = [];
+  for (let m = addMonths(thisMonth, 1); m >= first; m = addMonths(m, -1)) {
+    months.push(m);
+  }
+  return months;
+}
+
+/** The months a budget can start over from: after its last start, newest first. */
+export function restartChoices(plan: BudgetPlan, thisMonth: string): string[] {
+  return monthChoices(
+    addMonths(plan.restarts.at(-1) ?? plan.start, 1),
+    thisMonth,
+  );
+}
+
 const pickMonth = (
   month: string,
   { first, thisMonth }: BudgetMonths,

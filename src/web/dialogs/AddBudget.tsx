@@ -1,12 +1,12 @@
 import { useId, useState } from "react";
 import { Link } from "react-router";
-import type { BudgetFields } from "../../domain/budgets.ts";
-import { addMonths, formatMonth } from "../../domain/dates.ts";
+import { monthChoices, type BudgetFields } from "../../domain/budgets.ts";
+import { formatMonth } from "../../domain/dates.ts";
 import { currencySymbol, formatAmount } from "../../domain/money.ts";
 import {
   useAddBudget,
   useSpendingReport,
-  type BudgetDetail,
+  type Budget,
   type BudgetList,
 } from "../api.ts";
 import { Dialog, FormError, fieldErrors } from "../components/Dialog.tsx";
@@ -17,13 +17,8 @@ import { Icon } from "../components/Icon.tsx";
  * The months a budget in a currency can start in, newest first: from next
  * month back to the oldest with transactions in it.
  */
-function startMonths(list: BudgetList, currency: string): string[] {
-  const first = list.firstMonths[currency] ?? list.thisMonth;
-  const months: string[] = [];
-  for (let m = addMonths(list.thisMonth, 1); m >= first; m = addMonths(m, -1))
-    months.push(m);
-  return months;
-}
+const startMonths = (list: BudgetList, currency: string) =>
+  monthChoices(list.firstMonths[currency] ?? list.thisMonth, list.thisMonth);
 
 /** What the start month means for the first limit. */
 function startHint(
@@ -56,7 +51,7 @@ export function AddBudget({
   /** S14's list: the categories, currencies and months on offer. */
   list: BudgetList;
   onClose: () => void;
-  onAdded: (budget: BudgetDetail) => void;
+  onAdded: (budget: Budget) => void;
 }) {
   const id = useId();
   const adding = useAddBudget();

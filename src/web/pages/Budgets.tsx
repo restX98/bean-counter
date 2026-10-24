@@ -1,8 +1,9 @@
 import { useId, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { addMonths, formatMonth, isMonth } from "../../domain/dates.ts";
-import { formatAmount, formatSize } from "../../domain/money.ts";
+import { formatAmount } from "../../domain/money.ts";
 import { useBudgets, type BudgetList, type BudgetRow } from "../api.ts";
+import { BudgetBar, OverTag, spentOf } from "../components/BudgetBar.tsx";
 import { CurrencySwitch } from "../components/CurrencySwitch.tsx";
 import { EmptyState } from "../components/EmptyState.tsx";
 import { Icon } from "../components/Icon.tsx";
@@ -16,29 +17,24 @@ import { useIsMobile } from "../useIsMobile.ts";
 /** This month, or the running balance (brief §6.2). */
 type View = "month" | "running";
 
-/** A started budget's numbers in a view, and how full its bar is. */
+/** A started budget's numbers in a view. */
 interface Figures {
   /** The month's limit, or everything budgeted since it counts from. */
   limit: number;
   spent: number;
   left: number;
-  /** 0 to 100: what's spent, in percent of the limit. */
-  filled: number;
 }
 
 function figures(budget: BudgetRow, view: View): Figures | null {
   const { status } = budget;
   if (!status) return null;
-  const { limit, spent, left } =
-    view === "month"
-      ? status.month
-      : {
-          limit: status.running.budgeted,
-          spent: status.running.spent,
-          left: status.running.left,
-        };
-  const filled = Math.round((Math.max(0, spent) / limit) * 100);
-  return { limit, spent, left, filled: Math.min(100, filled) };
+  return view === "month"
+    ? status.month
+    : {
+        limit: status.running.budgeted,
+        spent: status.running.spent,
+        left: status.running.left,
+      };
 }
 
 /** Over budget first, then the others by name; those not started last. */
@@ -257,24 +253,6 @@ function Controls({
   );
 }
 
-function Bar({ figures: f }: { figures: Figures }) {
-  const over = f.left < 0;
-  return (
-    <span className={over ? "bar is-over" : "bar"} aria-hidden="true">
-      <span style={{ width: `${over ? 100 : f.filled}%` }} />
-    </span>
-  );
-}
-
-function OverTag() {
-  return (
-    <span className="tag tone-danger">
-      <Icon name="alert" />
-      Over
-    </span>
-  );
-}
-
 /** What a row says to a screen reader, as its columns can't. */
 function rowLabel(budget: BudgetRow, view: View, f: Figures | null) {
   const money = (minor: number) => formatAmount(minor, budget.currency);
@@ -328,7 +306,7 @@ function DesktopList({ list: r, view }: { list: BudgetList; view: View }) {
                   {money(f.left, running)}
                 </span>
                 <span className="progress">
-                  <Bar figures={f} />
+                  <BudgetBar spent={f.spent} limit={f.limit} />
                   {f.left < 0 && <OverTag />}
                 </span>
               </>
@@ -364,9 +342,9 @@ function MobileList({ list: r, view }: { list: BudgetList; view: View }) {
         ) : view === "month" ? (
           <>
             <span className="amount">
-              {formatSize(f.spent, r.currency)} / {money(f.limit)}
+              {spentOf(f.spent, f.limit, r.currency)}
             </span>
-            <Bar figures={f} />
+            <BudgetBar spent={f.spent} limit={f.limit} />
             <span className="caption">
               {over ? (
                 <span className="over">{money(-f.left)} over</span>
@@ -380,7 +358,7 @@ function MobileList({ list: r, view }: { list: BudgetList; view: View }) {
             <span className={over ? "amount over" : "amount"}>
               {money(f.left, true)}
             </span>
-            <Bar figures={f} />
+            <BudgetBar spent={f.spent} limit={f.limit} />
             <span className="caption">
               {money(f.limit)} budgeted · {money(f.spent)} spent · since{" "}
               {formatMonth(b.status!.running.since)}

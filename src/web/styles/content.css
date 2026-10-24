@@ -1567,7 +1567,7 @@ a.cr.is-active {
   }
 }
 
-/* ---------- Budgets (S14) ---------- */
+/* ---------- Budgets (S14, S15) ---------- */
 
 .bar {
   height: 8px;
@@ -1602,6 +1602,10 @@ a.cr.is-active {
       1fr
     );
 }
+/* S15's history: a month a row. */
+.br.hr {
+  grid-template-columns: minmax(0, 1.4fr) 104px 104px 104px 132px 124px;
+}
 .br.head {
   min-height: 0;
   padding-top: var(--space-3);
@@ -1615,7 +1619,14 @@ a.br:hover {
   background: var(--color-hover);
 }
 .br .name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
   font-weight: var(--weight-semibold);
+}
+.br .link {
+  justify-self: end;
 }
 .br .num,
 .br.head .r {
@@ -1641,6 +1652,11 @@ a.br:hover {
 .over {
   color: var(--color-danger-text);
   font-weight: var(--weight-semibold);
+}
+.big-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 .m-budget {
   display: grid;

@@ -496,7 +496,7 @@ export interface BudgetList {
 }
 
 /** S15: a budget month by month, and what D7 answers. */
-export interface BudgetDetail {
+export interface Budget {
   id: number;
   categoryId: number;
   name: string;
@@ -529,14 +529,36 @@ export const useBudgets = (query: {
     placeholderData: keepPreviousData,
   });
 
-export function useAddBudget() {
+export const useBudget = (id: number) =>
+  useQuery({
+    queryKey: [...BUDGETS, id],
+    queryFn: () => request<Budget>("GET", `/api/budgets/${id}`),
+  });
+
+function useBudgetChange<V>(change: (vars: V) => Promise<Budget>) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (body: BudgetFields) =>
-      request<BudgetDetail>("POST", "/api/budgets", body),
+    mutationFn: change,
     onSuccess: () => client.invalidateQueries({ queryKey: BUDGETS }),
   });
 }
+
+export const useAddBudget = () =>
+  useBudgetChange((body: BudgetFields) =>
+    request<Budget>("POST", "/api/budgets", body),
+  );
+
+/** D7: a new limit from a month on. */
+export const useChangeLimit = (id: number) =>
+  useBudgetChange((body: { limit: string; from: string }) =>
+    request<Budget>("POST", `/api/budgets/${id}/limits`, body),
+  );
+
+/** D7: the running balance counts again from a month. */
+export const useStartOver = (id: number) =>
+  useBudgetChange((body: { from: string }) =>
+    request<Budget>("POST", `/api/budgets/${id}/restarts`, body),
+  );
 
 /** Excludes a transaction, or restores an excluded one. */
 export const useExclude = () =>

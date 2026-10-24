@@ -11,12 +11,13 @@ import "./styles/flow.css";
 import { Shell, type RouteHandle } from "./components/Shell.tsx";
 import { AccountDetail } from "./pages/AccountDetail.tsx";
 import { Accounts } from "./pages/Accounts.tsx";
+import { BudgetDetail } from "./pages/BudgetDetail.tsx";
 import { Budgets } from "./pages/Budgets.tsx";
 import { Categories } from "./pages/Categories.tsx";
 import { Dashboard } from "./pages/Dashboard.tsx";
 import { Import } from "./pages/import/Import.tsx";
 import { More } from "./pages/More.tsx";
-import { NotBuilt, NotFound } from "./pages/NotBuilt.tsx";
+import { NotFound } from "./pages/NotFound.tsx";
 import { Reports } from "./pages/Reports.tsx";
 import { Review } from "./pages/Review.tsx";
 import { Rules } from "./pages/Rules.tsx";
@@ -42,7 +43,7 @@ const router = createBrowserRouter([
       { path: "reports", element: <Reports /> },
       { path: "reports/spending", element: <Spending /> },
       { path: "budgets", element: <Budgets /> },
-      { path: "budgets/:id", element: <NotBuilt title="Budget" /> },
+      { path: "budgets/:id", element: <BudgetDetail /> },
       { path: "categories", element: <Categories /> },
       { path: "rules", element: <Rules /> },
       { path: "settings", element: <Settings /> },

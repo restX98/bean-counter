@@ -4,6 +4,8 @@ import {
   budgetStatus,
   countsFrom,
   limitIn,
+  monthChoices,
+  restartChoices,
   spendingIn,
   validateBudget,
   validateLimitChange,
@@ -341,6 +343,28 @@ describe("validateLimitChange", () => {
         from: "Pick November 2026 at the latest.",
       },
     });
+  });
+});
+
+describe("monthChoices", () => {
+  it("runs from next month back to the first, newest first", () => {
+    expect(monthChoices("2026-09", "2026-10")).toEqual([
+      "2026-11",
+      "2026-10",
+      "2026-09",
+    ]);
+    expect(monthChoices("2026-12", "2026-10")).toEqual([]);
+  });
+
+  it("starts over after the start and the last start-over", () => {
+    const plan = { start: "2026-09", limits: [], restarts: [] };
+    expect(restartChoices(plan, "2026-10")).toEqual(["2026-11", "2026-10"]);
+    expect(
+      restartChoices({ ...plan, restarts: ["2026-10"] }, "2026-10"),
+    ).toEqual(["2026-11"]);
+    expect(restartChoices({ ...plan, start: "2026-11" }, "2026-10")).toEqual(
+      [],
+    );
   });
 });
 
