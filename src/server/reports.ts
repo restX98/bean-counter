@@ -46,6 +46,7 @@ function loadReportData(db: Db) {
       .from(transactions)
       .all()
       .map((t) => ({ ...t, pending: candidates.has(t.id) })),
+    paybacks: [],
   };
   const suggested = new Set(exchanges.flatMap((p) => [p.out.id, p.in.id]));
   return { data, suggested };

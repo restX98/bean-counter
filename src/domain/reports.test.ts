@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { PaybackLink } from "./paybacks.ts";
 import {
   periodChoices,
   periodReport,
@@ -38,6 +39,7 @@ const categories = [
   { id: RENT, type: "expense" as const },
   { id: GROCERIES, type: "expense" as const },
   { id: SHOPPING, type: "expense" as const },
+  { id: EATING_OUT, type: "expense" as const },
 ];
 
 let next = 1;
@@ -68,8 +70,18 @@ const report = (
   currency = "EUR",
   from = "2026-10",
   to = from,
+  paybacks: PaybackLink[] = [],
 ) =>
-  periodReport({ accounts, categories, transactions }, currency, { from, to });
+  periodReport({ accounts, categories, transactions, paybacks }, currency, {
+    from,
+    to,
+  });
+/** A payment's part that pays back an expense. */
+const payback = (
+  payment: ReportTransaction,
+  expense: ReportTransaction,
+  amount: number,
+): PaybackLink => ({ paymentId: payment.id, expenseId: expense.id, amount });
 const line = (categoryId: number | null, amount: number, count = 1) => ({
   categoryId,
   amount,
@@ -229,6 +241,65 @@ describe("periodReport", () => {
     expect(report([out, into], "USD").movedToSavings.total).toBe(54500);
     expect(report([out, into]).movedToSavings.total).toBe(0);
     expect(report([out, into], "EUR", "2026-09").movedToSavings.total).toBe(0);
+  });
+
+  it("counts my share of the expenses a friend paid back (§5.10)", () => {
+    // The design's split bill: Marco pays back 150.00 € of the dinner and
+    // 24.00 € of the pizzeria.
+    const dinner = tx(CHECKING, "2026-10-17", -30500, {
+      categoryId: EATING_OUT,
+    });
+    const pizzeria = tx(CHECKING, "2026-10-16", -4800, {
+      categoryId: EATING_OUT,
+    });
+    const marco = tx(CHECKING, "2026-10-19", 17400);
+    const october = report(
+      [dinner, pizzeria, marco],
+      "EUR",
+      "2026-10",
+      "2026-10",
+      [payback(marco, dinner, 15000), payback(marco, pizzeria, 2400)],
+    );
+    expect(october.expenses.lines).toEqual([line(EATING_OUT, -17900, 2)]);
+    expect(october.income).toEqual({ lines: [], total: 0 });
+    expect(october.net).toBe(-17900);
+  });
+
+  it("takes a payback off the expense's month, even when it comes later", () => {
+    const dinner = tx(CHECKING, "2026-09-28", -30500, {
+      categoryId: EATING_OUT,
+    });
+    const marco = tx(CHECKING, "2026-10-02", 15000);
+    const transactions = [dinner, marco];
+    const paybacks = [payback(marco, dinner, 15000)];
+    const september = report(
+      transactions,
+      "EUR",
+      "2026-09",
+      "2026-09",
+      paybacks,
+    );
+    expect(september.expenses.lines).toEqual([line(EATING_OUT, -15500)]);
+    const october = report(transactions, "EUR", "2026-10", "2026-10", paybacks);
+    expect(october.income.lines).toEqual([]);
+    expect(october.expenses.lines).toEqual([]);
+  });
+
+  it("counts the part of a payment that isn't linked, in any of my accounts", () => {
+    const dinner = tx(CHECKING, "2026-10-17", -30500, {
+      categoryId: EATING_OUT,
+    });
+    const marco = tx(CHECKING, "2026-10-19", 20000);
+    const lucia = tx(SAVINGS, "2026-10-20", 5000);
+    const october = report(
+      [dinner, marco, lucia],
+      "EUR",
+      "2026-10",
+      "2026-10",
+      [payback(marco, dinner, 15000), payback(lucia, dinner, 5000)],
+    );
+    expect(october.expenses.lines).toEqual([line(EATING_OUT, -10500)]);
+    expect(october.income.lines).toEqual([line(null, 5000)]);
   });
 
   it("has no savings rate without income", () => {

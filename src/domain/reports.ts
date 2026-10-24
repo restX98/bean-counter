@@ -5,6 +5,7 @@ import type { AccountType } from "./accounts.ts";
 import type { CategoryType } from "./categories.ts";
 import { addMonths } from "./dates.ts";
 import { writePeriod, type Period } from "./filters.ts";
+import { paybackTotals, type PaybackLink } from "./paybacks.ts";
 
 export interface ReportAccount {
   id: number;
@@ -38,6 +39,7 @@ export interface ReportData {
   accounts: ReportAccount[];
   categories: ReportCategory[];
   transactions: ReportTransaction[];
+  paybacks: PaybackLink[];
 }
 
 export interface ReportLine {
@@ -79,21 +81,24 @@ export interface PeriodReport {
  * Whole months in one currency: one for S12 (brief §6.1), several for S13.
  * Each category adds up under its type, so a refund reduces its expense;
  * what has no category goes to the Uncategorized line of the side its sign
- * puts it on. Excluded transactions, transfers and possible transfers
- * don't count.
+ * puts it on. An expense counts as my share of it: a payback reduces the
+ * expense's line, in the expense's month, and only the part of a payment
+ * that isn't linked counts as itself. Excluded transactions, transfers and
+ * possible transfers don't count.
  *
  * Moved to savings is the linked transfers between a checking and a
  * savings account, seen from the savings side: what came in, less what
  * went out, on that side's date and in its currency.
  */
 export function periodReport(
-  { accounts, categories, transactions }: ReportData,
+  { accounts, categories, transactions, paybacks }: ReportData,
   currency: string,
   { from, to }: Period,
 ): PeriodReport {
   const accountOf = new Map(accounts.map((a) => [a.id, a]));
   const typeOf = new Map(categories.map((c) => [c.id, c.type]));
   const byId = new Map(transactions.map((t) => [t.id, t]));
+  const { paidBack, linked } = paybackTotals(paybacks);
   const inPeriod = (t: ReportTransaction) =>
     t.date.slice(0, 7) >= from &&
     t.date.slice(0, 7) <= to &&
@@ -130,11 +135,15 @@ export function periodReport(
       pending.push(t.id);
       continue;
     }
+    const amount =
+      t.amount + (paidBack.get(t.id) ?? 0) - (linked.get(t.id) ?? 0);
+    // A payment linked in full is all payback, and isn't income.
+    if (linked.has(t.id) && amount === 0) continue;
     const known = t.categoryId === null ? undefined : typeOf.get(t.categoryId);
     const categoryId = known ? t.categoryId : null;
-    const side = sides[known ?? (t.amount > 0 ? "income" : "expense")];
+    const side = sides[known ?? (amount > 0 ? "income" : "expense")];
     const line = side.get(categoryId) ?? { categoryId, amount: 0, count: 0 };
-    line.amount += t.amount;
+    line.amount += amount;
     line.count += 1;
     side.set(categoryId, line);
   }
