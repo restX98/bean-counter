@@ -529,10 +529,11 @@ export const useBudgets = (query: {
     placeholderData: keepPreviousData,
   });
 
-export const useBudget = (id: number) =>
+export const useBudget = (id: number, enabled = true) =>
   useQuery({
     queryKey: [...BUDGETS, id],
     queryFn: () => request<Budget>("GET", `/api/budgets/${id}`),
+    enabled,
   });
 
 function useBudgetChange<V>(change: (vars: V) => Promise<Budget>) {

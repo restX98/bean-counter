@@ -65,7 +65,14 @@ describe("groupCategories", () => {
     id: number,
     name: string,
     type: Category["type"],
-  ): Category => ({ id, name, type, transactionCount: 0, ruleCount: 0 });
+  ): Category => ({
+    id,
+    name,
+    type,
+    transactionCount: 0,
+    ruleCount: 0,
+    budgetId: null,
+  });
 
   it("puts income first, then expenses, each by name", () => {
     const rent = category(1, "Rent", "expense");

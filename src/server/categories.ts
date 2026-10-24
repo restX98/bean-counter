@@ -36,7 +36,7 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
       .where(id === undefined ? undefined : ne(categories.id, id))
       .all()
       .map((r) => r.name);
-  /** How many transactions and rules each category has, by id. */
+  /** How many transactions and rules each category has, and its budget, by id. */
   const counts = () => ({
     transactions: new Map(
       db
@@ -54,6 +54,13 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
         .all()
         .map(({ id, n }) => [id, n]),
     ),
+    budgets: new Map(
+      db
+        .select({ id: budgets.id, categoryId: budgets.categoryId })
+        .from(budgets)
+        .all()
+        .map(({ id, categoryId }) => [categoryId, id]),
+    ),
   });
   const present = (
     row: typeof categories.$inferSelect,
@@ -62,6 +69,7 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
     ...row,
     transactionCount: n.transactions.get(row.id) ?? 0,
     ruleCount: n.rules.get(row.id) ?? 0,
+    budgetId: n.budgets.get(row.id) ?? null,
   });
 
   // S16: every category, and how many counted transactions have none yet
@@ -114,13 +122,8 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
     (req, reply) => {
       const row = find(req.params.id);
       if (!row) return notFound(reply);
-      const budgeted = db
-        .select({ id: budgets.id })
-        .from(budgets)
-        .where(eq(budgets.categoryId, row.id))
-        .get();
       const category = validateCategory(req.body, otherNames(row.id), {
-        budgeted: budgeted !== undefined,
+        budgeted: present(row).budgetId !== null,
       });
       if (!category.ok)
         return reply.code(400).send({ errors: category.errors });

@@ -52,7 +52,8 @@ export function CategoryForm({
   const itsRules = (rules.data?.rules ?? []).filter(
     (r) => r.categoryId === category?.id,
   );
-  // "3 transactions · 1 rule (“SATISPAY”, amount under 10.00 €)"
+  const budgeted = (category?.budgetId ?? null) !== null;
+  // "3 transactions · 1 rule (“SATISPAY”, amount under 10.00 €) · a budget"
   const uses = [
     used > 0 && plural(used, "transaction"),
     ruleCount > 0 &&
@@ -60,7 +61,9 @@ export function CategoryForm({
         (itsRules.length > 0
           ? ` (${itsRules.map((r) => ruleName(r, accounts)).join("; ")})`
           : ""),
+    budgeted && "a budget",
   ].filter(Boolean);
+  const them = used + ruleCount + Number(budgeted) === 1 ? "it" : "them all";
 
   const save = () =>
     saving.mutate(fields, {
@@ -132,8 +135,10 @@ export function CategoryForm({
             <Icon name="info" />
             <span className="text">
               <strong>Used by</strong>
-              {uses.join(" · ")}. Renaming the category or changing its type
-              keeps {used + ruleCount === 1 ? "it" : "them all"}.
+              {uses.join(" · ")}.{" "}
+              {budgeted
+                ? `Renaming the category keeps ${them}. With a budget, it stays an expense category.`
+                : `Renaming the category or changing its type keeps ${them}.`}
             </span>
           </div>
         )}

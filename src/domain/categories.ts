@@ -12,6 +12,8 @@ export interface Category {
   transactionCount: number;
   /** Rules that give this category. */
   ruleCount: number;
+  /** Its budget; deleting the category deletes it. */
+  budgetId: number | null;
 }
 
 /** The category form's fields, as typed. */

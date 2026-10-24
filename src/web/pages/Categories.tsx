@@ -71,10 +71,14 @@ export function Categories() {
     categories.filter((c) => c.type === type).length;
   const List = isMobile ? MobileGroup : DesktopGroup;
   const ruleList = rules.data.rules;
-  const usedBy = (category: Category) =>
-    ruleList
+  const usedBy = (category: Category): Use[] => [
+    ...(category.budgetId === null
+      ? []
+      : [{ text: "budget", to: `/budgets/${category.budgetId}` }]),
+    ...ruleList
       .filter((r) => r.categoryId === category.id)
-      .map((r) => `rule: ${ruleName(r, accounts)}`);
+      .map((r) => ({ text: `rule: ${ruleName(r, accounts)}`, to: "/rules" })),
+  ];
 
   return (
     <Page
@@ -137,10 +141,16 @@ export function Categories() {
   );
 }
 
+/** What uses a category besides its transactions, and where to see it. */
+interface Use {
+  /** "budget", "rule: “ESSELUNGA”". */
+  text: string;
+  to: string;
+}
+
 interface GroupProps {
   group: CategoryGroup;
-  /** What uses a category besides its transactions: "rule: “ESSELUNGA”". */
-  usedBy: (category: Category) => string[];
+  usedBy: (category: Category) => Use[];
   onEdit: (category: Category) => void;
   onDelete: (category: Category) => void;
 }
@@ -166,8 +176,8 @@ function DesktopGroup({ group, usedBy, onEdit, onDelete }: GroupProps) {
             {uses.length > 0 ? (
               <span className="used">
                 {uses.map((use) => (
-                  <Link key={use} className="link" to="/rules">
-                    {use}
+                  <Link key={use.text} className="link" to={use.to}>
+                    {use.text}
                   </Link>
                 ))}
               </span>
@@ -216,7 +226,11 @@ function MobileGroup({ group, usedBy, onEdit }: GroupProps) {
               {plural(c.transactionCount, "transaction")}
             </span>
             {usedBy(c).length > 0 && (
-              <span className="meta">{usedBy(c).join(" · ")}</span>
+              <span className="meta">
+                {usedBy(c)
+                  .map((use) => use.text)
+                  .join(" · ")}
+              </span>
             )}
           </button>
         ))}

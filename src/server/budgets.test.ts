@@ -383,6 +383,22 @@ describe("a budget's category", () => {
     });
   });
 
+  it("knows its budget", async () => {
+    const { groceries: g } = await groceries();
+    const { id } = (await add({ categoryId: g })).body;
+    const { body } = await call("GET", "/api/categories");
+    expect(
+      body.categories.map((c: { name: string; budgetId: number | null }) => [
+        c.name,
+        c.budgetId,
+      ]),
+    ).toEqual([
+      ["Salary", null],
+      ["Groceries", id],
+      ["Eating out", null],
+    ]);
+  });
+
   it("takes its budget with it when deleted", async () => {
     const { groceries: g } = await groceries();
     const { id } = (await add({ categoryId: g })).body;

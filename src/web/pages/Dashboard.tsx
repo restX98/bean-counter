@@ -6,11 +6,14 @@ import { formatAmount } from "../../domain/money.ts";
 import { shownEnd } from "../../domain/review.ts";
 import {
   useAccounts,
+  useBudgets,
   useMonthlyReport,
   useReview,
+  type BudgetRow,
   type MonthlyReport,
   type ReviewMismatch,
 } from "../api.ts";
+import { BudgetBar, OverTag, spentOf } from "../components/BudgetBar.tsx";
 import { CurrencySwitch } from "../components/CurrencySwitch.tsx";
 import { EmptyState, FirstRunSteps } from "../components/EmptyState.tsx";
 import { Icon } from "../components/Icon.tsx";
@@ -104,6 +107,10 @@ export function Dashboard() {
     />
   );
   const r = report.data;
+  // Under the balances on desktop, after the month on a phone.
+  const budgets = (
+    <BudgetsCard currency={group.currency} several={groups.length > 1} />
+  );
   return (
     <Page
       {...page}
@@ -126,6 +133,7 @@ export function Dashboard() {
             group={group}
             others={groups.filter((g) => g !== group)}
           />
+          {!isMobile && budgets}
         </div>
         <div className="grid-col">
           {r ? (
@@ -133,6 +141,7 @@ export function Dashboard() {
           ) : (
             <Loading error={report.error} />
           )}
+          {isMobile && budgets}
           <ReviewCard />
         </div>
       </div>
@@ -262,11 +271,80 @@ function MonthCard({
   );
 }
 
+/** How many budgets the dashboard shows. */
+const SHOWN_BUDGETS = 5;
+
+/**
+ * The newest month's budgets at a glance, over budget first, with the way
+ * to S14. Hidden until a budget in this currency has started.
+ */
+function BudgetsCard({
+  currency,
+  several,
+}: {
+  currency: string;
+  /** Accounts in more than one currency: Budgets needs this one. */
+  several: boolean;
+}) {
+  const { data } = useBudgets({ currency, month: null });
+  const started = (data?.budgets ?? []).filter((b) => b.status !== null);
+  if (!data || started.length === 0) return null;
+  const over = (b: BudgetRow) => b.status!.month.left < 0;
+  const shown = started
+    .toSorted((a, b) => Number(over(b)) - Number(over(a)))
+    .slice(0, SHOWN_BUDGETS);
+  const month =
+    data.month === data.thisMonth
+      ? `${formatMonth(data.month).split(" ")[0]} so far`
+      : formatMonth(data.month);
+  return (
+    <section className="card">
+      <div className="card-head">
+        <h2 className="card-title">Budgets</h2>
+        <span className="caption">{month}</span>
+      </div>
+      {shown.map((b) => {
+        const { spent, limit } = b.status!.month;
+        return (
+          <div className="budget" key={b.id}>
+            <span className="name">
+              <Link className="link" to={`/budgets/${b.id}`}>
+                {b.name}
+              </Link>
+              {over(b) && <OverTag />}
+            </span>
+            <span className={over(b) ? "amount" : "amount muted"}>
+              {spentOf(spent, limit, currency)}
+            </span>
+            <BudgetBar spent={spent} limit={limit} />
+          </div>
+        );
+      })}
+      <div className="card-foot">
+        <Link
+          className="link"
+          to={
+            several
+              ? `/budgets?${new URLSearchParams({ currency })}`
+              : "/budgets"
+          }
+        >
+          {data.budgets.length > shown.length
+            ? `All ${data.budgets.length} budgets`
+            : "All budgets"}
+          <Icon name="arrow" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 /** What waits in Review, by group. Hidden when nothing does. */
 function ReviewCard() {
   const { data } = useReview();
   if (!data || data.count === 0) return null;
   const groups: [number, string, string][] = [
+    [data.paybacks.length, "possible payback", "possible paybacks"],
     [
       data.uncategorized.length,
       "uncategorized transaction",

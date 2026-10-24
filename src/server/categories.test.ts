@@ -82,6 +82,7 @@ describe("categories (S16, D5)", () => {
       type: "expense",
       transactionCount: 0,
       ruleCount: 0,
+      budgetId: null,
     });
     expect((await list()).categories).toEqual([body]);
   });

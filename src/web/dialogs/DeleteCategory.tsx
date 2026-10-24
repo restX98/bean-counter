@@ -1,7 +1,11 @@
 import { useId, useState } from "react";
+import { limitIn } from "../../domain/budgets.ts";
 import { groupCategories, type Category } from "../../domain/categories.ts";
+import { formatMonth } from "../../domain/dates.ts";
+import { formatAmount } from "../../domain/money.ts";
 import {
   useAccounts,
+  useBudget,
   useCategories,
   useDeleteCategory,
   useRules,
@@ -15,7 +19,8 @@ const GROUP_TITLES = { income: "Income", expense: "Expenses" };
 /**
  * D5's delete variant. A category in use asks where its transactions go: to
  * another category, or back to uncategorized. The rules that give it follow
- * them, or are deleted, and the dialog lists them.
+ * them, or are deleted, and its budget is deleted with its history; the
+ * dialog lists them.
  */
 export function DeleteCategory({
   category,
@@ -37,6 +42,10 @@ export function DeleteCategory({
   const itsRules = (rules.data?.rules ?? []).filter(
     (r) => r.categoryId === category.id,
   );
+  const budget = useBudget(
+    category.budgetId ?? 0,
+    category.budgetId !== null,
+  ).data;
   // The others, its own type first, as the place to move them to.
   const groups = groupCategories(
     (data?.categories ?? []).filter((c) => c.id !== category.id),
@@ -53,6 +62,37 @@ export function DeleteCategory({
   const targetName = groups
     .flatMap((g) => g.categories)
     .find((c) => c.id === target)?.name;
+
+  // What else goes: its rules follow its transactions or are deleted; its
+  // budget is deleted.
+  const changes = (itsRules.length > 0 || category.budgetId !== null) && (
+    <div className="banner tone-warning" role="status">
+      <Icon name="alert" />
+      <span className="text">
+        <strong>{used > 0 ? "This also changes" : "This changes"}</strong>
+        <span className="change-list">
+          {itsRules.map((r) => (
+            <span key={r.id}>
+              Rule {ruleName(r, accounts)} →{" "}
+              {moving ? `now gives ${targetName}` : "deleted"}
+            </span>
+          ))}
+          {category.budgetId !== null && (
+            <span>
+              Budget
+              {budget &&
+                ` (${formatAmount(
+                  limitIn(budget.plan, budget.thisMonth) ??
+                    budget.plan.limits[0]!.amount,
+                  budget.currency,
+                )} a month since ${formatMonth(budget.plan.start)})`}{" "}
+              → deleted, with its history
+            </span>
+          )}
+        </span>
+      </span>
+    </div>
+  );
 
   const submit = () =>
     remove.mutate(
@@ -86,7 +126,10 @@ export function DeleteCategory({
     >
       <FormError error={remove.error} />
       {!inUse ? (
-        <p className="muted">No transactions use this category.</p>
+        <>
+          <p className="muted">No transactions use this category.</p>
+          {changes}
+        </>
       ) : (
         <div className="form">
           <p className="muted">
@@ -170,24 +213,7 @@ export function DeleteCategory({
               </span>
             </label>
           </div>
-          {itsRules.length > 0 && (
-            <div className="banner tone-warning" role="status">
-              <Icon name="alert" />
-              <span className="text">
-                <strong>
-                  {used > 0 ? "This also changes" : "This changes"}
-                </strong>
-                <span className="change-list">
-                  {itsRules.map((r) => (
-                    <span key={r.id}>
-                      Rule {ruleName(r, accounts)} →{" "}
-                      {moving ? `now gives ${targetName}` : "deleted"}
-                    </span>
-                  ))}
-                </span>
-              </span>
-            </div>
-          )}
+          {changes}
         </div>
       )}
     </Dialog>
