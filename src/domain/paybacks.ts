@@ -265,3 +265,33 @@ export function prefill(
     return amount;
   });
 }
+
+/**
+ * Review's possible paybacks (brief §5.10): money in without a category,
+ * not linked, and not one I said is income, with the expenses D9 offers
+ * it. One with nothing to pay back isn't suggested. `pool` is what can be
+ * linked, as for `paybackOptions`; a possible transfer isn't in it.
+ */
+export function possiblePaybacks<
+  T extends PaybackTarget & {
+    date: string;
+    description: string;
+    categoryId: number | null;
+  },
+>(
+  pool: T[],
+  links: PaybackLink[],
+  dismissed: ReadonlySet<number>,
+): (T & { expenses: PaybackOption<T>[] })[] {
+  const linked = new Set(links.map((l) => l.paymentId));
+  return pool
+    .filter(
+      (t) =>
+        t.amount > 0 &&
+        t.categoryId === null &&
+        !linked.has(t.id) &&
+        !dismissed.has(t.id),
+    )
+    .map((t) => ({ ...t, expenses: paybackOptions(t, pool, links) }))
+    .filter((t) => t.expenses.length > 0);
+}

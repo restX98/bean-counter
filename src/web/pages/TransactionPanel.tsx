@@ -7,6 +7,7 @@ import {
   useAccounts,
   useCategories,
   useExclude,
+  useNotAPayback,
   usePaybacks,
   useRules,
   useSetCategory,
@@ -17,6 +18,7 @@ import {
   type TransferSide,
 } from "../api.ts";
 import { CategorySelect } from "../components/CategorySelect.tsx";
+import { amountClass } from "../components/TransactionCategory.tsx";
 import { FormError } from "../components/Dialog.tsx";
 import { describedBy, Field } from "../components/Field.tsx";
 import { Icon } from "../components/Icon.tsx";
@@ -51,6 +53,7 @@ export function TransactionPanel({
   const rules = useRules(t.ruleId !== null);
   const { data: accounts = [] } = useAccounts();
   const setCategory = useSetCategory();
+  const notAPayback = useNotAPayback();
   const exclude = useExclude();
   const unlink = useUnlink();
   // The dialog open over the panel: a new category, a rule from this, its
@@ -75,11 +78,19 @@ export function TransactionPanel({
     return () => document.removeEventListener("keydown", onKey);
   }, [dialog, onClose]);
 
+  // A possible payback's category says it's income: it isn't suggested
+  // again.
+  const categorize = (categoryId: number | null) =>
+    t.possiblePayback !== null && categoryId !== null
+      ? notAPayback.mutate({ id: t.id, categoryId })
+      : setCategory.mutate({ id: t.id, categoryId });
   // The category just picked, until the list catches up.
   const picking =
     setCategory.isPending && setCategory.variables.id === t.id
       ? setCategory.variables.categoryId
-      : undefined;
+      : notAPayback.isPending && notAPayback.variables.id === t.id
+        ? notAPayback.variables.categoryId
+        : undefined;
   const categoryId = picking === undefined ? t.categoryId : picking;
   // The rule that gave the category, until I pick another.
   const ruleId = picking === undefined ? t.ruleId : null;
@@ -89,15 +100,17 @@ export function TransactionPanel({
   );
   const hint = t.excluded
     ? "It's excluded, so it doesn't count in reports or budgets whatever its category."
-    : paybacks && t.amount > 0
-      ? `For the ${money(t.amount - paybacks.total)} it doesn't pay back.`
-      : rule
-        ? `Given by the rule ${ruleName(rule, accounts)}.`
-        : categoryId === null && t.conflict
-          ? `Its rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}. Pick the category.`
-          : paybacks
-            ? "Its paybacks follow if you change it."
-            : undefined;
+    : t.possiblePayback !== null
+      ? "If it's income, pick its category: it won't be suggested as a payback again."
+      : paybacks && t.amount > 0
+        ? `For the ${money(t.amount - paybacks.total)} it doesn't pay back.`
+        : rule
+          ? `Given by the rule ${ruleName(rule, accounts)}.`
+          : categoryId === null && t.conflict
+            ? `Its rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}. Pick the category.`
+            : paybacks
+              ? "Its paybacks follow if you change it."
+              : undefined;
 
   const toPick = t.toPick;
   // Not linked yet: a possible transfer says how many could be its other
@@ -138,6 +151,15 @@ export function TransactionPanel({
     </section>
   );
 
+  const paybackSection = !t.toPick && !t.excluded && t.amount !== 0 && (
+    <Paybacks
+      transaction={t}
+      account={account}
+      onLink={readOnly ? undefined : () => setDialog("payback")}
+      onOpen={onOpen}
+    />
+  );
+
   const close = (
     <button
       type="button"
@@ -165,6 +187,7 @@ export function TransactionPanel({
         <FormError
           error={
             setCategory.error ??
+            notAPayback.error ??
             exclude.error ??
             unlink.error ??
             categories.error
@@ -172,17 +195,7 @@ export function TransactionPanel({
         />
         <div className="detail-hero">
           <span className="title">{t.description}</span>
-          <span
-            className={
-              t.transfer
-                ? "big-number amount transfer"
-                : paybacks && t.amount > 0
-                  ? "big-number amount payback"
-                  : t.amount > 0 && !t.excluded
-                    ? "big-number amount income"
-                    : "big-number amount"
-            }
-          >
+          <span className={`big-number ${amountClass(t)}`}>
             {formatAmount(t.amount, account.currency, { signed: true })}
           </span>
           {t.excluded && (
@@ -223,6 +236,8 @@ export function TransactionPanel({
           <>
             {/* A possible transfer: that decision comes first. */}
             {t.toPick && unlinkedSection}
+            {/* A possible payback: that decision comes first too. */}
+            {t.possiblePayback !== null && paybackSection}
             {!allPayback && (
               <section className="detail-section">
                 <Field id={`${id}-category`} label="Category" hint={hint}>
@@ -232,9 +247,7 @@ export function TransactionPanel({
                     amount={t.amount}
                     none="Uncategorized"
                     disabled={readOnly}
-                    onPick={(picked) =>
-                      setCategory.mutate({ id: t.id, categoryId: picked })
-                    }
+                    onPick={categorize}
                     onNew={() => setDialog("category")}
                     {...describedBy(`${id}-category`, undefined, hint)}
                   />
@@ -250,14 +263,7 @@ export function TransactionPanel({
                 )}
               </section>
             )}
-            {!t.toPick && !t.excluded && t.amount !== 0 && (
-              <Paybacks
-                transaction={t}
-                account={account}
-                onLink={readOnly ? undefined : () => setDialog("payback")}
-                onOpen={onOpen}
-              />
-            )}
+            {t.possiblePayback === null && paybackSection}
             {!t.toPick && !t.excluded && !paybacks && unlinkedSection}
           </>
         )}
@@ -282,9 +288,7 @@ export function TransactionPanel({
         <CategoryForm
           type={t.amount > 0 ? "income" : "expense"}
           onClose={() => setDialog(null)}
-          onSaved={(category) =>
-            setCategory.mutate({ id: t.id, categoryId: category.id })
-          }
+          onSaved={(category) => categorize(category.id)}
         />
       )}
       {dialog === "rule" && (
@@ -407,6 +411,26 @@ function Paybacks({
       </button>
     );
 
+  if (t.possiblePayback !== null) {
+    return (
+      <section className="detail-section">
+        {heading("Payback")}
+        <div className="banner tone-warning">
+          <Icon name="payback" />
+          <span className="text">
+            <strong>Possible payback</strong>
+            It could pay back {plural(t.possiblePayback, "expense")} from the 30
+            days before it. Link it, or pick its category if it's income.
+          </span>
+        </div>
+        {onLink && (
+          <button type="button" className="btn btn-primary" onClick={onLink}>
+            Link payback…
+          </button>
+        )}
+      </section>
+    );
+  }
   if (!t.paybacks) {
     return (
       <section className="detail-section">

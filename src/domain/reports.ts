@@ -30,7 +30,8 @@ export interface ReportTransaction {
   transferWith: number | null;
   /**
    * A possible transfer in one currency, or one of its possible other
-   * sides: left out until I decide. A suggested exchange counts as it is.
+   * sides, or a possible payback: left out until I decide. A suggested
+   * exchange counts as it is.
    */
   pending: boolean;
 }
@@ -73,7 +74,10 @@ export interface PeriodReport {
   /** Net ÷ income; null without income. */
   savingsRate: number | null;
   movedToSavings: { transfers: MovedLine[]; total: number };
-  /** The possible transfers left out, to say they're not counted yet. */
+  /**
+   * The possible transfers and paybacks left out, to say they're not
+   * counted yet.
+   */
   pending: number[];
 }
 
@@ -83,8 +87,8 @@ export interface PeriodReport {
  * what has no category goes to the Uncategorized line of the side its sign
  * puts it on. An expense counts as my share of it: a payback reduces the
  * expense's line, in the expense's month, and only the part of a payment
- * that isn't linked counts as itself. Excluded transactions, transfers and
- * possible transfers don't count.
+ * that isn't linked counts as itself. Excluded transactions, transfers, and
+ * possible transfers and paybacks don't count.
  *
  * Moved to savings is the linked transfers between a checking and a
  * savings account, seen from the savings side: what came in, less what

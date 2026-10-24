@@ -248,6 +248,8 @@ export interface ListedTransaction {
    * takes. An expense: how many paybacks it has, and what they add up to.
    */
   paybacks: { count: number; total: number } | null;
+  /** A possible payback: how many expenses it could pay back. */
+  possiblePayback: number | null;
 }
 
 /** S4: one of the account's transactions, with the balance after it. */
@@ -385,6 +387,8 @@ export interface MonthlyReport {
   };
   /** The possible transfers left out until I decide. */
   pending: NamedTransaction[];
+  /** The possible paybacks left out until I decide. */
+  paybacks: NamedTransaction[];
   /** How many of the month's transactions Review can still change. */
   waiting: number;
   /** Oldest first, ending with this month. */
@@ -428,6 +432,8 @@ export interface SpendingReport {
   refunded: ReportLine[];
   /** The possible transfers going out, left out until I decide. */
   pending: NamedTransaction[];
+  /** The possible paybacks left out until I decide: they may lower it. */
+  paybacks: NamedTransaction[];
   /** How many of the period's transactions Review can still change. */
   waiting: number;
 }
@@ -637,7 +643,13 @@ export interface ReviewExchange extends ReviewTarget {
   other: TransferSide;
 }
 
+/** S2: money in that may pay back expenses, with those it could pay back. */
+export interface ReviewPayback extends ReviewTarget {
+  expenses: (PaybackSide & { left: number })[];
+}
+
 export type ReviewList = ReviewGroups<ReviewTarget> & {
+  paybacks: ReviewPayback[];
   transfers: ReviewTransfer[];
   exchanges: ReviewExchange[];
   mismatches: ReviewMismatch[];
@@ -785,6 +797,21 @@ export const useSetPaybacks = () =>
   usePaybackChange(
     ({ id, links }: { id: number; links: { id: number; amount: string }[] }) =>
       request<null>("PUT", `/api/transactions/${id}/paybacks`, { links }),
+  );
+
+/**
+ * S2 and S6, It's income: a possible payback gets its category and isn't
+ * suggested again; Undo makes it a possible payback again.
+ */
+export const useNotAPayback = () =>
+  usePaybackChange(({ id, categoryId }: { id: number; categoryId: number }) =>
+    request<null>("POST", `/api/transactions/${id}/not-a-payback`, {
+      categoryId,
+    }),
+  );
+export const useUndoNotAPayback = () =>
+  usePaybackChange((id: number) =>
+    request<null>("DELETE", `/api/transactions/${id}/not-a-payback`),
   );
 
 /** S6, Unlink: takes away a payment's links, or an expense's paybacks. */

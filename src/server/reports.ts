@@ -12,14 +12,20 @@ import {
 } from "../domain/reports.ts";
 import type { Db } from "./db/index.ts";
 import { accounts, categories, transactions } from "./db/schema.ts";
-import { loadPaybacks } from "./paybacks.ts";
+import { findPossiblePaybacks, loadPaybacks } from "./paybacks.ts";
 import { findTransfers } from "./transfers.ts";
 
 const MONTH = "^\\d{4}-(0[1-9]|1[0-2])$";
 
-/** Everything a report adds up: archived accounts too, they're history. */
+/**
+ * Everything a report adds up: archived accounts too, they're history. With
+ * the suggested exchanges, and the possible paybacks, which wait for a
+ * decision like possible transfers.
+ */
 function loadReportData(db: Db) {
-  const { candidates, exchanges } = findTransfers(db);
+  const found = findTransfers(db);
+  const { candidates, exchanges } = found;
+  const possible = new Set(findPossiblePaybacks(db, found).map((t) => t.id));
   const data: ReportData = {
     accounts: db
       .select({
@@ -33,8 +39,8 @@ function loadReportData(db: Db) {
       .select({ id: categories.id, type: categories.type })
       .from(categories)
       .all(),
-    // Only possible transfers in one currency wait for a decision; a
-    // suggested exchange counts as it is until I link it.
+    // Possible transfers in one currency and possible paybacks wait for a
+    // decision; a suggested exchange counts as it is until I link it.
     transactions: db
       .select({
         id: transactions.id,
@@ -47,11 +53,14 @@ function loadReportData(db: Db) {
       })
       .from(transactions)
       .all()
-      .map((t) => ({ ...t, pending: candidates.has(t.id) })),
+      .map((t) => ({
+        ...t,
+        pending: candidates.has(t.id) || possible.has(t.id),
+      })),
     paybacks: loadPaybacks(db),
   };
   const suggested = new Set(exchanges.flatMap((p) => [p.out.id, p.in.id]));
-  return { data, suggested };
+  return { data, suggested, possible };
 }
 
 /** The months with transactions in a currency, oldest first. */
@@ -132,7 +141,7 @@ export function reportRoutes(
       },
     },
     (req, reply) => {
-      const { data, suggested } = loadReportData(db);
+      const { data, suggested, possible } = loadReportData(db);
       const currencies = reportCurrencies(data.accounts);
       const currency = req.query.currency ?? currencies[0] ?? "EUR";
       if (req.query.currency && !currencies.includes(currency)) {
@@ -146,7 +155,7 @@ export function reportRoutes(
       const report = periodReport(data, currency, { from: month, to: month });
 
       // The transactions the report names: the sides of each transfer to
-      // savings, and the possible transfers it left out.
+      // savings, and the possible transfers and paybacks it left out.
       const names = named(db, [
         ...report.movedToSavings.transfers.flatMap((m) => [
           m.savingsSide,
@@ -174,7 +183,12 @@ export function reportRoutes(
             other: names.get(m.otherSide)!,
           })),
         },
-        pending: report.pending.map((id) => names.get(id)!),
+        pending: report.pending
+          .filter((id) => !possible.has(id))
+          .map((id) => names.get(id)!),
+        paybacks: report.pending
+          .filter((id) => possible.has(id))
+          .map((id) => names.get(id)!),
         waiting: waitingIn(data, suggested, currency, {
           from: month,
           to: month,
@@ -208,7 +222,7 @@ export function reportRoutes(
       },
     },
     (req, reply) => {
-      const { data, suggested } = loadReportData(db);
+      const { data, suggested, possible } = loadReportData(db);
       const currencies = reportCurrencies(data.accounts);
       const currency = req.query.currency ?? currencies[0] ?? "EUR";
       if (req.query.currency && !currencies.includes(currency)) {
@@ -234,10 +248,14 @@ export function reportRoutes(
         period = { from: from < first ? first : from, to: last };
       }
       const report = periodReport(data, currency, period);
-      // Only the possible transfers going out could be spending.
+      // Only the possible transfers going out could be spending; a
+      // possible payback could take some off.
       const amountOf = new Map(data.transactions.map((t) => [t.id, t.amount]));
-      const pending = report.pending.filter((id) => amountOf.get(id)! < 0);
-      const names = named(db, pending);
+      const pending = report.pending.filter(
+        (id) => !possible.has(id) && amountOf.get(id)! < 0,
+      );
+      const paybacks = report.pending.filter((id) => possible.has(id));
+      const names = named(db, [...pending, ...paybacks]);
 
       return {
         currencies,
@@ -250,6 +268,7 @@ export function reportRoutes(
         choices: first && last ? periodChoices(first, last, thisMonth) : [],
         ...spending(report.expenses),
         pending: pending.map((id) => names.get(id)!),
+        paybacks: paybacks.map((id) => names.get(id)!),
         waiting: waitingIn(data, suggested, currency, period),
       };
     },

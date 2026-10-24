@@ -24,14 +24,14 @@ export function isTransactionType(text: string): text is TransactionType {
  * How reports count a transaction, which S5 filters by. An excluded one
  * counts nowhere. A transfer, or one that may be (it has candidates to pick
  * from), is neither income nor expense, and neither is a payment linked in
- * full to the expenses it pays back. The rest count by their category's
- * type, or as uncategorized.
+ * full to the expenses it pays back, or one that may pay some back. The
+ * rest count by their category's type, or as uncategorized.
  */
 export function transactionType(t: {
   excluded: boolean;
   /** Linked to its other side, or with candidates to pick from. */
   transfer: boolean;
-  /** A payment linked in full. */
+  /** A payment linked in full, or a possible payback. */
   payback: boolean;
   categoryType: CategoryType | null;
 }): TransactionType {

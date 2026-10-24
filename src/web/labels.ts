@@ -37,10 +37,10 @@ export function plural(count: number, one: string, many = `${one}s`): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
-/** "Savings", "Savings and Card account", "A, B and C". */
-export function listNames(names: string[]): string {
+/** "Savings", "Savings and Card account", "A, B and C"; or "A, B or C". */
+export function listNames(names: string[], last = "and"): string {
   return names.length > 1
-    ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`
+    ? `${names.slice(0, -1).join(", ")} ${last} ${names.at(-1)}`
     : (names[0] ?? "");
 }
 

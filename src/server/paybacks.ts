@@ -3,11 +3,18 @@ import type { FastifyInstance } from "fastify";
 import {
   PAYBACK_WINDOW,
   paybackOptions,
+  possiblePaybacks,
   validateSplit,
   type PaybackLink,
 } from "../domain/paybacks.ts";
 import type { Db } from "./db/index.ts";
-import { accounts, paybacks, transactions } from "./db/schema.ts";
+import {
+  accounts,
+  categories,
+  paybackDismissals,
+  paybacks,
+  transactions,
+} from "./db/schema.ts";
 import { findTransfers, linkTransfers } from "./transfers.ts";
 
 /** Every payback linked so far, or those a transaction is a side of. */
@@ -25,6 +32,58 @@ export const loadPaybacks = (db: Db, id?: number): PaybackLink[] =>
         : or(eq(paybacks.paymentId, id), eq(paybacks.expenseId, id)),
     )
     .all();
+
+/**
+ * What can be linked as a payment or an expense: counted, neither a
+ * transfer nor a possible one, in accounts that aren't archived.
+ */
+const loadLinkable = (db: Db, candidates: Map<number, unknown>) =>
+  db
+    .select({
+      id: transactions.id,
+      accountId: transactions.accountId,
+      currency: accounts.currency,
+      date: transactions.date,
+      time: transactions.time,
+      amount: transactions.amount,
+      description: transactions.description,
+      categoryId: transactions.categoryId,
+    })
+    .from(transactions)
+    .innerJoin(accounts, eq(accounts.id, transactions.accountId))
+    .where(
+      and(
+        eq(transactions.excluded, false),
+        isNull(transactions.transferWith),
+        isNull(accounts.archivedOn),
+      ),
+    )
+    .all()
+    .filter((t) => !candidates.has(t.id));
+
+/**
+ * S2's possible paybacks (see `possiblePaybacks`), each with the expenses
+ * it could pay back. Money in that may be an exchange waits for that
+ * decision first, as Review lists it there.
+ */
+export function findPossiblePaybacks(
+  db: Db,
+  { candidates, exchanges } = findTransfers(db),
+) {
+  const exchanging = new Set(exchanges.flatMap((p) => [p.out.id, p.in.id]));
+  const dismissed = new Set(
+    db
+      .select()
+      .from(paybackDismissals)
+      .all()
+      .map((d) => d.transactionId),
+  );
+  return possiblePaybacks(
+    loadLinkable(db, candidates),
+    loadPaybacks(db),
+    dismissed,
+  ).filter((t) => !exchanging.has(t.id));
+}
 
 /** How many older expenses, or later payments, a search lists. */
 const SEARCH_LIMIT = 20;
@@ -115,31 +174,6 @@ export function paybackRoutes(app: FastifyInstance, { db }: { db: Db }) {
     },
   );
 
-  /** What can be linked as a payment or an expense, but this one. */
-  const pool = (candidates: Map<number, unknown>) =>
-    db
-      .select({
-        id: transactions.id,
-        accountId: transactions.accountId,
-        currency: accounts.currency,
-        date: transactions.date,
-        time: transactions.time,
-        amount: transactions.amount,
-        description: transactions.description,
-        categoryId: transactions.categoryId,
-      })
-      .from(transactions)
-      .innerJoin(accounts, eq(accounts.id, transactions.accountId))
-      .where(
-        and(
-          eq(transactions.excluded, false),
-          isNull(transactions.transferWith),
-          isNull(accounts.archivedOn),
-        ),
-      )
-      .all()
-      .filter((t) => !candidates.has(t.id));
-
   // D9: what a payment could pay back, or what could pay an expense back,
   // nearest first, with what's left of each. With `q`, those beyond the
   // window whose description contains it.
@@ -162,7 +196,7 @@ export function paybackRoutes(app: FastifyInstance, { db }: { db: Db }) {
       if (refused) return reply.code(409).send({ error: refused });
       const options = paybackOptions(
         row,
-        pool(candidates),
+        loadLinkable(db, candidates),
         loadPaybacks(db),
         req.query.q,
       );
@@ -237,6 +271,87 @@ export function paybackRoutes(app: FastifyInstance, { db }: { db: Db }) {
           )
           .run();
         db.insert(paybacks).values(split.value).run();
+      });
+      return reply.code(204).send();
+    },
+  );
+
+  // S2, It's income: a possible payback gets its category, and is never
+  // suggested again.
+  app.post<WithId & { Body: { categoryId: number } }>(
+    "/api/transactions/:id/not-a-payback",
+    {
+      schema: {
+        params: idParams,
+        body: {
+          type: "object",
+          required: ["categoryId"],
+          properties: { categoryId: { type: "integer" } },
+        },
+      },
+    },
+    (req, reply) => {
+      const [row] = load([req.params.id]);
+      if (!row) return reply.code(404).send({ error: "Not found" });
+      const refused = refusal(row, findTransfers(db).candidates);
+      if (refused) return reply.code(409).send({ error: refused });
+      if (row.amount <= 0) {
+        return reply
+          .code(409)
+          .send({ error: "Only money coming in can be a payback." });
+      }
+      if (loadPaybacks(db, row.id).length > 0) {
+        return reply
+          .code(409)
+          .send({ error: "It's linked as a payback. Unlink it first." });
+      }
+      const { categoryId } = req.body;
+      if (
+        !db
+          .select({ id: categories.id })
+          .from(categories)
+          .where(eq(categories.id, categoryId))
+          .get()
+      ) {
+        return reply
+          .code(400)
+          .send({ error: "This category doesn't exist any more." });
+      }
+      db.transaction(() => {
+        db.update(transactions)
+          .set({ categoryId, ruleId: null })
+          .where(eq(transactions.id, row.id))
+          .run();
+        db.insert(paybackDismissals)
+          .values({ transactionId: row.id })
+          .onConflictDoNothing()
+          .run();
+      });
+      return reply.code(204).send();
+    },
+  );
+
+  // Undo, right after It's income: a possible payback again, without its
+  // category.
+  app.delete<WithId>(
+    "/api/transactions/:id/not-a-payback",
+    { schema: { params: idParams } },
+    (req, reply) => {
+      const [row] = load([req.params.id]);
+      if (!row) return reply.code(404).send({ error: "Not found" });
+      if (row.archivedOn) {
+        return reply.code(409).send({
+          error: "This account is archived. Unarchive it to change it.",
+        });
+      }
+      db.transaction(() => {
+        db.delete(paybackDismissals)
+          .where(eq(paybackDismissals.transactionId, row.id))
+          .run();
+        db.update(transactions)
+          .set({ categoryId: null, ruleId: null })
+          .where(eq(transactions.id, row.id))
+          .run();
       });
       return reply.code(204).send();
     },

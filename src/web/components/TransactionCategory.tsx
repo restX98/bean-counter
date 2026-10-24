@@ -8,8 +8,9 @@ import { Icon } from "./Icon.tsx";
 /**
  * A transaction's category as the lists show it (S4, S5). A transfer names
  * its other side's account instead, and a possible one waits for that
- * decision first. A payment linked in full says how many expenses it pays
- * back instead, and an expense paid back adds my share. Excluded
+ * decision first, and so does a possible payback. A payment linked in full
+ * says how many expenses it pays back instead, and an expense paid back
+ * adds my share. Excluded
  * transactions don't count anywhere, so they don't need a category.
  */
 export function TransactionCategory({
@@ -66,6 +67,14 @@ export function TransactionCategory({
       <span className="tag tone-warning">
         <Icon name="transfer" />
         Transfer to pick
+      </span>
+    );
+  }
+  if (t.possiblePayback !== null) {
+    return (
+      <span className="tag tone-warning">
+        <Icon name="payback" />
+        Possible payback
       </span>
     );
   }

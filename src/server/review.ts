@@ -4,24 +4,56 @@ import { reviewGroups, shownEnd } from "../domain/review.ts";
 import { transfersToPick } from "../domain/transfers.ts";
 import type { Db } from "./db/index.ts";
 import { accounts } from "./db/schema.ts";
+import { findPossiblePaybacks } from "./paybacks.ts";
 import { loadRules, loadUncategorized } from "./rules.ts";
 import { loadLedger } from "./transactions.ts";
 import { findTransfers } from "./transfers.ts";
 
 export function reviewRoutes(app: FastifyInstance, { db }: { db: Db }) {
   // S2: what the app can't decide on its own, in Review's groups, and how
-  // many items wait in all: the transactions waiting for a category, the
-  // transfers whose other side I pick, the pairs across currencies that
-  // could be an exchange, and each place where an account's balances and
-  // the bank's part ways. A possible transfer and its
-  // candidates wait for that decision first. Archived accounts can't
-  // change, so they're left out.
+  // many items wait in all: the money in that may pay back expenses, the
+  // transactions waiting for a category, the transfers whose other side I
+  // pick, the pairs across currencies that could be an exchange, and each
+  // place where an account's balances and the bank's part ways. A possible
+  // transfer and its candidates wait for that decision first, then a
+  // possible payback. Archived accounts can't change, so they're left out.
   app.get("/api/review", () => {
-    const { candidates, exchanges: pairs } = findTransfers(db);
+    const found = findTransfers(db);
+    const { candidates, exchanges: pairs } = found;
+    const possible = findPossiblePaybacks(db, found);
+    const suggested = new Set(possible.map((t) => t.id));
     const { uncategorized, conflicts } = reviewGroups(
-      loadUncategorized(db).filter((t) => !candidates.has(t.id)),
+      loadUncategorized(db).filter(
+        (t) => !candidates.has(t.id) && !suggested.has(t.id),
+      ),
       loadRules(db),
     );
+    const paybacks = possible
+      .map((t) => ({
+        id: t.id,
+        date: t.date,
+        time: t.time,
+        description: t.description,
+        amount: t.amount,
+        accountId: t.accountId,
+        currency: t.currency,
+        expenses: t.expenses.map((e) => ({
+          id: e.id,
+          accountId: e.accountId,
+          date: e.date,
+          time: e.time,
+          amount: e.amount,
+          description: e.description,
+          categoryId: e.categoryId,
+          left: e.left,
+        })),
+      }))
+      .sort(
+        (a, b) =>
+          b.date.localeCompare(a.date) ||
+          (b.time ?? "").localeCompare(a.time ?? "") ||
+          b.id - a.id,
+      );
     const transfers = transfersToPick(candidates)
       .map((t) => ({
         id: t.id,
@@ -86,12 +118,14 @@ export function reviewRoutes(app: FastifyInstance, { db }: { db: Db }) {
       }))
       .reverse();
     return {
+      paybacks,
       uncategorized,
       conflicts,
       transfers,
       exchanges,
       mismatches,
       count:
+        paybacks.length +
         uncategorized.length +
         conflicts.length +
         transfers.length +

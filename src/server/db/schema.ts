@@ -212,6 +212,16 @@ export const paybacks = sqliteTable(
 );
 
 /**
+ * Money in I said is income ("It's income" in Review): never suggested as a
+ * payback again. I can still link it by hand.
+ */
+export const paybackDismissals = sqliteTable("payback_dismissals", {
+  transactionId: integer("transaction_id")
+    .primaryKey()
+    .references(() => transactions.id, { onDelete: "cascade" }),
+});
+
+/**
  * A balance I entered (Set balance) that differed from the app's, kept to
  * look for what's missing. The account page compares it like the bank's.
  */

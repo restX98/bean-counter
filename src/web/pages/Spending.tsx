@@ -132,6 +132,11 @@ export function Spending() {
         </p>
       )}
       <NotCountedYet pending={r.pending} currency={r.currency} />
+      <NotCountedYet
+        kind="paybacks"
+        pending={r.paybacks}
+        currency={r.currency}
+      />
     </>
   );
   const pointed = typeof active === "number" ? r.lines[active] : undefined;

@@ -266,6 +266,7 @@ describe("spending by category (S13)", () => {
       ],
       total: 104000,
       refunded: [],
+      paybacks: [],
       pending: [],
       waiting: 0,
     });

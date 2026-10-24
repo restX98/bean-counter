@@ -3,6 +3,7 @@ import {
   linkedInFull,
   paybackOptions,
   paybackTotals,
+  possiblePaybacks,
   prefill,
   validateSplit,
   type PaybackLink,
@@ -328,5 +329,50 @@ describe("prefill", () => {
     expect(prefill(17400, rows(null))).toEqual([17400, 0]);
     expect(prefill(17400, rows(15000))).toEqual([15000, 2400]);
     expect(prefill(17400, rows(20000))).toEqual([20000, 0]);
+  });
+});
+
+describe("possiblePaybacks", () => {
+  const on = (
+    t: PaybackTarget,
+    date: string,
+    description: string,
+    categoryId: number | null = null,
+  ) => ({ ...t, date, description, categoryId });
+  const EATING_OUT = 23;
+  const pool = [
+    on(dinner, "2026-10-17", "RISTORANTE DA MARIO", EATING_OUT),
+    on(pizzeria, "2026-10-16", "PIZZERIA DA GINO", EATING_OUT),
+    on(marco, "2026-10-19", "BONIFICO DA MARCO"),
+    on(lucia, "2026-12-20", "BONIFICO DA LUCIA"),
+    on(salary, "2026-10-27", "SALARY ACME SPA", 10),
+  ];
+  const ids = (found: { id: number }[]) => found.map((t) => t.id);
+
+  it("suggests money in without a category, with what it could pay back", () => {
+    const found = possiblePaybacks(pool, [], new Set());
+    // Lucia's payment has no expense in the 30 days before it; the salary
+    // has a category.
+    expect(ids(found)).toEqual([marco.id]);
+    expect(ids(found[0]!.expenses)).toEqual([dinner.id, pizzeria.id]);
+  });
+
+  it("leaves out a payment that's linked, or that I said is income", () => {
+    expect(
+      possiblePaybacks(pool, [link(marco, dinner, 1000)], new Set()),
+    ).toEqual([]);
+    expect(possiblePaybacks(pool, [], new Set([marco.id]))).toEqual([]);
+  });
+
+  it("only offers what's left to pay back", () => {
+    // Anna paid back the whole pizzeria.
+    const anna = { id: 9, currency: "EUR", amount: 4800 };
+    const found = possiblePaybacks(
+      [...pool, on(anna, "2026-10-18", "BONIFICO DA ANNA")],
+      [link(anna, pizzeria, 4800)],
+      new Set(),
+    );
+    expect(ids(found)).toEqual([marco.id]);
+    expect(ids(found[0]!.expenses)).toEqual([dinner.id]);
   });
 });

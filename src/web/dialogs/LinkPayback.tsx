@@ -35,9 +35,12 @@ interface Linking {
 export function LinkPayback({
   transaction: t,
   onClose,
+  onLinked,
 }: {
   transaction: Linking;
   onClose: () => void;
+  /** After it's linked: how many transactions it's linked with. */
+  onLinked?: (count: number) => void;
 }) {
   const id = useId();
   const paying = t.amount > 0;
@@ -108,7 +111,12 @@ export function LinkPayback({
         id: t.id,
         links: rows.map((o) => ({ id: o.id, amount: shown(o) })),
       },
-      { onSuccess: onClose },
+      {
+        onSuccess: () => {
+          onLinked?.(rows.length);
+          onClose();
+        },
+      },
     );
 
   const money = (amount: number, signed = false) =>

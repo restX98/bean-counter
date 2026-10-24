@@ -18,7 +18,7 @@ import {
   paybacks,
   transactions,
 } from "./db/schema.ts";
-import { loadPaybacks } from "./paybacks.ts";
+import { findPossiblePaybacks, loadPaybacks } from "./paybacks.ts";
 import { loadRules } from "./rules.ts";
 import { findTransfers } from "./transfers.ts";
 
@@ -130,8 +130,12 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           .all()
           .map((c) => [c.id, c.type]),
       );
-      const { candidates } = findTransfers(db);
+      const transfers = findTransfers(db);
+      const { candidates } = transfers;
       const totals = paybackTotals(loadPaybacks(db));
+      const possible = new Set(
+        findPossiblePaybacks(db, transfers).map((t) => t.id),
+      );
       const all = inOrder(
         db
           .select({
@@ -158,7 +162,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           type: transactionType({
             excluded: t.excluded,
             transfer: t.transferWith !== null || candidates.has(t.id),
-            payback: linkedInFull(t, totals),
+            payback: linkedInFull(t, totals) || possible.has(t.id),
             categoryType:
               t.categoryId === null
                 ? null
@@ -167,7 +171,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
         }),
       );
       const page = found.slice(0, limit);
-      const list = lister(db, page, candidates);
+      const list = lister(db, page, transfers);
       return {
         transactions: page.map((t) => ({
           ...list(t, owners.get(t.accountId)!),
@@ -379,14 +383,15 @@ type Listed = Pick<typeof transactions.$inferSelect, keyof typeof LISTED>;
  * categories its rules disagree on, if any; a transfer gives its other
  * side, and a possible one says how many could be that side, and where. A
  * payment says how many expenses it pays back and how much of it that
- * takes; an expense, how many paybacks it has and what they add up to.
+ * takes; an expense, how many paybacks it has and what they add up to. A
+ * possible payback says how many expenses it could pay back.
  */
-function lister(
-  db: Db,
-  rows: Listed[],
-  candidates = findTransfers(db).candidates,
-) {
+function lister(db: Db, rows: Listed[], transfers = findTransfers(db)) {
+  const { candidates } = transfers;
   const check = ruleChecker(loadRules(db));
+  const possible = new Map(
+    findPossiblePaybacks(db, transfers).map((t) => [t.id, t.expenses.length]),
+  );
   const paybacks = new Map<number, { count: number; total: number }>();
   for (const { paymentId, expenseId, amount } of loadPaybacks(db)) {
     for (const id of [paymentId, expenseId]) {
@@ -445,6 +450,7 @@ function lister(
       transfer:
         t.transferWith === null ? null : (others.get(t.transferWith) ?? null),
       paybacks: paybacks.get(t.id) ?? null,
+      possiblePayback: possible.get(t.id) ?? null,
     };
   };
 }

@@ -10,14 +10,18 @@ import {
   useApplyRules,
   useCategories,
   useLink,
+  useNotAPayback,
   useNotATransfer,
   useReview,
   useRules,
   useSetCategory,
+  useUndoNotAPayback,
   useUndoTransfer,
+  useUnlinkPaybacks,
   type ReviewExchange,
   type ReviewList,
   type ReviewMismatch,
+  type ReviewPayback,
   type ReviewTransfer,
   type TransferChange,
 } from "../api.ts";
@@ -29,17 +33,21 @@ import type { IconName } from "../components/icons.ts";
 import { Loading, Page } from "../components/Page.tsx";
 import { Toast } from "../components/Toast.tsx";
 import { CategoryForm } from "../dialogs/CategoryForm.tsx";
+import { LinkPayback } from "../dialogs/LinkPayback.tsx";
 import { LinkTransfer } from "../dialogs/LinkTransfer.tsx";
 import { RuleForm } from "../dialogs/RuleForm.tsx";
-import { plural, possibleMatches, ruleText } from "../labels.ts";
+import { listNames, plural, possibleMatches, ruleText } from "../labels.ts";
 import { useIsMobile } from "../useIsMobile.ts";
 
 /** Items shown in a group before "Show N more". */
 const SHOWN = 5;
+/** How many of the expenses it could pay back a possible payback names. */
+const NAMED = 2;
 
 type Item =
   ReviewList["uncategorized"][number] | ReviewList["conflicts"][number];
-type GroupKey = "uncategorized" | "conflicts" | "transfers" | "mismatches";
+type GroupKey =
+  "paybacks" | "uncategorized" | "conflicts" | "transfers" | "mismatches";
 
 /** One item of a group, laid out the same way in every group. */
 interface Row {
@@ -55,6 +63,16 @@ interface Row {
   acts: ReactNode;
 }
 
+/** A group of Review's items. */
+interface Group {
+  key: GroupKey;
+  title: string;
+  icon: IconName;
+  rows: Row[];
+  /** Under its items. */
+  note?: string;
+}
+
 const isConflict = (item: Item): item is ReviewList["conflicts"][number] =>
   "categoryIds" in item;
 /** An item's group and transaction, which together name it. */
@@ -63,13 +81,16 @@ const keyOf = (item: Item) =>
 const transferKey = (item: ReviewTransfer) => `transfers ${item.id}`;
 const exchangeKey = (item: ReviewExchange) =>
   `exchanges ${item.id} ${item.other.id}`;
+const paybackKey = (item: ReviewPayback) => `paybacks ${item.id}`;
 
 /**
  * S2: what the app can't decide on its own. Transactions waiting for a
  * category: picking one takes the item off the list, with Undo; a rule's
  * category can be taken with one click. Possible transfers: I pick the
- * other side (D4) or say it isn't one, with Undo. Places where an account's
- * balances and the bank's part ways: fixed on the account's page.
+ * other side (D4) or say it isn't one, with Undo. Possible paybacks: I
+ * link them (D9), or pick their category as income, with Undo. Places
+ * where an account's balances and the bank's part ways: fixed on the
+ * account's page.
  */
 export function Review() {
   const isMobile = useIsMobile();
@@ -82,6 +103,9 @@ export function Review() {
   const link = useLink();
   const notATransfer = useNotATransfer();
   const undoTransfer = useUndoTransfer();
+  const notAPayback = useNotAPayback();
+  const undoNotAPayback = useUndoNotAPayback();
+  const unlinkPaybacks = useUnlinkPaybacks();
   // Items just settled, hidden before the list catches up; Undo brings them
   // back. By group, since a transaction can move to another one (see `keyOf`).
   const [settled, setSettled] = useState<ReadonlySet<string>>(new Set());
@@ -93,6 +117,7 @@ export function Review() {
   const [dialog, setDialog] = useState<
     | { kind: "category" | "rule"; item: Item }
     | { kind: "link"; item: ReviewTransfer }
+    | { kind: "payback" | "income"; item: ReviewPayback }
     | null
   >(null);
   const [expanded, setExpanded] = useState<ReadonlySet<GroupKey>>(new Set());
@@ -201,6 +226,35 @@ export function Review() {
           ),
         onError: () => hide(key, false),
       },
+    );
+  };
+  // It's income: its category, and it's never suggested again.
+  const income = (item: ReviewPayback, categoryId: number, name: string) => {
+    const key = paybackKey(item);
+    hide(key, true);
+    notAPayback.mutate(
+      { id: item.id, categoryId },
+      {
+        onSuccess: () =>
+          notify(
+            `${item.description} is now in ${name}. It won't be suggested as a payback again.`,
+            () =>
+              undoNotAPayback.mutate(item.id, {
+                onSuccess: () => hide(key, false),
+              }),
+          ),
+        onError: () => hide(key, false),
+      },
+    );
+  };
+  // Linked in D9: Undo unlinks it, and it's a possible payback again.
+  const paybackLinked = (item: ReviewPayback, count: number) => {
+    const key = paybackKey(item);
+    hide(key, true);
+    notify(
+      `${item.description} now pays back ${plural(count, "expense")}.`,
+      () =>
+        unlinkPaybacks.mutate(item.id, { onSuccess: () => hide(key, false) }),
     );
   };
   const pick = (item: Item, categoryId: number, name: string) => {
@@ -369,6 +423,65 @@ export function Review() {
     };
   };
 
+  // Money in that may pay back expenses: the first few, by name.
+  const paybackRow = (item: ReviewPayback): Row => {
+    const account = accountNames.get(item.accountId) ?? "";
+    const money = (minor: number) =>
+      formatAmount(minor, item.currency, { signed: true });
+    const could = item.expenses
+      .slice(0, NAMED)
+      .map(
+        (e) =>
+          `${e.description} ${money(e.amount)} (${formatWhen(e.date, null, { short: true })})`,
+      );
+    if (item.expenses.length > NAMED) {
+      could.push(plural(item.expenses.length - NAMED, "more", "more"));
+    }
+    return {
+      key: String(item.id),
+      date: item.date,
+      time: item.time,
+      account,
+      where: `${account} · ${formatWhen(item.date, item.time, { short: true })}`,
+      what: (
+        <span className="what">
+          <strong>{item.description}</strong>
+          <span className="caption">
+            Money in without a category. It could pay back{" "}
+            {listNames(could, "or")}.
+          </span>
+        </span>
+      ),
+      amount: <span className="amount">{money(item.amount)}</span>,
+      acts: (
+        <span className="acts">
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            aria-label={`Link ${item.description} to the expenses it pays back`}
+            onClick={() => setDialog({ kind: "payback", item })}
+          >
+            <Icon name="payback" />
+            Link…
+          </button>
+          <CategorySelect
+            className="select is-placeholder"
+            value={null}
+            amount={item.amount}
+            none="It's income…"
+            aria-label={`It's income: category for ${item.description}`}
+            disabled={notAPayback.isPending}
+            onPick={(categoryId) =>
+              categoryId !== null &&
+              income(item, categoryId, names.get(categoryId) ?? "")
+            }
+            onNew={() => setDialog({ kind: "income", item })}
+          />
+        </span>
+      ),
+    };
+  };
+
   // A pair across currencies: the side going out, with the other side.
   const exchangeRow = (item: ReviewExchange): Row => {
     const account = accountNames.get(item.accountId) ?? "";
@@ -462,51 +575,55 @@ export function Review() {
 
   const unsettled = (items: Item[]) =>
     items.filter((t) => !settled.has(keyOf(t))).map(transactionRow);
-  const groups = (
-    [
-      {
-        key: "uncategorized",
-        title: "Uncategorized",
-        icon: "tag",
-        rows: unsettled(review.data.uncategorized),
-      },
-      {
-        key: "conflicts",
-        title: "Rule conflicts",
-        icon: "rules",
-        rows: unsettled(review.data.conflicts),
-      },
-      {
-        key: "transfers",
-        title: "Transfers to confirm",
-        icon: "transfer",
-        // Newest first, whichever kind.
-        rows: [
-          ...review.data.transfers
-            .filter((t) => !settled.has(transferKey(t)))
-            .map(transferRow),
-          ...review.data.exchanges
-            .filter((x) => !settled.has(exchangeKey(x)))
-            .map(exchangeRow),
-        ].sort(
-          (a, b) =>
-            b.date.localeCompare(a.date) ||
-            (b.time ?? "").localeCompare(a.time ?? ""),
-        ),
-      },
-      {
-        key: "mismatches",
-        title: "Balance mismatches",
-        icon: "scale",
-        rows: review.data.mismatches.map(mismatchRow),
-      },
-    ] satisfies {
-      key: GroupKey;
-      title: string;
-      icon: IconName;
-      rows: Row[];
-    }[]
-  ).filter((g) => g.rows.length > 0);
+  const paybacks = review.data.paybacks.filter(
+    (p) => !settled.has(paybackKey(p)),
+  );
+  const all: Group[] = [
+    {
+      key: "paybacks",
+      title: "Possible paybacks",
+      icon: "payback",
+      rows: paybacks.map(paybackRow),
+      note: `Until you decide, reports leave ${paybacks.length === 1 ? "it" : "them"} out, like a possible transfer.`,
+    },
+    {
+      key: "uncategorized",
+      title: "Uncategorized",
+      icon: "tag",
+      rows: unsettled(review.data.uncategorized),
+    },
+    {
+      key: "conflicts",
+      title: "Rule conflicts",
+      icon: "rules",
+      rows: unsettled(review.data.conflicts),
+    },
+    {
+      key: "transfers",
+      title: "Transfers to confirm",
+      icon: "transfer",
+      // Newest first, whichever kind.
+      rows: [
+        ...review.data.transfers
+          .filter((t) => !settled.has(transferKey(t)))
+          .map(transferRow),
+        ...review.data.exchanges
+          .filter((x) => !settled.has(exchangeKey(x)))
+          .map(exchangeRow),
+      ].sort(
+        (a, b) =>
+          b.date.localeCompare(a.date) ||
+          (b.time ?? "").localeCompare(a.time ?? ""),
+      ),
+    },
+    {
+      key: "mismatches",
+      title: "Balance mismatches",
+      icon: "scale",
+      rows: review.data.mismatches.map(mismatchRow),
+    },
+  ];
+  const groups = all.filter((g) => g.rows.length > 0);
   const count = groups.reduce((n, g) => n + g.rows.length, 0);
   const summary =
     count === 0
@@ -522,7 +639,10 @@ export function Review() {
           applyRules.error ??
           link.error ??
           notATransfer.error ??
-          undoTransfer.error
+          undoTransfer.error ??
+          notAPayback.error ??
+          undoNotAPayback.error ??
+          unlinkPaybacks.error
         }
       />
 
@@ -542,7 +662,8 @@ export function Review() {
           import.
         </EmptyState>
       ) : (
-        groups.map(({ key, title, icon, rows }) => {
+        groups.map(({ key, title, icon, rows, note: text }) => {
+          const note = text && <p className="caption">{text}</p>;
           const shown = expanded.has(key) ? rows : rows.slice(0, SHOWN);
           const more = rows.length - shown.length;
           const showMore = more > 0 && (
@@ -573,6 +694,7 @@ export function Review() {
                   </div>
                 ))}
                 {showMore}
+                {note}
               </div>
             </details>
           ) : (
@@ -597,6 +719,7 @@ export function Review() {
                 </div>
               ))}
               {showMore && <div className="item-more">{showMore}</div>}
+              {note && <div className="item-more">{note}</div>}
             </section>
           );
         })
@@ -620,6 +743,22 @@ export function Review() {
               change,
               change.linked.length - 1,
             )
+          }
+        />
+      )}
+      {dialog?.kind === "payback" && (
+        <LinkPayback
+          transaction={dialog.item}
+          onClose={() => setDialog(null)}
+          onLinked={(count) => paybackLinked(dialog.item, count)}
+        />
+      )}
+      {dialog?.kind === "income" && (
+        <CategoryForm
+          type="income"
+          onClose={() => setDialog(null)}
+          onSaved={(category) =>
+            income(dialog.item, category.id, category.name)
           }
         />
       )}

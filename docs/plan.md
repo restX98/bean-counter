@@ -72,7 +72,8 @@ These are the screens to design and the flows that connect them. Each entry cove
 #### S2 Review inbox
 
 - **Purpose**: one place for everything the app can't decide on its own.
-- **Shows**: three groups, each with a count.
+- **Shows**: groups, each with a count.
+  - **Possible paybacks**, first: money in without a category that could pay back my expenses of the 30 days before it, naming the newest two. Until I decide, reports leave it out, and it isn't listed under Uncategorized or Rule conflicts.
   - **Uncategorized**: date, account, description and amount, with an inline category picker. When a rule would give one a category now (it was saved without applying it, or the other rule of a conflict was deleted), the item names the rule and its category, and **Use it** accepts it.
   - **Rule conflicts**: transactions matched by more than one rule, with the competing rules and their categories. I pick the category.
   - **Transfers to confirm**: same-currency transactions with more than one possible match (pick the other side, or mark as not a transfer), and cross-currency suggestions (link, or mark as not a transfer).
@@ -81,7 +82,7 @@ These are the screens to design and the flows that connect them. Each entry cove
   - categorize a transaction, with a shortcut to create a rule (D6); it leaves the list, and a toast offers Undo;
   - pick the category for a rule conflict;
   - link or dismiss a transfer (a dismissal is remembered);
-  - link a possible payback (D9), or mark it as income (remembered);
+  - link a possible payback (D9), or say it's income by picking its category (remembered); either way a toast offers Undo;
   - open a mismatch in S4.
 - **States**: all caught up, or normal.
 - **Mobile**: groups are collapsible sections, and each item is a card.

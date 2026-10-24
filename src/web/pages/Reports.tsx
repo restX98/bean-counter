@@ -86,7 +86,8 @@ export function Reports() {
     r.income.lines.length === 0 &&
     r.expenses.lines.length === 0 &&
     r.movedToSavings.transfers.length === 0 &&
-    r.pending.length === 0;
+    r.pending.length === 0 &&
+    r.paybacks.length === 0;
 
   return (
     <Page {...page}>
@@ -182,7 +183,10 @@ export function Reports() {
   );
 }
 
-/** Income, expenses, net and savings rate (brief §6.1). */
+/**
+ * Income, expenses, net and savings rate (brief §6.1), and the possible
+ * paybacks not counted until I decide.
+ */
 function InOut({
   report: r,
   money,
@@ -242,6 +246,11 @@ function InOut({
             : `${Math.round(r.savingsRate * 100)} %`}
         </span>
       </div>
+      <NotCountedYet
+        kind="paybacks"
+        pending={r.paybacks}
+        currency={r.currency}
+      />
     </section>
   );
 }

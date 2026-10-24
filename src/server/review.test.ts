@@ -85,6 +85,7 @@ const descriptions = (list: { description: string }[]) =>
 describe("the Review list (S2)", () => {
   it("starts empty", async () => {
     expect(await review()).toEqual({
+      paybacks: [],
       uncategorized: [],
       conflicts: [],
       transfers: [],

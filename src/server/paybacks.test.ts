@@ -69,10 +69,12 @@ const unlink = (transactionId: number) =>
   call("DELETE", `/api/transactions/${transactionId}/paybacks`);
 const october = async () =>
   (await call("GET", "/api/reports/monthly?month=2026-10")).body;
-const waiting = async () =>
-  (await call("GET", "/api/review")).body.uncategorized.map(
+/** The ids in a Review group. */
+const inReview = async (group: "uncategorized" | "paybacks") =>
+  (await call("GET", "/api/review")).body[group].map(
     (t: { id: number }) => t.id,
   ) as number[];
+const waiting = () => inReview("uncategorized");
 
 /**
  * The design's split bill: the pizzeria and the dinner, both Eating out,
@@ -192,13 +194,16 @@ describe("linking paybacks (D9)", () => {
 
   it("takes a payment linked in full out of Review, and puts back a part that isn't linked", async () => {
     const { eatingOut, pizzeria, dinner, marco } = await splitBill();
-    expect(await waiting()).toContain(marco);
+    // Waiting first as a possible payback.
+    expect(await inReview("paybacks")).toEqual([marco]);
+    expect(await waiting()).not.toContain(marco);
     expect((await october()).waiting).toBe(2);
 
     await split(marco, [
       [dinner, "150"],
       [pizzeria, "24"],
     ]);
+    expect(await inReview("paybacks")).toEqual([]);
     expect(await waiting()).not.toContain(marco);
     expect((await october()).waiting).toBe(1);
     expect(
@@ -225,7 +230,7 @@ describe("linking paybacks (D9)", () => {
     ).toBe(204);
   });
 
-  it("unlinks from either side, back to normal transactions", async () => {
+  it("unlinks from either side: a possible payback again", async () => {
     const { eatingOut, pizzeria, dinner, marco } = await splitBill();
     await split(marco, [
       [dinner, "150"],
@@ -244,14 +249,16 @@ describe("linking paybacks (D9)", () => {
       body: { error: "It isn't linked." },
     });
 
+    expect(await inReview("paybacks")).toEqual([marco]);
     const report = await october();
     expect(report.expenses.lines[0]).toEqual({
       categoryId: eatingOut,
       amount: -35300,
       count: 2,
     });
-    expect(report.income.lines).toEqual([
-      { categoryId: null, amount: 17400, count: 1 },
+    expect(report.income.lines).toEqual([]);
+    expect(report.paybacks).toMatchObject([
+      { id: marco, description: "BONIFICO DA MARCO" },
     ]);
   });
 
@@ -339,6 +346,8 @@ describe("linking paybacks (D9)", () => {
           "It may be a transfer. Link it or mark it as not a transfer first.",
       },
     });
+    // That decision comes first: it isn't a possible payback yet.
+    expect(await inReview("paybacks")).toEqual([]);
   });
 
   it("keeps linked transactions out of transfers until they're unlinked", async () => {
@@ -459,5 +468,136 @@ describe("linking paybacks (D9)", () => {
     expect((await listed("type=uncategorized")).map((t) => t.id)).toContain(
       marco,
     );
+  });
+});
+
+describe("possible paybacks (S2)", () => {
+  const notAPayback = (id: number, categoryId: number) =>
+    call("POST", `/api/transactions/${id}/not-a-payback`, { categoryId });
+  const income = async () =>
+    (await call("POST", "/api/categories", { name: "Gifts", type: "income" }))
+      .body.id as number;
+
+  it("suggests money in without a category, with what it could pay back", async () => {
+    const { main, eatingOut, pharmacy, pizzeria, dinner, marco } =
+      await splitBill();
+    // Nothing to pay back in the 30 days before it.
+    await importRows(main, ["25/11/2026;BONIFICO DA ANNA;20,00"]);
+    const anna = await id("BONIFICO DA ANNA");
+
+    const { body } = await call("GET", "/api/review");
+    expect(body.paybacks).toEqual([
+      {
+        id: marco,
+        date: "2026-10-19",
+        time: null,
+        description: "BONIFICO DA MARCO",
+        amount: 17400,
+        accountId: main,
+        currency: "EUR",
+        expenses: [
+          {
+            id: dinner,
+            accountId: main,
+            date: "2026-10-17",
+            time: null,
+            amount: -30500,
+            description: "RISTORANTE DA MARIO",
+            categoryId: eatingOut,
+            left: 30500,
+          },
+          expect.objectContaining({ id: pizzeria, left: 4800 }),
+          expect.objectContaining({ id: pharmacy, categoryId: null }),
+        ],
+      },
+    ]);
+    expect(body.uncategorized.map((t: { id: number }) => t.id)).toEqual([
+      anna,
+      pharmacy,
+    ]);
+    expect(body.count).toBe(3);
+  });
+
+  it("leaves a possible payback out of reports, and names it", async () => {
+    const { marco } = await splitBill();
+    const report = await october();
+    expect(report.income).toEqual({ lines: [], total: 0 });
+    expect(report.paybacks).toEqual([
+      {
+        id: marco,
+        accountId: expect.any(Number),
+        date: "2026-10-19",
+        amount: 17400,
+        description: "BONIFICO DA MARCO",
+      },
+    ]);
+    expect(report.pending).toEqual([]);
+    const spending = (await call("GET", "/api/reports/spending?period=2026-10"))
+      .body;
+    expect(spending.paybacks).toMatchObject([{ id: marco }]);
+    expect(spending.pending).toEqual([]);
+  });
+
+  it("It's income: gives it the category for good, and Undo puts it back", async () => {
+    const { dinner, marco } = await splitBill();
+    const gifts = await income();
+    expect(await notAPayback(marco, gifts)).toEqual({
+      status: 204,
+      body: null,
+    });
+    expect(await inReview("paybacks")).toEqual([]);
+    expect(await waiting()).not.toContain(marco);
+    expect((await october()).income.lines).toEqual([
+      { categoryId: gifts, amount: 17400, count: 1 },
+    ]);
+
+    // Remembered: without its category, it waits for one, not as a payback.
+    await call("PUT", `/api/transactions/${marco}/category`, {
+      categoryId: null,
+    });
+    expect(await inReview("paybacks")).toEqual([]);
+    expect(await waiting()).toContain(marco);
+
+    expect(
+      (await call("DELETE", `/api/transactions/${marco}/not-a-payback`)).status,
+    ).toBe(204);
+    expect(await inReview("paybacks")).toEqual([marco]);
+
+    // Linking by hand stays possible.
+    await notAPayback(marco, gifts);
+    expect((await split(marco, [[dinner, "150"]])).status).toBe(204);
+  });
+
+  it("only takes money in that isn't linked, and a category that exists", async () => {
+    const { dinner, marco } = await splitBill();
+    const gifts = await income();
+    expect(await notAPayback(dinner, gifts)).toEqual({
+      status: 409,
+      body: { error: "Only money coming in can be a payback." },
+    });
+    expect(await notAPayback(marco, 999)).toEqual({
+      status: 400,
+      body: { error: "This category doesn't exist any more." },
+    });
+    await split(marco, [[dinner, "100"]]);
+    expect(await notAPayback(marco, gifts)).toEqual({
+      status: 409,
+      body: { error: "It's linked as a payback. Unlink it first." },
+    });
+  });
+
+  it("tags a possible payback in the lists, and filters it with paybacks", async () => {
+    const { marco } = await splitBill();
+    const { body } = await call("GET", "/api/transactions");
+    const row = (t: { id: number }) => t.id === marco;
+    expect(body.transactions.find(row).possiblePayback).toBe(3);
+    expect(
+      body.transactions.filter(
+        (t: { possiblePayback: number | null }) => t.possiblePayback !== null,
+      ),
+    ).toHaveLength(1);
+    const paybacks = (await call("GET", "/api/transactions?type=payback")).body
+      .transactions;
+    expect(paybacks.map((t: { id: number }) => t.id)).toEqual([marco]);
   });
 });
