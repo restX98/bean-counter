@@ -1567,6 +1567,97 @@ a.cr.is-active {
   }
 }
 
+/* ---------- Budgets (S14) ---------- */
+
+.bar {
+  height: 8px;
+  overflow: hidden;
+  background: var(--color-track);
+  border-radius: var(--radius-full);
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--color-progress);
+  border-radius: inherit;
+}
+.bar.is-over > span {
+  background: var(--color-progress-over);
+}
+.br {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) 110px 110px 110px minmax(180px, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-5);
+  border-top: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
+  font: var(--type-table);
+  text-decoration: none;
+}
+.br.run {
+  grid-template-columns: minmax(0, 1fr) 140px 104px 104px 104px minmax(
+      160px,
+      1fr
+    );
+}
+.br.head {
+  min-height: 0;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-top: 0;
+  background: var(--color-surface-muted);
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+a.br:hover {
+  background: var(--color-hover);
+}
+.br .name {
+  font-weight: var(--weight-semibold);
+}
+.br .num,
+.br.head .r {
+  text-align: right;
+  font-variant-numeric: var(--numbers);
+}
+.br .muted-cell {
+  color: var(--color-text-muted);
+}
+/* A budget that hasn't started: one note across the numbers. */
+.br .later {
+  grid-column: 2 / -1;
+}
+.br .progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.br .progress .bar {
+  flex: 1;
+}
+.num.neg,
+.over {
+  color: var(--color-danger-text);
+  font-weight: var(--weight-semibold);
+}
+.m-budget {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-3);
+  align-items: baseline;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.m-budget .bar,
+.m-budget .caption {
+  grid-column: 1 / -1;
+}
+.m-budget .caption {
+  color: var(--color-text-muted);
+}
+
 /* ---------- Toasts ---------- */
 
 .toast {

@@ -12,6 +12,12 @@ import type {
   FieldErrors,
 } from "../domain/accounts.ts";
 import type { BothBalances, SuspectReason } from "../domain/balances.ts";
+import type {
+  BudgetFields,
+  BudgetMonth,
+  BudgetPlan,
+  BudgetStatus,
+} from "../domain/budgets.ts";
 import type { Category, CategoryFields } from "../domain/categories.ts";
 import { writePeriod, type Filters, type Period } from "../domain/filters.ts";
 import type {
@@ -438,12 +444,16 @@ export interface SpendingReport {
   waiting: number;
 }
 
-export const useSpendingReport = (query: {
-  currency: string | null;
-  period: Period | null;
-}) =>
+export const useSpendingReport = (
+  query: {
+    currency: string | null;
+    period: Period | null;
+  },
+  enabled = true,
+) =>
   useQuery({
     queryKey: [...ACCOUNTS, "report", "spending", query],
+    enabled,
     queryFn: () => {
       const params = new URLSearchParams();
       if (query.currency) params.set("currency", query.currency);
@@ -453,6 +463,80 @@ export const useSpendingReport = (query: {
     // Another period keeps the last one on screen until it comes.
     placeholderData: keepPreviousData,
   });
+
+/** S14: a budget in the month the list is for. */
+export interface BudgetRow {
+  id: number;
+  categoryId: number;
+  /** The category's. */
+  name: string;
+  currency: string;
+  start: string;
+  /** The limit that month; before the budget starts, its first. */
+  limit: number;
+  /** Null before it starts. */
+  status: BudgetStatus | null;
+}
+
+export interface BudgetList {
+  /** EUR first. */
+  currencies: string[];
+  currency: string;
+  month: string;
+  /** Today's month: the one that's still going. */
+  thisMonth: string;
+  /** By category name. */
+  budgets: BudgetRow[];
+  /** What that month spent with no category: no budget counts it. */
+  uncategorized: number;
+  /** D7: the expense categories without a budget, by name. */
+  available: { id: number; name: string }[];
+  /** The oldest month with transactions in each currency. */
+  firstMonths: Record<string, string | null>;
+}
+
+/** S15: a budget month by month, and what D7 answers. */
+export interface BudgetDetail {
+  id: number;
+  categoryId: number;
+  name: string;
+  currency: string;
+  plan: BudgetPlan;
+  /** The newest month with transactions in its currency. */
+  month: string;
+  thisMonth: string;
+  status: BudgetStatus | null;
+  /** Oldest first, up to `month`. */
+  history: BudgetMonth[];
+}
+
+// Under the accounts, so that what changes a transaction changes these too.
+const BUDGETS = [...ACCOUNTS, "budgets"];
+
+export const useBudgets = (query: {
+  currency: string | null;
+  month: string | null;
+}) =>
+  useQuery({
+    queryKey: [...BUDGETS, query],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (query.currency) params.set("currency", query.currency);
+      if (query.month) params.set("month", query.month);
+      return request<BudgetList>("GET", `/api/budgets?${params}`);
+    },
+    // Another month keeps the last one on screen until it comes.
+    placeholderData: keepPreviousData,
+  });
+
+export function useAddBudget() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: BudgetFields) =>
+      request<BudgetDetail>("POST", "/api/budgets", body),
+    onSuccess: () => client.invalidateQueries({ queryKey: BUDGETS }),
+  });
+}
 
 /** Excludes a transaction, or restores an excluded one. */
 export const useExclude = () =>

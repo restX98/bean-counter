@@ -107,6 +107,15 @@
   flex: 1;
   min-width: 0;
 }
+/* Two fields side by side, such as D7's limit and start month. */
+.field-row > .field {
+  flex: 1;
+  min-width: 0;
+}
+.field-row > .field .input {
+  flex: none;
+  width: 100%;
+}
 .field-row .input[type="date"] {
   flex: none;
   width: auto;
