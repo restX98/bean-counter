@@ -955,7 +955,11 @@ const SETTINGS = ["settings"];
 export const useSettings = () =>
   useQuery({
     queryKey: SETTINGS,
-    queryFn: () => request<{ transferWindow: number }>("GET", "/api/settings"),
+    queryFn: () =>
+      request<{ transferWindow: number; lastBackup: string | null }>(
+        "GET",
+        "/api/settings",
+      ),
   });
 
 /** A new transfer window links what it brings in, so everything may change. */
@@ -968,6 +972,44 @@ export function useUpdateSettings() {
         "/api/settings",
         body,
       ),
+    onSuccess: () => client.invalidateQueries(),
+  });
+}
+
+/** S18: saves all data as one file. The server remembers the day. */
+export function useDownloadBackup() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      let res: Response;
+      try {
+        res = await fetch("/api/backup");
+      } catch {
+        throw new ApiError(0, "Can't reach the server. Is it running?");
+      }
+      if (!res.ok) {
+        throw new ApiError(res.status, "Something went wrong. Try again.");
+      }
+      const name =
+        /filename="(.+)"/.exec(
+          res.headers.get("content-disposition") ?? "",
+        )?.[1] ?? "bean-counter-backup.db";
+      const url = URL.createObjectURL(await res.blob());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = name;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url));
+    },
+    onSuccess: () => client.invalidateQueries({ queryKey: SETTINGS }),
+  });
+}
+
+/** D8: all data is replaced, so everything is fetched again. */
+export function useRestore() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => request<null>("POST", "/api/restore", file),
     onSuccess: () => client.invalidateQueries(),
   });
 }

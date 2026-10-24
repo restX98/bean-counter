@@ -1,16 +1,19 @@
-import { useId, useState } from "react";
-import { useSettings, useUpdateSettings } from "../api.ts";
+import { useId, useRef, useState } from "react";
+import { formatDate } from "../../domain/dates.ts";
+import { useDownloadBackup, useSettings, useUpdateSettings } from "../api.ts";
 import { fieldErrors, FormError } from "../components/Dialog.tsx";
 import { describedBy, Field } from "../components/Field.tsx";
+import { Icon } from "../components/Icon.tsx";
 import { Loading, Page } from "../components/Page.tsx";
+import { RestoreBackup } from "../dialogs/RestoreBackup.tsx";
 import { plural } from "../labels.ts";
 
 const HINT =
   "How many days apart the two sides of a transfer can be. Default 3, which covers a weekend.";
 
 /**
- * S18, its Transfers section for now. The window saves when I leave the
- * field or press Enter.
+ * S18, its Transfers and Backup & restore sections for now. The window
+ * saves when I leave the field or press Enter.
  */
 export function Settings() {
   const page = {
@@ -28,6 +31,7 @@ export function Settings() {
   return (
     <Page {...page}>
       <TransferWindow saved={settings.data.transferWindow} />
+      <Backup last={settings.data.lastBackup} />
     </Page>
   );
 }
@@ -81,6 +85,67 @@ function TransferWindow({ saved }: { saved: number }) {
           {update.data.linked > 0 &&
             ` ${plural(update.data.linked, "more transfer")} linked.`}
         </p>
+      )}
+    </section>
+  );
+}
+
+/** Restore from file… picks the file first, then D8 asks to confirm. */
+function Backup({ last }: { last: string | null }) {
+  const download = useDownloadBackup();
+  const picker = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+
+  return (
+    <section className="card">
+      <h2 className="card-title">Backup &amp; restore</h2>
+      <p className="muted">
+        A backup is one file with all your data: accounts, transactions,
+        categories, rules, budgets, presets and settings.
+      </p>
+      <FormError error={download.error} />
+      <div className="m-actions">
+        <button
+          type="button"
+          className="btn btn-secondary"
+          disabled={download.isPending}
+          onClick={() => download.mutate()}
+        >
+          <Icon name="import" />
+          Download backup
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => picker.current?.click()}
+        >
+          Restore from file…
+        </button>
+      </div>
+      <input
+        ref={picker}
+        type="file"
+        accept=".db"
+        hidden
+        onChange={(e) => {
+          const chosen = e.target.files?.[0];
+          if (chosen) setFile(chosen);
+          // So picking the same file again still counts as a change.
+          e.target.value = "";
+        }}
+      />
+      <p className="caption">
+        {last
+          ? `Last backup downloaded: ${formatDate(last)}.`
+          : "No backup downloaded yet."}{" "}
+        Restoring replaces all current data.
+      </p>
+      {file && (
+        <RestoreBackup
+          file={file}
+          onChange={() => picker.current?.click()}
+          onClose={() => setFile(null)}
+        />
       )}
     </section>
   );
