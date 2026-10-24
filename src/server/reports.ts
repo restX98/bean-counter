@@ -2,6 +2,7 @@ import { inArray } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { addMonths } from "../domain/dates.ts";
 import { readPeriod, type Period } from "../domain/filters.ts";
+import { linkedInFull, paybackTotals } from "../domain/paybacks.ts";
 import {
   periodChoices,
   periodReport,
@@ -11,6 +12,7 @@ import {
 } from "../domain/reports.ts";
 import type { Db } from "./db/index.ts";
 import { accounts, categories, transactions } from "./db/schema.ts";
+import { loadPaybacks } from "./paybacks.ts";
 import { findTransfers } from "./transfers.ts";
 
 const MONTH = "^\\d{4}-(0[1-9]|1[0-2])$";
@@ -46,7 +48,7 @@ function loadReportData(db: Db) {
       .from(transactions)
       .all()
       .map((t) => ({ ...t, pending: candidates.has(t.id) })),
-    paybacks: [],
+    paybacks: loadPaybacks(db),
   };
   const suggested = new Set(exchanges.flatMap((p) => [p.out.id, p.in.id]));
   return { data, suggested };
@@ -66,7 +68,8 @@ function monthsIn(data: ReportData, currency: string): string[] {
 
 /**
  * How many transactions in these months Review can still change: what has
- * no category yet, what may be a transfer, and the suggested exchanges.
+ * no category yet (a payment linked in full needs none), what may be a
+ * transfer, and the suggested exchanges.
  */
 function waitingIn(
   data: ReportData,
@@ -75,6 +78,7 @@ function waitingIn(
   { from, to }: Period,
 ): number {
   const currencyOf = new Map(data.accounts.map((a) => [a.id, a.currency]));
+  const totals = paybackTotals(data.paybacks);
   return data.transactions.filter(
     (t) =>
       !t.excluded &&
@@ -82,7 +86,9 @@ function waitingIn(
       t.date.slice(0, 7) >= from &&
       t.date.slice(0, 7) <= to &&
       currencyOf.get(t.accountId) === currency &&
-      (t.categoryId === null || t.pending || suggested.has(t.id)),
+      ((t.categoryId === null && !linkedInFull(t, totals)) ||
+        t.pending ||
+        suggested.has(t.id)),
   ).length;
 }
 

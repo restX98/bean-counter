@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, or } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import {
   filterer,
@@ -8,14 +8,17 @@ import {
   type TransactionType,
 } from "../domain/filters.ts";
 import { inOrder, ledger } from "../domain/ledger.ts";
+import { linkedInFull, paybackTotals } from "../domain/paybacks.ts";
 import { ruleChecker } from "../domain/rules.ts";
 import type { Db } from "./db/index.ts";
 import {
   accounts,
   balanceChecks,
   categories,
+  paybacks,
   transactions,
 } from "./db/schema.ts";
+import { loadPaybacks } from "./paybacks.ts";
 import { loadRules } from "./rules.ts";
 import { findTransfers } from "./transfers.ts";
 
@@ -198,6 +201,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       .select({
         id: transactions.id,
         accountId: transactions.accountId,
+        amount: transactions.amount,
         transferWith: transactions.transferWith,
       })
       .from(transactions)
@@ -206,6 +210,13 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
   const transfer = (reply: FastifyReply) =>
     reply.code(409).send({
       error: "It's a transfer, so it has no category. Unlink it first.",
+    });
+  const allPayback = (row: { id: number; amount: number }) =>
+    linkedInFull(row, paybackTotals(loadPaybacks(db, row.id)));
+  const payback = (reply: FastifyReply) =>
+    reply.code(409).send({
+      error:
+        "All of it pays back expenses, so it has no category. Link less of it, or unlink it, first.",
     });
   const archived = (reply: FastifyReply) =>
     reply.code(409).send({
@@ -230,6 +241,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       if (!row) return reply.code(404).send({ error: "Not found" });
       if (findAccount(row.accountId)?.archivedOn) return archived(reply);
       if (row.transferWith !== null) return transfer(reply);
+      if (allPayback(row)) return payback(reply);
       const { categoryId } = req.body;
       if (
         categoryId !== null &&
@@ -274,6 +286,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       const account = findAccount(row.accountId)!;
       if (account.archivedOn) return archived(reply);
       if (row.transferWith !== null) return transfer(reply);
+      if (allPayback(row)) return payback(reply);
       if (row.categoryId !== null) {
         return reply.code(409).send({ error: "It already has a category." });
       }
@@ -297,7 +310,9 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
 
   // Excluding takes a transaction out of balances, reports and budgets; it
   // stays listed, greyed out, and still counts as a duplicate on re-import.
-  // A transfer loses its other side, which becomes a normal transaction.
+  // A transfer loses its other side, which becomes a normal transaction,
+  // and a payback or an expense loses its links. Restoring brings neither
+  // back.
   const setExcluded =
     (excluded: boolean) =>
     (req: FastifyRequest<WithId>, reply: FastifyReply) => {
@@ -305,6 +320,16 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
       if (!row) return reply.code(404).send({ error: "Not found" });
       if (findAccount(row.accountId)?.archivedOn) return archived(reply);
       db.transaction(() => {
+        if (excluded) {
+          db.delete(paybacks)
+            .where(
+              or(
+                eq(paybacks.paymentId, row.id),
+                eq(paybacks.expenseId, row.id),
+              ),
+            )
+            .run();
+        }
         if (excluded && row.transferWith !== null) {
           db.update(transactions)
             .set({ transferWith: null })

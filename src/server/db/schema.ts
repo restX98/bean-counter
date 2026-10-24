@@ -187,6 +187,31 @@ export const transferDismissals = sqliteTable(
 );
 
 /**
+ * The part of a friend's payment (a payback) that pays back one of my
+ * expenses, in the minor units of their currency (domain/paybacks.ts). An
+ * expense's paybacks never add up to more than it, nor a payment's links
+ * to more than the payment.
+ */
+export const paybacks = sqliteTable(
+  "paybacks",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    paymentId: integer("payment_id")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
+    expenseId: integer("expense_id")
+      .notNull()
+      .references(() => transactions.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+  },
+  (t) => [
+    uniqueIndex("paybacks_pair").on(t.paymentId, t.expenseId),
+    index("paybacks_expense").on(t.expenseId),
+    check("paybacks_amount", sql`${t.amount} > 0`),
+  ],
+);
+
+/**
  * A balance I entered (Set balance) that differed from the app's, kept to
  * look for what's missing. The account page compares it like the bank's.
  */

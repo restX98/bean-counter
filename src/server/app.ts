@@ -6,6 +6,7 @@ import { accountRoutes } from "./accounts.ts";
 import { categoryRoutes } from "./categories.ts";
 import type { Db } from "./db/index.ts";
 import { importRoutes } from "./imports.ts";
+import { paybackRoutes } from "./paybacks.ts";
 import { reportRoutes } from "./reports.ts";
 import { reviewRoutes } from "./review.ts";
 import { ruleRoutes } from "./rules.ts";
@@ -37,6 +38,7 @@ export function buildApp({
   importRoutes(app, { db, today });
   transactionRoutes(app, { db });
   transferRoutes(app, { db });
+  paybackRoutes(app, { db });
   reviewRoutes(app, { db });
   reportRoutes(app, { db, today });
   settingsRoutes(app, { db });

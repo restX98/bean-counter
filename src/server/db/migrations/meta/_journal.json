@@ -57,6 +57,13 @@
       "when": 1792709026871,
       "tag": "0007_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792839082342,
+      "tag": "0008_paybacks",
+      "breakpoints": true
     }
   ]
 }

@@ -5,7 +5,7 @@ import type { AccountType } from "./accounts.ts";
 import type { CategoryType } from "./categories.ts";
 import { addMonths } from "./dates.ts";
 import { writePeriod, type Period } from "./filters.ts";
-import { paybackTotals, type PaybackLink } from "./paybacks.ts";
+import { linkedInFull, paybackTotals, type PaybackLink } from "./paybacks.ts";
 
 export interface ReportAccount {
   id: number;
@@ -98,7 +98,7 @@ export function periodReport(
   const accountOf = new Map(accounts.map((a) => [a.id, a]));
   const typeOf = new Map(categories.map((c) => [c.id, c.type]));
   const byId = new Map(transactions.map((t) => [t.id, t]));
-  const { paidBack, linked } = paybackTotals(paybacks);
+  const totals = paybackTotals(paybacks);
   const inPeriod = (t: ReportTransaction) =>
     t.date.slice(0, 7) >= from &&
     t.date.slice(0, 7) <= to &&
@@ -135,10 +135,12 @@ export function periodReport(
       pending.push(t.id);
       continue;
     }
+    // A payment linked in full isn't income; an expense counts as my share.
+    if (linkedInFull(t, totals)) continue;
     const amount =
-      t.amount + (paidBack.get(t.id) ?? 0) - (linked.get(t.id) ?? 0);
-    // A payment linked in full is all payback, and isn't income.
-    if (linked.has(t.id) && amount === 0) continue;
+      t.amount +
+      (totals.paidBack.get(t.id) ?? 0) -
+      (totals.linked.get(t.id) ?? 0);
     const known = t.categoryId === null ? undefined : typeOf.get(t.categoryId);
     const categoryId = known ? t.categoryId : null;
     const side = sides[known ?? (amount > 0 ? "income" : "expense")];

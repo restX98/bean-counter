@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  linkedInFull,
   paybackTotals,
   validateSplit,
   type PaybackLink,
@@ -56,6 +57,19 @@ describe("paybackTotals", () => {
   });
 });
 
+describe("linkedInFull", () => {
+  it("tells a payment that's all payback", () => {
+    const totals = paybackTotals([
+      link(marco, dinner, 15000),
+      link(marco, pizzeria, 2400),
+      link(lucia, pizzeria, 2000),
+    ]);
+    expect(linkedInFull(marco, totals)).toBe(true);
+    expect(linkedInFull(lucia, totals)).toBe(false);
+    expect(linkedInFull(salary, totals)).toBe(false);
+  });
+});
+
 describe("validateSplit", () => {
   it("splits the design's payment across two expenses", () => {
     expect(
@@ -86,6 +100,18 @@ describe("validateSplit", () => {
       ok: false,
       errors: {
         expenses: "That's 198.00 € in all, more than the payment's 174.00 €.",
+      },
+    });
+    expect(
+      split(marco, [
+        [dinner, "300"],
+        [pizzeria, "60"],
+      ]),
+    ).toEqual({
+      ok: false,
+      errors: {
+        [pizzeria.id]: "Only 48.00 € of it is left to pay back.",
+        expenses: "That's 360.00 € in all, more than the payment's 174.00 €.",
       },
     });
   });

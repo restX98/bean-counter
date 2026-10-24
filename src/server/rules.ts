@@ -1,5 +1,6 @@
 import { and, count, eq, isNull } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply } from "fastify";
+import { linkedInFull, paybackTotals } from "../domain/paybacks.ts";
 import {
   findOverlaps,
   ruleChecker,
@@ -11,6 +12,7 @@ import {
 } from "../domain/rules.ts";
 import type { Db } from "./db/index.ts";
 import { accounts, categories, rules, transactions } from "./db/schema.ts";
+import { loadPaybacks } from "./paybacks.ts";
 
 const fieldsSchema = {
   type: "object",
@@ -95,10 +97,11 @@ export const loadRules = (db: Db): Rule[] =>
 /**
  * The transactions waiting for a category, which rules may still give one:
  * counted ones without a category, in accounts that aren't archived. Linked
- * transfers have none, and need none.
+ * transfers have none, and need none, nor do payments linked in full.
  */
-export const loadUncategorized = (db: Db) =>
-  db
+export function loadUncategorized(db: Db) {
+  const totals = paybackTotals(loadPaybacks(db));
+  return db
     .select({
       id: transactions.id,
       date: transactions.date,
@@ -118,7 +121,9 @@ export const loadUncategorized = (db: Db) =>
         isNull(accounts.archivedOn),
       ),
     )
-    .all();
+    .all()
+    .filter((t) => !linkedInFull(t, totals));
+}
 
 const toColumns = (rule: RuleCondition & { categoryId: number }) => ({
   match: rule.match,

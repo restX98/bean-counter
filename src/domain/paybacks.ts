@@ -31,6 +31,17 @@ export function paybackTotals(links: PaybackLink[]): PaybackTotals {
 }
 
 /**
+ * Whether a payment is linked in full: then it's all payback, neither
+ * income nor waiting for a category.
+ */
+export function linkedInFull(
+  payment: { id: number; amount: number },
+  { linked }: PaybackTotals,
+): boolean {
+  return linked.get(payment.id) === payment.amount;
+}
+
+/**
  * A transaction as a payback link sees it: counted, and neither a transfer
  * nor a possible one.
  */
@@ -70,6 +81,8 @@ export function validateSplit(
   );
 
   const split: PaybackLink[] = [];
+  // Everything typed, even what's more than is left on an expense.
+  let total = 0;
   const seen = new Set<number>();
   for (const { expenseId, amount: typed } of fields) {
     const key = String(expenseId);
@@ -102,15 +115,18 @@ export function validateSplit(
       errors[key] = parsed.error;
       continue;
     }
+    if (parsed.minor <= 0) {
+      errors[key] = "Enter an amount above zero.";
+      continue;
+    }
+    total += parsed.minor;
     const left = -expense.amount - (paidBack.get(expenseId) ?? 0);
-    if (parsed.minor <= 0) errors[key] = "Enter an amount above zero.";
-    else if (left <= 0) errors[key] = "It's already paid back in full.";
+    if (left <= 0) errors[key] = "It's already paid back in full.";
     else if (parsed.minor > left)
       errors[key] = `Only ${money(left)} of it is left to pay back.`;
     else split.push({ paymentId: payment.id, expenseId, amount: parsed.minor });
   }
 
-  const total = split.reduce((sum, l) => sum + l.amount, 0);
   if (payment.amount <= 0)
     errors.expenses = "Only money coming in can pay back an expense.";
   else if (fields.length === 0)

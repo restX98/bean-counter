@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, notExists, or } from "drizzle-orm";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import {
   exchangeSuggestions,
@@ -11,6 +11,7 @@ import type { Db } from "./db/index.ts";
 import {
   accounts,
   categories,
+  paybacks,
   rules,
   settings,
   transactions,
@@ -27,9 +28,16 @@ export function transferWindow(db: Db): number {
   return typeof row?.value === "number" ? row.value : TRANSFER_WINDOW;
 }
 
+/** The paybacks a transaction is a side of, as payment or expense. */
+const paybacksOf = (db: Db, id: typeof transactions.id | number) =>
+  db
+    .select({ id: paybacks.id })
+    .from(paybacks)
+    .where(or(eq(paybacks.paymentId, id), eq(paybacks.expenseId, id)));
+
 /**
  * The transactions that could still be part of a transfer: counted, not
- * linked, in accounts that aren't archived.
+ * linked as a transfer or a payback, in accounts that aren't archived.
  */
 export const loadTransferPool = (db: Db) =>
   db
@@ -49,6 +57,7 @@ export const loadTransferPool = (db: Db) =>
         isNull(transactions.transferWith),
         eq(transactions.excluded, false),
         isNull(accounts.archivedOn),
+        notExists(paybacksOf(db, transactions.id)),
       ),
     )
     .all();
@@ -212,6 +221,8 @@ export function transferRoutes(app: FastifyInstance, { db }: { db: Db }) {
     if (row.transferWith !== null) return refuse(409, "It's already linked.");
     if (row.excluded)
       return refuse(409, "It's excluded. Restore it to link it.");
+    if (paybacksOf(db, row.id).get())
+      return refuse(409, "It's part of a payback. Unlink that first.");
     return row;
   };
 
