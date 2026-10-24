@@ -17,6 +17,7 @@ export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
   income: "Income",
   expense: "Expense",
   transfer: "Transfer",
+  payback: "Payback",
   uncategorized: "Uncategorized",
   excluded: "Excluded",
 };
@@ -26,6 +27,7 @@ export const TRANSACTION_TYPE_PLURALS: Record<TransactionType, string> = {
   income: "income",
   expense: "expenses",
   transfer: "transfers",
+  payback: "paybacks",
   uncategorized: "uncategorized transactions",
   excluded: "excluded transactions",
 };

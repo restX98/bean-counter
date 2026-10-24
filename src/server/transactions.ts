@@ -131,6 +131,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           .map((c) => [c.id, c.type]),
       );
       const { candidates } = findTransfers(db);
+      const totals = paybackTotals(loadPaybacks(db));
       const all = inOrder(
         db
           .select({
@@ -157,6 +158,7 @@ export function transactionRoutes(app: FastifyInstance, { db }: { db: Db }) {
           type: transactionType({
             excluded: t.excluded,
             transfer: t.transferWith !== null || candidates.has(t.id),
+            payback: linkedInFull(t, totals),
             categoryType:
               t.categoryId === null
                 ? null
@@ -375,7 +377,9 @@ type Listed = Pick<typeof transactions.$inferSelect, keyof typeof LISTED>;
 /**
  * Shows the rows as a list does (S4, S5). An uncategorized one says which
  * categories its rules disagree on, if any; a transfer gives its other
- * side, and a possible one says how many could be that side, and where.
+ * side, and a possible one says how many could be that side, and where. A
+ * payment says how many expenses it pays back and how much of it that
+ * takes; an expense, how many paybacks it has and what they add up to.
  */
 function lister(
   db: Db,
@@ -383,6 +387,13 @@ function lister(
   candidates = findTransfers(db).candidates,
 ) {
   const check = ruleChecker(loadRules(db));
+  const paybacks = new Map<number, { count: number; total: number }>();
+  for (const { paymentId, expenseId, amount } of loadPaybacks(db)) {
+    for (const id of [paymentId, expenseId]) {
+      const sum = paybacks.get(id) ?? { count: 0, total: 0 };
+      paybacks.set(id, { count: sum.count + 1, total: sum.total + amount });
+    }
+  }
   const linkedIds = rows.flatMap((t) =>
     t.transferWith === null ? [] : [t.transferWith],
   );
@@ -433,6 +444,7 @@ function lister(
         : null,
       transfer:
         t.transferWith === null ? null : (others.get(t.transferWith) ?? null),
+      paybacks: paybacks.get(t.id) ?? null,
     };
   };
 }

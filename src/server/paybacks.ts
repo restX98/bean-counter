@@ -1,6 +1,11 @@
-import { eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
-import { validateSplit, type PaybackLink } from "../domain/paybacks.ts";
+import {
+  PAYBACK_WINDOW,
+  paybackOptions,
+  validateSplit,
+  type PaybackLink,
+} from "../domain/paybacks.ts";
 import type { Db } from "./db/index.ts";
 import { accounts, paybacks, transactions } from "./db/schema.ts";
 import { findTransfers, linkTransfers } from "./transfers.ts";
@@ -20,6 +25,9 @@ export const loadPaybacks = (db: Db, id?: number): PaybackLink[] =>
         : or(eq(paybacks.paymentId, id), eq(paybacks.expenseId, id)),
     )
     .all();
+
+/** How many older expenses, or later payments, a search lists. */
+const SEARCH_LIMIT = 20;
 
 interface WithId {
   Params: { id: number };
@@ -107,18 +115,90 @@ export function paybackRoutes(app: FastifyInstance, { db }: { db: Db }) {
     },
   );
 
-  // D9, Link payback: how much of the payment pays back each expense, as
-  // typed. It replaces the split the payment had.
-  app.put<WithId & { Body: { expenses: { id: number; amount: string }[] } }>(
+  /** What can be linked as a payment or an expense, but this one. */
+  const pool = (candidates: Map<number, unknown>) =>
+    db
+      .select({
+        id: transactions.id,
+        accountId: transactions.accountId,
+        currency: accounts.currency,
+        date: transactions.date,
+        time: transactions.time,
+        amount: transactions.amount,
+        description: transactions.description,
+        categoryId: transactions.categoryId,
+      })
+      .from(transactions)
+      .innerJoin(accounts, eq(accounts.id, transactions.accountId))
+      .where(
+        and(
+          eq(transactions.excluded, false),
+          isNull(transactions.transferWith),
+          isNull(accounts.archivedOn),
+        ),
+      )
+      .all()
+      .filter((t) => !candidates.has(t.id));
+
+  // D9: what a payment could pay back, or what could pay an expense back,
+  // nearest first, with what's left of each. With `q`, those beyond the
+  // window whose description contains it.
+  app.get<WithId & { Querystring: { q?: string } }>(
+    "/api/transactions/:id/payback-options",
+    {
+      schema: {
+        params: idParams,
+        querystring: {
+          type: "object",
+          properties: { q: { type: "string" } },
+        },
+      },
+    },
+    (req, reply) => {
+      const [row] = load([req.params.id]);
+      if (!row) return reply.code(404).send({ error: "Not found" });
+      const { candidates } = findTransfers(db);
+      const refused = refusal(row, candidates);
+      if (refused) return reply.code(409).send({ error: refused });
+      const options = paybackOptions(
+        row,
+        pool(candidates),
+        loadPaybacks(db),
+        req.query.q,
+      );
+      return {
+        window: PAYBACK_WINDOW,
+        options: (req.query.q === undefined
+          ? options
+          : options.slice(0, SEARCH_LIMIT)
+        ).map((o) => ({
+          id: o.id,
+          accountId: o.accountId,
+          date: o.date,
+          time: o.time,
+          amount: o.amount,
+          description: o.description,
+          categoryId: o.categoryId,
+          left: o.left,
+          linked: o.linked,
+        })),
+      };
+    },
+  );
+
+  // D9, Link payback: the expenses a payment pays back, or the payments
+  // that pay an expense back, each with the amount as typed. It replaces
+  // the split the transaction had.
+  app.put<WithId & { Body: { links: { id: number; amount: string }[] } }>(
     "/api/transactions/:id/paybacks",
     {
       schema: {
         params: idParams,
         body: {
           type: "object",
-          required: ["expenses"],
+          required: ["links"],
           properties: {
-            expenses: {
+            links: {
               type: "array",
               items: {
                 type: "object",
@@ -139,20 +219,23 @@ export function paybackRoutes(app: FastifyInstance, { db }: { db: Db }) {
       const { candidates } = findTransfers(db);
       const refused = refusal(row, candidates);
       if (refused) return reply.code(409).send({ error: refused });
-      const fields = req.body.expenses.map(({ id, amount }) => ({
-        expenseId: id,
-        amount,
-      }));
-      // Only what can still be paid back; the rest is refused by the split.
-      const expenses = new Map(
-        load(fields.map((f) => f.expenseId))
+      const fields = req.body.links;
+      // Only what can still be linked; the split refuses the rest.
+      const others = new Map(
+        load(fields.map((f) => f.id))
           .filter((t) => refusal(t, candidates) === null)
           .map((t) => [t.id, t]),
       );
-      const split = validateSplit(row, fields, expenses, loadPaybacks(db));
+      const split = validateSplit(row, fields, others, loadPaybacks(db));
       if (!split.ok) return reply.code(400).send({ errors: split.errors });
       db.transaction(() => {
-        db.delete(paybacks).where(eq(paybacks.paymentId, row.id)).run();
+        db.delete(paybacks)
+          .where(
+            row.amount > 0
+              ? eq(paybacks.paymentId, row.id)
+              : eq(paybacks.expenseId, row.id),
+          )
+          .run();
         db.insert(paybacks).values(split.value).run();
       });
       return reply.code(204).send();

@@ -243,6 +243,11 @@ export interface ListedTransaction {
   toPick: { count: number; accountIds: number[] } | null;
   /** The other side, when it's a transfer. */
   transfer: TransferSide | null;
+  /**
+   * A payment: how many expenses it pays back, and how much of it that
+   * takes. An expense: how many paybacks it has, and what they add up to.
+   */
+  paybacks: { count: number; total: number } | null;
 }
 
 /** S4: one of the account's transactions, with the balance after it. */
@@ -711,6 +716,82 @@ function useTransferChange<V, R>(change: (vars: V) => Promise<R>) {
       ),
   });
 }
+
+/** The other side of a payback link: an expense, or a payment. */
+export interface PaybackSide extends TransferSide {
+  categoryId: number | null;
+}
+
+/** S6: a transaction's payback links, newest first. */
+export const usePaybacks = (id: number, enabled: boolean) =>
+  useQuery({
+    queryKey: [...ACCOUNTS, "transaction", id, "paybacks"],
+    enabled,
+    queryFn: () =>
+      request<{
+        total: number;
+        links: { amount: number; other: PaybackSide }[];
+      }>("GET", `/api/transactions/${id}/paybacks`),
+  });
+
+/** D9: another side it offers. */
+export interface PaybackOption extends PaybackSide {
+  /** What's left of it to link with this transaction. */
+  left: number;
+  /** What it's linked with this transaction now. */
+  linked: number;
+}
+
+/**
+ * D9: what a payment could pay back, or what could pay an expense back;
+ * with `search`, the older expenses or later payments found. Its own key,
+ * like D4's, and dropped once D9 closes: D9 starts from the split the
+ * transaction has when it opens, never from an earlier one.
+ */
+export const usePaybackOptions = (id: number, search?: string) =>
+  useQuery({
+    queryKey: ["payback-options", id, search ?? null],
+    gcTime: 0,
+    retry: false,
+    enabled: search === undefined || search.trim() !== "",
+    placeholderData: keepPreviousData,
+    queryFn: () =>
+      request<{ window: number; options: PaybackOption[] }>(
+        "GET",
+        `/api/transactions/${id}/payback-options` +
+          (search === undefined ? "" : `?q=${encodeURIComponent(search)}`),
+      ),
+  });
+
+/**
+ * D9 and Unlink change lists, reports and Review; unlinking can link a
+ * transfer on its own, which changes categories and rules too.
+ */
+function usePaybackChange<V>(change: (vars: V) => Promise<null>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: change,
+    onSuccess: () =>
+      Promise.all(
+        [ACCOUNTS, CATEGORIES, RULES, REVIEW].map((queryKey) =>
+          client.invalidateQueries({ queryKey }),
+        ),
+      ),
+  });
+}
+
+/** D9, Link payback: the split as typed, replacing the one it had. */
+export const useSetPaybacks = () =>
+  usePaybackChange(
+    ({ id, links }: { id: number; links: { id: number; amount: string }[] }) =>
+      request<null>("PUT", `/api/transactions/${id}/paybacks`, { links }),
+  );
+
+/** S6, Unlink: takes away a payment's links, or an expense's paybacks. */
+export const useUnlinkPaybacks = () =>
+  usePaybackChange((id: number) =>
+    request<null>("DELETE", `/api/transactions/${id}/paybacks`),
+  );
 
 export const useLink = () =>
   useTransferChange(({ id, otherId }: { id: number; otherId: number }) =>

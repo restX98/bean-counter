@@ -10,6 +10,7 @@ import {
   useExclude,
   useLedger,
   useRemoveCheck,
+  useTransaction,
   type AccountLedger as Ledger,
   type LedgerGap,
   type LedgerTransaction,
@@ -78,8 +79,10 @@ export function AccountLedger({ account }: { account: Account }) {
   const categories = useCategories();
   const { data: accounts = [] } = useAccounts();
   const [shown, setShown] = useState(PAGE);
-  // The transaction open in the panel (S6).
+  // The transaction open in the panel (S6): one of the account's, or one
+  // it's linked with in another account.
   const [openId, setOpenId] = useState<number | null>(null);
+  const detail = useTransaction(openId);
   const money = (minor: number, signed = false) =>
     formatAmount(minor, account.currency, { signed });
   const readOnly = account.archivedOn !== null;
@@ -102,7 +105,11 @@ export function AccountLedger({ account }: { account: Account }) {
     checks.length > 0 || transactions.some((t) => t.bankBalance !== null);
   const off = new Set(offDays);
   const last = transactions[0]?.date;
-  const open = transactions.find((t) => t.id === openId);
+  const here = transactions.find((t) => t.id === openId);
+  const open = here ?? (detail.data?.id === openId ? detail.data : undefined);
+  const openAccount = here
+    ? account
+    : accounts.find((a) => a.id === detail.data?.accountId);
 
   const showGap = (index: number) => {
     const at = all.findIndex((l) => l.kind === "gap" && l.index === index);
@@ -133,6 +140,7 @@ export function AccountLedger({ account }: { account: Account }) {
   const category = (t: LedgerTransaction) => (
     <TransactionCategory
       transaction={t}
+      currency={account.currency}
       accounts={accounts}
       categories={categories.data?.categories}
     />
@@ -405,11 +413,12 @@ export function AccountLedger({ account }: { account: Account }) {
           Load more
         </button>
       )}
-      {open && (
+      {open && openAccount && (
         <TransactionPanel
-          account={account}
+          account={openAccount}
           transaction={open}
           onClose={() => setOpenId(null)}
+          onOpen={setOpenId}
         />
       )}
     </>

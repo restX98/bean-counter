@@ -58,12 +58,10 @@ async function id(description: string) {
   return body.transactions[0].id as number;
 }
 
-const split = (paymentId: number, expenses: [number, string][]) =>
-  call("PUT", `/api/transactions/${paymentId}/paybacks`, {
-    expenses: expenses.map(([expenseId, amount]) => ({
-      id: expenseId,
-      amount,
-    })),
+/** Sets the split of a payment, or of an expense. */
+const split = (id: number, links: [number, string][]) =>
+  call("PUT", `/api/transactions/${id}/paybacks`, {
+    links: links.map(([other, amount]) => ({ id: other, amount })),
   });
 const paybacksOf = async (transactionId: number) =>
   (await call("GET", `/api/transactions/${transactionId}/paybacks`)).body;
@@ -306,15 +304,18 @@ describe("linking paybacks (D9)", () => {
         },
       },
     });
-    expect(await split(dinner, [[marco, "10"]])).toMatchObject({
+    expect(await split(dinner, [[pharmacy, "10"]])).toMatchObject({
       status: 400,
       body: {
-        errors: { expenses: "Only money coming in can pay back an expense." },
+        errors: {
+          [pharmacy]:
+            "It can't pay anything back any more. Pick another payment.",
+        },
       },
     });
     expect(await split(marco, [])).toMatchObject({
       status: 400,
-      body: { errors: { expenses: "Pick the expenses it pays back." } },
+      body: { errors: { split: "Pick the expenses it pays back." } },
     });
 
     await call("POST", `/api/accounts/${main}/archive`);
@@ -360,5 +361,103 @@ describe("linking paybacks (D9)", () => {
     expect(
       body.transactions.find((t: { id: number }) => t.id === marco).transfer,
     ).toMatchObject({ accountId: savings, amount: -17400 });
+  });
+
+  it("links an expense to the payments that pay it back", async () => {
+    const { pizzeria, dinner, marco } = await splitBill();
+    const savings = await account("Savings", "savings");
+    await importRows(savings, ["20/10/2026;BONIFICO DA LUCIA;30,00"]);
+    const lucia = await id("BONIFICO DA LUCIA");
+    await split(marco, [[pizzeria, "24"]]);
+
+    expect(
+      await split(dinner, [
+        [marco, "150"],
+        [lucia, "30"],
+      ]),
+    ).toEqual({ status: 204, body: null });
+    expect(await paybacksOf(dinner)).toMatchObject({
+      total: 18000,
+      links: [
+        { amount: 3000, other: { id: lucia } },
+        { amount: 15000, other: { id: marco } },
+      ],
+    });
+    // Marco's link with the pizzeria stays; the dinner's split is replaced.
+    expect((await split(dinner, [[marco, "100"]])).status).toBe(204);
+    expect((await paybacksOf(marco)).total).toBe(12400);
+    expect(await paybacksOf(lucia)).toEqual({ total: 0, links: [] });
+    expect(await split(dinner, [[marco, "160"]])).toEqual({
+      status: 400,
+      body: { errors: { [marco]: "Only 150.00 € of it is left to link." } },
+    });
+  });
+
+  it("offers D9 the expenses of the 30 days up to a payment, and searches older ones", async () => {
+    const { main, pharmacy, pizzeria, dinner, marco } = await splitBill();
+    await importRows(main, ["10/09/2026;PIZZERIA DA GINO;-26,00"]);
+    const { body } = await call(
+      "GET",
+      `/api/transactions/${marco}/payback-options`,
+    );
+    expect(body.window).toBe(30);
+    expect(body.options).toEqual([
+      {
+        id: dinner,
+        accountId: main,
+        date: "2026-10-17",
+        time: null,
+        amount: -30500,
+        description: "RISTORANTE DA MARIO",
+        categoryId: expect.any(Number),
+        left: 30500,
+        linked: 0,
+      },
+      expect.objectContaining({ id: pizzeria }),
+      expect.objectContaining({ id: pharmacy, categoryId: null }),
+    ]);
+    const older = await call(
+      "GET",
+      `/api/transactions/${marco}/payback-options?q=pizzeria`,
+    );
+    expect(older.body.options).toMatchObject([
+      { date: "2026-09-10", amount: -2600, left: 2600 },
+    ]);
+
+    // From the expense: the payments of the 30 days after it.
+    await split(marco, [[pizzeria, "24"]]);
+    const payments = await call(
+      "GET",
+      `/api/transactions/${dinner}/payback-options`,
+    );
+    expect(payments.body.options).toMatchObject([
+      { id: marco, left: 15000, linked: 0 },
+    ]);
+  });
+
+  it("says in the lists what's linked, and filters paybacks in S5", async () => {
+    const { pizzeria, dinner, marco } = await splitBill();
+    await split(marco, [
+      [dinner, "150"],
+      [pizzeria, "24"],
+    ]);
+    const listed = async (query = "") =>
+      (await call("GET", `/api/transactions?${query}`)).body.transactions as {
+        id: number;
+        paybacks: { count: number; total: number } | null;
+      }[];
+    const rows = await listed();
+    const of = (id: number) => rows.find((t) => t.id === id)?.paybacks;
+    expect(of(marco)).toEqual({ count: 2, total: 17400 });
+    expect(of(dinner)).toEqual({ count: 1, total: 15000 });
+    expect(of(await id("PHARMACY 24"))).toBeNull();
+
+    expect((await listed("type=payback")).map((t) => t.id)).toEqual([marco]);
+    // Part of it is left: it counts as uncategorized, as reports have it.
+    await split(marco, [[dinner, "150"]]);
+    expect(await listed("type=payback")).toEqual([]);
+    expect((await listed("type=uncategorized")).map((t) => t.id)).toContain(
+      marco,
+    );
   });
 });

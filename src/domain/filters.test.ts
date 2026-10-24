@@ -16,6 +16,7 @@ describe("transactionType", () => {
       transactionType({
         excluded: false,
         transfer: false,
+        payback: false,
         categoryType: null,
         ...more,
       });
@@ -23,6 +24,7 @@ describe("transactionType", () => {
     expect(type({ categoryType: "expense" })).toBe("expense");
     expect(type({})).toBe("uncategorized");
     expect(type({ transfer: true })).toBe("transfer");
+    expect(type({ payback: true })).toBe("payback");
   });
 
   it("puts a possible transfer with a category among transfers", () => {
@@ -30,6 +32,7 @@ describe("transactionType", () => {
       transactionType({
         excluded: false,
         transfer: true,
+        payback: false,
         categoryType: "expense",
       }),
     ).toBe("transfer");
@@ -40,6 +43,7 @@ describe("transactionType", () => {
       transactionType({
         excluded: true,
         transfer: false,
+        payback: false,
         categoryType: "expense",
       }),
     ).toBe("excluded");

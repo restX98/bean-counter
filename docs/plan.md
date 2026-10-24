@@ -117,9 +117,9 @@ These are the screens to design and the flows that connect them. Each entry cove
 
 - **Purpose**: search and filter transactions across all accounts.
 - **Shows**: date, account, description, category (or transfer badge), and amount in the account's currency. Excluded transactions are greyed out. Archived accounts' transactions are listed too, and open read-only.
-- **Filters**: account, period, category, type (income / expense / transfer / uncategorized / excluded), text search.
+- **Filters**: account, period, category, type (income / expense / transfer / payback / uncategorized / excluded), text search.
   - The period is whole months: one month picked from those with transactions, or several when a report links to them. It opens on All time.
-  - The type is how reports count a transaction: a possible transfer counts as a transfer, an excluded one only as excluded, the rest by their category's type or as uncategorized.
+  - The type is how reports count a transaction: a possible transfer counts as a transfer, an excluded one only as excluded, a payment linked in full as a payback, the rest by their category's type or as uncategorized.
   - The search finds descriptions that contain the text, like a rule's "contains": ignoring case and repeated spaces.
   - The filters are in the address, so reports can link to them; the search isn't.
   - With accounts in more than one currency, the account filter also offers every account in one currency ("All EUR accounts"), which reports link to.
@@ -135,14 +135,15 @@ These are the screens to design and the flows that connect them. Each entry cove
   - the description as imported and as edited;
   - the category;
   - a transfer section: the linked counterpart, or "not linked";
-  - for an expense friends paid back: your share and the paybacks linked to it;
-  - for a payback: the expense or expenses it pays back.
+  - for an expense: your share and the paybacks linked to it, or "Nobody has paid it back";
+  - for money in: the expense or expenses it pays back and what's left unlinked, or "Not linked to an expense";
+  - each linked expense or payback opens in the panel.
 - **Actions**:
   - edit the description;
   - set the category;
   - create a rule from this transaction (D6, prefilled);
   - link a transfer (D4), or unlink one;
-  - link a payment as a payback (D9), or unlink it;
+  - link a payment to the expenses it pays back, or an expense to the payments that pay it back (D9), or unlink them;
   - exclude the transaction, or restore it.
 - **States**:
   - categorized;
@@ -307,6 +308,9 @@ On mobile, every dialog opens as a full-screen sheet.
 - **D7 Budget form**: category, currency, monthly limit, start month. Edit variant: the new limit and the month it applies from. Start-over variant: the month the running balance counts from.
 - **D8 Restore backup**: warns that all current data will be replaced, offers to download the current data first, then asks to confirm.
 - **D9 Link payback**: pick the expense or expenses this incoming payment pays back (same currency; suggestions from the previous 30 days, with a search for older ones) and how much goes to each. The amounts are prefilled and a check shows what's left; the part that isn't linked needs a category.
+  - Ticking one prefills what's left of the payment, up to what's left on the expense, newest expense first; an amount I type stays, and the untouched ones share the rest.
+  - From an expense it's the same dialog turned around: the payments of the 30 days after it that aren't linked in full, with a search for later ones; the check shows my share.
+  - It opens on the split the transaction has, so it also edits it.
 
 ## 6. User flows
 

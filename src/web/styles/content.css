@@ -995,6 +995,85 @@ button.m-tx:hover {
   text-align: right;
   font-weight: var(--weight-semibold);
 }
+/* A payback's expense, or an expense's payback: it opens that one. */
+button.linked {
+  width: 100%;
+  text-align: left;
+  color: var(--color-text);
+  cursor: pointer;
+}
+button.linked:hover {
+  background: var(--color-hover);
+}
+/* An expense's share, once its paybacks are taken off (S6). */
+.detail-section > .share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+.detail-section > .share .value {
+  font: var(--type-dialog-title);
+  font-variant-numeric: var(--numbers);
+}
+
+/* D9: each expense or payment to tick, with how much of it to link. */
+.choice.pb {
+  cursor: default;
+}
+.choice.pb > .check {
+  /* Its caption wraps, rather than the amount going under it. */
+  flex: 1 1 0;
+  min-width: 0;
+  align-self: center;
+}
+.choice.pb .what strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.choice.pb > .field-error {
+  flex-basis: 100%;
+}
+.pb-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.pb-amount .input {
+  width: 108px;
+  text-align: right;
+  font-variant-numeric: var(--numbers);
+}
+.pb-amount .input.is-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--color-text-subtle);
+}
+.pb-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.linked-total {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-success-text);
+  font: var(--type-table);
+}
+.linked-total .icon {
+  flex: none;
+  color: var(--color-success-solid);
+}
+.linked-total.is-over {
+  color: var(--color-danger-text);
+}
+.linked-total.is-over .icon {
+  color: var(--color-danger-solid);
+}
 .detail-foot {
   margin-top: auto;
   padding-top: var(--space-4);

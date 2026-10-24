@@ -1,16 +1,19 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { Account } from "../../domain/accounts.ts";
-import { formatDate, formatWhen } from "../../domain/dates.ts";
+import { formatDate, formatMonth, formatWhen } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import { suggestText } from "../../domain/rules.ts";
 import {
   useAccounts,
   useCategories,
   useExclude,
+  usePaybacks,
   useRules,
   useSetCategory,
   useUnlink,
+  useUnlinkPaybacks,
   type ListedTransaction,
+  type PaybackSide,
   type TransferSide,
 } from "../api.ts";
 import { CategorySelect } from "../components/CategorySelect.tsx";
@@ -18,9 +21,10 @@ import { FormError } from "../components/Dialog.tsx";
 import { describedBy, Field } from "../components/Field.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { CategoryForm } from "../dialogs/CategoryForm.tsx";
+import { LinkPayback } from "../dialogs/LinkPayback.tsx";
 import { LinkTransfer } from "../dialogs/LinkTransfer.tsx";
 import { RuleForm } from "../dialogs/RuleForm.tsx";
-import { possibleMatches, ruleName } from "../labels.ts";
+import { listNames, plural, possibleMatches, ruleName } from "../labels.ts";
 import { useIsMobile } from "../useIsMobile.ts";
 
 /**
@@ -32,10 +36,13 @@ export function TransactionPanel({
   account,
   transaction: t,
   onClose,
+  onOpen,
 }: {
   account: Account;
   transaction: ListedTransaction;
   onClose: () => void;
+  /** Opens another transaction in the panel: one it's linked with. */
+  onOpen: (id: number) => void;
 }) {
   const isMobile = useIsMobile();
   const id = useId();
@@ -46,12 +53,17 @@ export function TransactionPanel({
   const setCategory = useSetCategory();
   const exclude = useExclude();
   const unlink = useUnlink();
-  // The dialog open over the panel: a new category, a rule from this, or
-  // its transfer's other side.
-  const [dialog, setDialog] = useState<"category" | "rule" | "link" | null>(
-    null,
-  );
+  // The dialog open over the panel: a new category, a rule from this, its
+  // transfer's other side, or its paybacks.
+  const [dialog, setDialog] = useState<
+    "category" | "rule" | "link" | "payback" | null
+  >(null);
   const readOnly = account.archivedOn !== null;
+  // Linked with paybacks, it can't be a transfer; linked in full, a
+  // payment has no category.
+  const paybacks = t.paybacks;
+  const allPayback = t.amount > 0 && paybacks?.total === t.amount;
+  const money = (amount: number) => formatAmount(amount, account.currency);
 
   useEffect(() => ref.current?.focus(), []);
   useEffect(() => {
@@ -77,11 +89,15 @@ export function TransactionPanel({
   );
   const hint = t.excluded
     ? "It's excluded, so it doesn't count in reports or budgets whatever its category."
-    : rule
-      ? `Given by the rule ${ruleName(rule, accounts)}.`
-      : categoryId === null && t.conflict
-        ? `Its rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}. Pick the category.`
-        : undefined;
+    : paybacks && t.amount > 0
+      ? `For the ${money(t.amount - paybacks.total)} it doesn't pay back.`
+      : rule
+        ? `Given by the rule ${ruleName(rule, accounts)}.`
+        : categoryId === null && t.conflict
+          ? `Its rules disagree: ${t.conflict.map((c) => names.get(c)).join(" or ")}. Pick the category.`
+          : paybacks
+            ? "Its paybacks follow if you change it."
+            : undefined;
 
   const toPick = t.toPick;
   // Not linked yet: a possible transfer says how many could be its other
@@ -160,9 +176,11 @@ export function TransactionPanel({
             className={
               t.transfer
                 ? "big-number amount transfer"
-                : t.amount > 0 && !t.excluded
-                  ? "big-number amount income"
-                  : "big-number amount"
+                : paybacks && t.amount > 0
+                  ? "big-number amount payback"
+                  : t.amount > 0 && !t.excluded
+                    ? "big-number amount income"
+                    : "big-number amount"
             }
           >
             {formatAmount(t.amount, account.currency, { signed: true })}
@@ -205,32 +223,42 @@ export function TransactionPanel({
           <>
             {/* A possible transfer: that decision comes first. */}
             {t.toPick && unlinkedSection}
-            <section className="detail-section">
-              <Field id={`${id}-category`} label="Category" hint={hint}>
-                <CategorySelect
-                  id={`${id}-category`}
-                  value={categoryId}
-                  amount={t.amount}
-                  none="Uncategorized"
-                  disabled={readOnly}
-                  onPick={(picked) =>
-                    setCategory.mutate({ id: t.id, categoryId: picked })
-                  }
-                  onNew={() => setDialog("category")}
-                  {...describedBy(`${id}-category`, undefined, hint)}
-                />
-              </Field>
-              {!readOnly && categoryId !== null && ruleId === null && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setDialog("rule")}
-                >
-                  Create rule from this
-                </button>
-              )}
-            </section>
-            {!t.toPick && !t.excluded && unlinkedSection}
+            {!allPayback && (
+              <section className="detail-section">
+                <Field id={`${id}-category`} label="Category" hint={hint}>
+                  <CategorySelect
+                    id={`${id}-category`}
+                    value={categoryId}
+                    amount={t.amount}
+                    none="Uncategorized"
+                    disabled={readOnly}
+                    onPick={(picked) =>
+                      setCategory.mutate({ id: t.id, categoryId: picked })
+                    }
+                    onNew={() => setDialog("category")}
+                    {...describedBy(`${id}-category`, undefined, hint)}
+                  />
+                </Field>
+                {!readOnly && categoryId !== null && ruleId === null && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setDialog("rule")}
+                  >
+                    Create rule from this
+                  </button>
+                )}
+              </section>
+            )}
+            {!t.toPick && !t.excluded && t.amount !== 0 && (
+              <Paybacks
+                transaction={t}
+                account={account}
+                onLink={readOnly ? undefined : () => setDialog("payback")}
+                onOpen={onOpen}
+              />
+            )}
+            {!t.toPick && !t.excluded && !paybacks && unlinkedSection}
           </>
         )}
 
@@ -262,6 +290,16 @@ export function TransactionPanel({
       {dialog === "rule" && (
         <RuleForm
           prefill={{ text: suggestText(t.description), categoryId }}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog === "payback" && (
+        <LinkPayback
+          transaction={{
+            ...t,
+            accountId: account.id,
+            currency: account.currency,
+          }}
           onClose={() => setDialog(null)}
         />
       )}
@@ -324,6 +362,157 @@ function Transfer({
       <p className="caption">
         Transfers don't count as income or expense, so they have no category.
       </p>
+    </section>
+  );
+}
+
+/**
+ * S6's payback section. A payment: the expenses it pays back, with how
+ * much goes to each and what's left unlinked. An expense: my share, and
+ * the payments that pay it back. Either way, Link payback (D9) and Unlink.
+ */
+function Paybacks({
+  transaction: t,
+  account,
+  onLink,
+  onOpen,
+}: {
+  transaction: ListedTransaction;
+  account: Account;
+  /** Left out when the account is archived. */
+  onLink?: () => void;
+  onOpen: (id: number) => void;
+}) {
+  const paying = t.amount > 0;
+  const links = usePaybacks(t.id, t.paybacks !== null);
+  const unlink = useUnlinkPaybacks();
+  const categories = useCategories();
+  const { data: accounts = [] } = useAccounts();
+  const money = (amount: number, signed = false) =>
+    formatAmount(amount, account.currency, { signed });
+  const categoryName = (id: number | null) =>
+    id === null
+      ? "Uncategorized"
+      : (categories.data?.categories.find((c) => c.id === id)?.name ?? "");
+  const heading = (title: string) => (
+    <h3>
+      <Icon name="payback" className="icon icon-sm" />
+      {title}
+    </h3>
+  );
+  const link = (title: string) =>
+    onLink && (
+      <button type="button" className="btn btn-secondary" onClick={onLink}>
+        {title}
+      </button>
+    );
+
+  if (!t.paybacks) {
+    return (
+      <section className="detail-section">
+        {heading(paying ? "Payback" : "Paid back")}
+        <p className="muted">
+          {paying ? "Not linked to an expense." : "Nobody has paid it back."}
+        </p>
+        {link(paying ? "Link payback…" : "Link a payback…")}
+      </section>
+    );
+  }
+
+  const { count, total } = t.paybacks;
+  const list = links.data?.links ?? [];
+  // The other side's account, when it isn't this one.
+  const where = (other: PaybackSide) =>
+    other.accountId === account.id
+      ? []
+      : [accounts.find((a) => a.id === other.accountId)?.name];
+  const row = ({ amount, other }: { amount: number; other: PaybackSide }) => (
+    <button
+      key={other.id}
+      type="button"
+      className="linked"
+      onClick={() => onOpen(other.id)}
+    >
+      <Icon name="payback" />
+      <strong>{other.description}</strong>
+      <span className="caption">
+        {[
+          ...where(other),
+          formatDate(other.date),
+          ...(paying
+            ? [categoryName(other.categoryId), money(other.amount, true)]
+            : amount < other.amount
+              ? [`part of ${money(other.amount, true)}`]
+              : []),
+        ].join(" · ")}
+      </span>
+      <span className="amount payback">{money(amount)}</span>
+    </button>
+  );
+  const actions = (
+    <div className="filters">
+      {link(paying ? "Edit split…" : "Link a payback…")}
+      {onLink && (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          disabled={unlink.isPending}
+          onClick={() => unlink.mutate(t.id)}
+        >
+          <Icon name="unlink" />
+          Unlink
+        </button>
+      )}
+    </div>
+  );
+
+  if (!paying) {
+    return (
+      <section className="detail-section">
+        {heading("Paid back")}
+        <FormError error={links.error ?? unlink.error} />
+        <div className="share">
+          <span>Your share</span>
+          <span className="value">{money(-t.amount - total)}</span>
+        </div>
+        <p className="caption">
+          {money(-t.amount)} paid − {money(total)} paid back
+        </p>
+        {list.map(row)}
+        {actions}
+      </section>
+    );
+  }
+
+  // What it lowers: each expense's category, in the expense's month.
+  const lowered = new Map<string, number>();
+  for (const { amount, other } of list) {
+    const key = `${categoryName(other.categoryId)} in ${formatMonth(other.date.slice(0, 7))}`;
+    lowered.set(key, (lowered.get(key) ?? 0) + amount);
+  }
+  const lowers = listNames(
+    [...lowered].map(([what, amount]) =>
+      lowered.size === 1 ? what : `${what} by ${money(amount)}`,
+    ),
+  );
+  const left = t.amount - total;
+  return (
+    <section className="detail-section">
+      {heading(`Pays back ${plural(count, "expense")}`)}
+      <FormError error={links.error ?? unlink.error} />
+      {list.map(row)}
+      <dl className="facts">
+        <dt>Left unlinked</dt>
+        <dd>{money(left)}</dd>
+      </dl>
+      {actions}
+      {list.length > 0 && (
+        <p className="caption">
+          {left === 0
+            ? `A payback isn't income and has no category: it lowers ${lowers}${lowered.size === 1 ? ` by ${money(total)}` : ""}.`
+            : `The ${money(total)} it pays back isn't income: it lowers ${lowers}. The other ${money(left)} counts with its category.`}
+        </p>
+      )}
     </section>
   );
 }

@@ -233,6 +233,7 @@ export function Transactions() {
     <>
       <TransactionCategory
         transaction={t}
+        currency={account(t.accountId)?.currency ?? ""}
         accounts={accounts.data}
         categories={categories.data?.categories}
       />
@@ -449,6 +450,7 @@ export function Transactions() {
           account={openAccount}
           transaction={open}
           onClose={() => setOpenId(null)}
+          onOpen={setOpenId}
         />
       )}
     </Page>
