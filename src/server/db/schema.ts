@@ -222,6 +222,61 @@ export const paybackDismissals = sqliteTable("payback_dismissals", {
 });
 
 /**
+ * A monthly limit for one expense category, in one currency
+ * (domain/budgets.ts). Deleting the category deletes its budget.
+ */
+export const budgets = sqliteTable(
+  "budgets",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+    /** ISO 4217 code: only spending in it counts. */
+    currency: text("currency").notNull(),
+    /** YYYY-MM: the first month that counts, in full. */
+    start: text("start").notNull(),
+  },
+  // One budget a category.
+  (t) => [uniqueIndex("budgets_category").on(t.categoryId)],
+);
+
+/**
+ * A budget's limit from a month on, until the next one, in minor units of
+ * its currency. The first is from the budget's start.
+ */
+export const budgetLimits = sqliteTable(
+  "budget_limits",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    budgetId: integer("budget_id")
+      .notNull()
+      .references(() => budgets.id, { onDelete: "cascade" }),
+    /** YYYY-MM. */
+    month: text("month").notNull(),
+    amount: integer("amount").notNull(),
+  },
+  (t) => [
+    uniqueIndex("budget_limits_month").on(t.budgetId, t.month),
+    check("budget_limits_amount", sql`${t.amount} > 0`),
+  ],
+);
+
+/** A month a budget's running balance started over from (Start over). */
+export const budgetRestarts = sqliteTable(
+  "budget_restarts",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    budgetId: integer("budget_id")
+      .notNull()
+      .references(() => budgets.id, { onDelete: "cascade" }),
+    /** YYYY-MM. */
+    month: text("month").notNull(),
+  },
+  (t) => [uniqueIndex("budget_restarts_month").on(t.budgetId, t.month)],
+);
+
+/**
  * A balance I entered (Set balance) that differed from the app's, kept to
  * look for what's missing. The account page compares it like the bank's.
  */

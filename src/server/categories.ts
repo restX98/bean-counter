@@ -6,7 +6,7 @@ import {
   type CategoryFields,
 } from "../domain/categories.ts";
 import type { Db } from "./db/index.ts";
-import { categories, rules, transactions } from "./db/schema.ts";
+import { budgets, categories, rules, transactions } from "./db/schema.ts";
 
 const fieldsSchema = {
   type: "object",
@@ -114,7 +114,14 @@ export function categoryRoutes(app: FastifyInstance, { db }: { db: Db }) {
     (req, reply) => {
       const row = find(req.params.id);
       if (!row) return notFound(reply);
-      const category = validateCategory(req.body, otherNames(row.id));
+      const budgeted = db
+        .select({ id: budgets.id })
+        .from(budgets)
+        .where(eq(budgets.categoryId, row.id))
+        .get();
+      const category = validateCategory(req.body, otherNames(row.id), {
+        budgeted: budgeted !== undefined,
+      });
       if (!category.ok)
         return reply.code(400).send({ errors: category.errors });
       return present(

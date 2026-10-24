@@ -29,11 +29,13 @@ function isCategoryType(type: string): type is CategoryType {
 /**
  * Checks the category form. `takenNames` are the other categories' names:
  * two categories can't share a name, ignoring case, even of different types,
- * since lists and pickers show only the name.
+ * since lists and pickers show only the name. A category with a budget
+ * stays an expense category.
  */
 export function validateCategory(
   fields: CategoryFields,
   takenNames: string[],
+  { budgeted = false } = {},
 ): Validated<{ name: string; type: CategoryType }> {
   const errors: FieldErrors = {};
   const name = tidy(fields.name);
@@ -46,6 +48,8 @@ export function validateCategory(
 
   const type = fields.type;
   if (!isCategoryType(type)) errors.type = "Pick income or expense.";
+  else if (budgeted && type === "income")
+    errors.type = "It has a budget, and only expense categories can have one.";
 
   if (Object.keys(errors).length > 0 || !isCategoryType(type)) {
     return { ok: false, errors };

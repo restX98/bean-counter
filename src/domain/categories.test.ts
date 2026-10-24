@@ -22,6 +22,24 @@ describe("validateCategory", () => {
     });
   });
 
+  it("keeps a category with a budget an expense category", () => {
+    expect(
+      validateCategory({ name: "Groceries", type: "income" }, [], {
+        budgeted: true,
+      }),
+    ).toEqual({
+      ok: false,
+      errors: {
+        type: "It has a budget, and only expense categories can have one.",
+      },
+    });
+    expect(
+      validateCategory({ name: "Food", type: "expense" }, [], {
+        budgeted: true,
+      }),
+    ).toMatchObject({ ok: true });
+  });
+
   it("refuses long names", () => {
     expect(
       validateCategory({ name: "x".repeat(41), type: "income" }, []),

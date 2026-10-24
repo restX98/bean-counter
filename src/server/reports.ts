@@ -15,14 +15,15 @@ import { accounts, categories, transactions } from "./db/schema.ts";
 import { findPossiblePaybacks, loadPaybacks } from "./paybacks.ts";
 import { findTransfers } from "./transfers.ts";
 
-const MONTH = "^\\d{4}-(0[1-9]|1[0-2])$";
+/** A month in a query: "2026-10". */
+export const MONTH = "^\\d{4}-(0[1-9]|1[0-2])$";
 
 /**
  * Everything a report adds up: archived accounts too, they're history. With
  * the suggested exchanges, and the possible paybacks, which wait for a
  * decision like possible transfers.
  */
-function loadReportData(db: Db) {
+export function loadReportData(db: Db) {
   const found = findTransfers(db);
   const { candidates, exchanges } = found;
   const possible = new Set(findPossiblePaybacks(db, found).map((t) => t.id));
@@ -64,7 +65,7 @@ function loadReportData(db: Db) {
 }
 
 /** The months with transactions in a currency, oldest first. */
-function monthsIn(data: ReportData, currency: string): string[] {
+export function monthsIn(data: ReportData, currency: string): string[] {
   const currencyOf = new Map(data.accounts.map((a) => [a.id, a.currency]));
   return [
     ...new Set(

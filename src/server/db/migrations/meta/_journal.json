@@ -71,6 +71,13 @@
       "when": 1792842245953,
       "tag": "0009_payback_dismissals",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1792844338075,
+      "tag": "0010_budgets",
+      "breakpoints": true
     }
   ]
 }
