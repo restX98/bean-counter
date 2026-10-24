@@ -156,12 +156,16 @@ Amounts in different currencies are never added together. Every report is shown 
 ### 5.6 Budgets
 
 - A monthly limit for each expense category, in one currency. Only spending in that currency counts toward it.
+  - A category has one budget. What it spends is what the monthly report counts for it: refunds and paybacks are taken off, and uncategorized spending counts toward no budget until it has a category.
+  - It can start in any month from the first one with transactions in its currency, up to next month.
 - Two views I can switch between:
   - **This month**: spent vs. limit for the current month. It starts fresh each month.
   - **Running balance**: everything budgeted minus everything spent since the budget started. Unspent money carries over, and overspending reduces what's left.
 - If I change a limit, each month keeps the limit that was in force at the time.
+  - The new limit applies from a month I choose (from the start up to next month) and replaces any change from that month on.
 - A budget's first month counts in full, even if I create it mid-month: whatever I've already spent that month comes out of it.
 - The running balance never resets on its own. I can start it over from a month I choose; earlier months stay in the history but no longer count.
+  - The month is after the start and after any earlier start-over, up to next month. Each month in the history keeps the running balance it had then.
 - Past months are kept as history.
 
 ### 5.7 Multiple currencies
@@ -306,3 +310,4 @@ New features and decisions are added here as we go.
 | 2026-10-24 | Split bills, the links: a payment split across the expenses it pays back, with an amount for each, never more than the payment or than what's left on an expense; reports count my share of each expense, in its month, and a payment linked in full isn't income; such a payment has no category and leaves Review, while a part that isn't linked needs one; unlinking from either side, and excluding either side unlinks it; transfers and possible transfers can't be linked, and linked transactions aren't matched as transfers |
 | 2026-10-24 | Split bills, linking by hand: Link payback (D9) from a payment or, turned around, from an expense, with suggestions from the 30 days before the payment (or after the expense), a search for older expenses (or later payments), and amounts prefilled with what's left, nearest first, keeping what I type; the transaction panel shows what a payment pays back and what's left unlinked, or an expense's share and its paybacks, each opening in the panel, with Unlink; the lists tag paybacks and shares, and Transactions can filter paybacks |
 | 2026-10-24 | Split bills, possible paybacks: Review lists money in without a category that could pay back expenses of the 30 days before it, first, with Link… (D9) and It's income, which picks its category and is remembered, each with Undo; reports leave possible paybacks out and name them (under income in the monthly report, and under the list in Spending by category); Transactions tags them, filters them with paybacks, and the panel puts that decision first. Money in is green in the panel only once it has a category, as in the lists |
+| 2026-10-24 | Budgets, the sums: one budget per expense category, counting what the monthly report counts for it (refunds and paybacks taken off); each month's limit is the one in force then, and the running balance adds each limit and takes off each month's spending from the start or the last start-over; a budget starts, changes its limit or starts over at the latest next month, and starts at the earliest in the first month with transactions in its currency; a new limit replaces any change from its month on |
