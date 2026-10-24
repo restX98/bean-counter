@@ -498,6 +498,7 @@ describe("the transfer window (S18)", () => {
   it("is 3 days until I change it", async () => {
     expect((await call("GET", "/api/settings")).body).toEqual({
       transferWindow: 3,
+      lastBackup: null,
     });
   });
 
@@ -515,6 +516,7 @@ describe("the transfer window (S18)", () => {
     expect((await find(main, "TRANSFER TO SAVINGS")).transfer).not.toBeNull();
     expect((await call("GET", "/api/settings")).body).toEqual({
       transferWindow: 5,
+      lastBackup: null,
     });
   });
 

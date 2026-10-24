@@ -1,12 +1,16 @@
 import type { FastifyInstance } from "fastify";
 import { readWindow } from "../domain/transfers.ts";
+import { lastBackup } from "./backup.ts";
 import type { Db } from "./db/index.ts";
 import { settings } from "./db/schema.ts";
 import { linkTransfers, transferWindow } from "./transfers.ts";
 
 export function settingsRoutes(app: FastifyInstance, { db }: { db: Db }) {
   // S18.
-  app.get("/api/settings", () => ({ transferWindow: transferWindow(db) }));
+  app.get("/api/settings", () => ({
+    transferWindow: transferWindow(db),
+    lastBackup: lastBackup(db),
+  }));
 
   // A new transfer window takes effect at once: whatever now has a single
   // candidate is linked. Links made with the old one stay.

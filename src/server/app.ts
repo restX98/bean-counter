@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import Fastify, { type FastifyError } from "fastify";
 import { todayIso } from "../domain/dates.ts";
 import { accountRoutes } from "./accounts.ts";
+import { backupRoutes } from "./backup.ts";
 import { budgetRoutes } from "./budgets.ts";
 import { categoryRoutes } from "./categories.ts";
 import type { Db } from "./db/index.ts";
@@ -44,6 +45,7 @@ export function buildApp({
   reportRoutes(app, { db, today });
   budgetRoutes(app, { db, today });
   settingsRoutes(app, { db });
+  backupRoutes(app, { db, today });
 
   app.get("/api/health", () => {
     const row = db.get<{ version: string }>(
