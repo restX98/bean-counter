@@ -172,8 +172,8 @@ export interface SpendingLine {
   count: number;
   /** In tenths of a percent of the total; the lines add up to 1000. */
   share: number;
-  /** Its own chart colour, 1 to 6; null for Other, in gray. */
-  colour: number | null;
+  /** Its own chart color, 1 to 6; null for Other, in gray. */
+  color: number | null;
 }
 
 export interface Spending {
@@ -188,7 +188,7 @@ export interface Spending {
  * S13: a period's expenses as spending, with each category's share. A
  * category that got more back than it spent is left out of the shares and
  * the total, and named instead; one that came to nothing is left out. The
- * six largest categories get their own colour; the rest, and
+ * six largest categories get their own color; the rest, and
  * Uncategorized, are Other.
  */
 export function spending(expenses: ReportSide): Spending {
@@ -218,7 +218,7 @@ export function spending(expenses: ReportSide): Spending {
     lines: spent.map((l, i) => ({
       ...l,
       share: shares[i]!,
-      colour: i < 6 && l.categoryId !== null ? i + 1 : null,
+      color: i < 6 && l.categoryId !== null ? i + 1 : null,
     })),
     total,
     refunded: expenses.lines.filter((l) => l.amount > 0),

@@ -268,7 +268,7 @@ describe("spending", () => {
       [7990, 27],
       [7010, 23],
     ]);
-    expect(threeMonths.lines.map((l) => l.colour)).toEqual([
+    expect(threeMonths.lines.map((l) => l.color)).toEqual([
       1,
       2,
       3,
@@ -293,16 +293,16 @@ describe("spending", () => {
       ),
     );
     expect(october.lines).toEqual([
-      { ...line(RENT, 45000), share: 511, colour: 1 },
-      { ...line(GROCERIES, 32000, 8), share: 364, colour: 2 },
-      { ...line(EATING_OUT, 8000, 3), share: 91, colour: 3 },
-      { ...line(null, 3000), share: 34, colour: null },
+      { ...line(RENT, 45000), share: 511, color: 1 },
+      { ...line(GROCERIES, 32000, 8), share: 364, color: 2 },
+      { ...line(EATING_OUT, 8000, 3), share: 91, color: 3 },
+      { ...line(null, 3000), share: 34, color: null },
     ]);
     expect(october.total).toBe(88000);
     expect(october.refunded).toEqual([line(SHOPPING, 6000)]);
   });
 
-  it("colours the six largest categories, the rest are Other", () => {
+  it("colors the six largest categories, the rest are Other", () => {
     const { lines } = spending(
       side(
         line(null, -90000),
@@ -316,7 +316,7 @@ describe("spending", () => {
         line(HEALTH, -2000),
       ),
     );
-    expect(lines.map((l) => [l.categoryId, l.colour])).toEqual([
+    expect(lines.map((l) => [l.categoryId, l.color])).toEqual([
       [RENT, 1],
       [GROCERIES, 2],
       [EATING_OUT, 3],

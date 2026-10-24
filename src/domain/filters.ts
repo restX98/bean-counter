@@ -55,20 +55,25 @@ export function writePeriod({ from, to }: Period): string {
   return from === to ? from : `${from}..${to}`;
 }
 
-/** "October 2026", "Aug – Oct 2026 (3 months)", "Nov 2025 – Jan 2026 (3 months)". */
-export function formatPeriod({ from, to }: Period): string {
+/** "October 2026", "Aug – Oct 2026", "Nov 2025 – Jan 2026". */
+export function formatRange({ from, to }: Period): string {
   if (from === to) return formatMonth(from);
+  const start = formatMonth(from, { short: true });
+  const end = formatMonth(to, { short: true });
+  return from.slice(0, 4) === to.slice(0, 4)
+    ? `${start.slice(0, 3)} – ${end}`
+    : `${start} – ${end}`;
+}
+
+/** "October 2026", "Aug – Oct 2026 (3 months)", "Nov 2025 – Jan 2026 (3 months)". */
+export function formatPeriod(period: Period): string {
+  if (period.from === period.to) return formatMonth(period.from);
   const index = (month: string) => {
     const [year, number] = month.split("-").map(Number) as [number, number];
     return year * 12 + number;
   };
-  const start = formatMonth(from, { short: true });
-  const end = formatMonth(to, { short: true });
-  const range =
-    from.slice(0, 4) === to.slice(0, 4)
-      ? `${start.slice(0, 3)} – ${end}`
-      : `${start} – ${end}`;
-  return `${range} (${index(to) - index(from) + 1} months)`;
+  const count = index(period.to) - index(period.from) + 1;
+  return `${formatRange(period)} (${count} months)`;
 }
 
 export interface Filters {

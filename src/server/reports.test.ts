@@ -236,3 +236,103 @@ describe("the monthly report (S12)", () => {
     expect((await monthly("?month=10/2026")).status).toBe(400);
   });
 });
+
+const spendingIn = (query = "") => call("GET", `/api/reports/spending${query}`);
+
+describe("spending by category (S13)", () => {
+  it("adds up the last 3 months by default, as many as there are", async () => {
+    const { rent, groceries } = await october();
+    const { status, body } = await spendingIn();
+    expect(status).toBe(200);
+    expect(body).toEqual({
+      currencies: ["EUR"],
+      currency: "EUR",
+      period: { from: "2026-09", to: "2026-10" },
+      thisMonth: "2026-11",
+      first: "2026-09",
+      last: "2026-10",
+      choices: [
+        { label: "All time", period: { from: "2026-09", to: "2026-10" } },
+      ],
+      lines: [
+        { categoryId: rent, amount: 70000, count: 1, share: 673, color: 1 },
+        {
+          categoryId: groceries,
+          amount: 34000,
+          count: 2,
+          share: 327,
+          color: 2,
+        },
+      ],
+      total: 104000,
+      refunded: [],
+      pending: [],
+      waiting: 0,
+    });
+  });
+
+  it("adds up the period and currency asked for", async () => {
+    const { rent, groceries } = await october();
+    const us = await account("US account", "checking", "USD");
+    await importRows(us, ["15/08/2026;COFFEE;-4,50;100,00"]);
+    const { body } = await spendingIn("?period=2026-10");
+    expect(body.period).toEqual({ from: "2026-10", to: "2026-10" });
+    expect(body.lines.map((l: { categoryId: number }) => l.categoryId)).toEqual(
+      [rent, groceries],
+    );
+    expect(body.total).toBe(100000);
+    const usd = (await spendingIn("?currency=USD&period=2026-08..2026-10"))
+      .body;
+    expect(usd.lines).toEqual([
+      { categoryId: null, amount: 450, count: 1, share: 1000, color: null },
+    ]);
+    expect(usd.waiting).toBe(1);
+  });
+
+  it("names what got more back than it spent, and possible transfers going out", async () => {
+    const checking = await account("Checking", "checking");
+    // Two accounts could take the 500.00 €, so nothing links on its own.
+    for (const name of ["Savings", "Deposit"]) {
+      await importRows(await account(name, "savings"), [
+        "05/10/2026;FROM CHECKING;500,00;500,00",
+      ]);
+    }
+    await importRows(checking, [
+      "05/10/2026;TRANSFER TO SAVINGS;-500,00;1.000,00",
+      "12/10/2026;SHOP REFUND;60,00;1.060,00",
+      "14/10/2026;PHARMACY;-18,50;1.041,50",
+    ]);
+    const shopping = await category("Shopping", "expense");
+    await categorize("SHOP REFUND", shopping);
+    const { body } = await spendingIn();
+    expect(body.total).toBe(1850);
+    expect(body.refunded).toEqual([
+      { categoryId: shopping, amount: 6000, count: 1 },
+    ]);
+    expect(
+      body.pending.map((t: { description: string }) => t.description),
+    ).toEqual(["TRANSFER TO SAVINGS"]);
+    expect(body.waiting).toBe(4);
+  });
+
+  it("has nothing to offer before anything is imported", async () => {
+    const { body } = await spendingIn();
+    expect(body).toEqual(
+      expect.objectContaining({
+        currencies: [],
+        period: { from: "2026-11", to: "2026-11" },
+        first: null,
+        choices: [],
+        lines: [],
+        total: 0,
+      }),
+    );
+  });
+
+  it("refuses a currency without accounts and a period that isn't one", async () => {
+    await october();
+    expect((await spendingIn("?currency=CHF")).status).toBe(400);
+    expect((await spendingIn("?period=2026-10..2026-09")).status).toBe(400);
+    expect((await spendingIn("?period=october")).status).toBe(400);
+  });
+});

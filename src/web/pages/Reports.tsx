@@ -14,18 +14,19 @@ import {
   useCategories,
   useMonthlyReport,
   type MonthlyReport,
-  type NamedTransaction,
 } from "../api.ts";
 import { CurrencySwitch } from "../components/CurrencySwitch.tsx";
 import { EmptyState } from "../components/EmptyState.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { MonthBars } from "../components/MonthBars.tsx";
 import { Loading, Page } from "../components/Page.tsx";
+import {
+  linesTo,
+  NotCountedYet,
+  ReportTabs,
+  WaitingBanner,
+} from "../components/Report.tsx";
 import { ImportButton } from "../components/Shell.tsx";
-import { listNames, plural } from "../labels.ts";
-
-/** How many of the possible transfers left out the note names. */
-const NAMED = 3;
 
 /**
  * S12, Monthly in vs out: one month in one currency, picked in the address
@@ -45,9 +46,11 @@ export function Reports() {
   const categories = useCategories();
 
   const page = { title: "Reports" };
+  const tabs = <ReportTabs currency={asked.currency} />;
   if (!report.data || !accounts.data) {
     return (
       <Page {...page}>
+        {tabs}
         <Loading error={report.error ?? accounts.error} />
       </Page>
     );
@@ -56,6 +59,7 @@ export function Reports() {
   if (r.first === null) {
     return (
       <Page {...page}>
+        {tabs}
         <EmptyState
           icon="chart"
           title="No transactions yet"
@@ -86,6 +90,7 @@ export function Reports() {
 
   return (
     <Page {...page}>
+      {tabs}
       <div
         className={report.isPlaceholderData ? "report is-loading" : "report"}
       >
@@ -122,22 +127,7 @@ export function Reports() {
           />
         </div>
 
-        {r.waiting > 0 && (
-          <div className="banner tone-info" role="status">
-            <Icon name="info" />
-            <span className="text">
-              <strong>
-                {plural(r.waiting, "transaction")} waiting in Review can still
-                change these numbers
-              </strong>
-              Uncategorized ones count under Uncategorized; possible transfers
-              are left out until you link or dismiss them.
-            </span>
-            <Link className="btn btn-secondary btn-sm" to="/review">
-              Open Review
-            </Link>
-          </div>
-        )}
+        <WaitingBanner count={r.waiting} />
 
         {nothing ? (
           <EmptyState icon="chart" title={`Nothing in ${formatMonth(r.month)}`}>
@@ -192,18 +182,6 @@ export function Reports() {
   );
 }
 
-/** A line's transactions in S5, picked the way the report counts them. */
-function linesTo(r: MonthlyReport, line: ReportLine, type: CategoryType) {
-  const query = new URLSearchParams({ period: r.month });
-  if (line.categoryId === null) query.set("type", "uncategorized");
-  else {
-    query.set("category", String(line.categoryId));
-    query.set("type", type);
-  }
-  if (r.currencies.length > 1) query.set("currency", r.currency);
-  return `/transactions?${query}`;
-}
-
 /** Income, expenses, net and savings rate (brief §6.1). */
 function InOut({
   report: r,
@@ -230,7 +208,14 @@ function InOut({
         </span>
         {lines.map((line) => (
           <Fragment key={line.categoryId ?? "none"}>
-            <Link className="indent" to={linesTo(r, line, type)}>
+            <Link
+              className="indent"
+              to={linesTo(line, type, {
+                period: { from: r.month, to: r.month },
+                currency: r.currency,
+                currencies: r.currencies,
+              })}
+            >
               {name(line)}
             </Link>
             <span className="amount sub">{money(line.amount)}</span>
@@ -275,11 +260,6 @@ function MovedToSavings({
   accountName: (accountId: number) => string;
 }) {
   const { transfers, total } = r.movedToSavings;
-  const named = (t: NamedTransaction) => `${t.description} ${money(t.amount)}`;
-  const listed = r.pending.slice(0, NAMED).map(named);
-  if (r.pending.length > NAMED) {
-    listed.push(plural(r.pending.length - NAMED, "more"));
-  }
   return (
     <section className="card">
       <div className="card-head">
@@ -310,12 +290,7 @@ function MovedToSavings({
           </div>
         ))
       )}
-      {r.pending.length > 0 && (
-        <p className="caption">
-          Not counted yet: {listNames(listed)}. They may be transfers between
-          your accounts: link or dismiss them in Review.
-        </p>
-      )}
+      <NotCountedYet pending={r.pending} currency={r.currency} />
     </section>
   );
 }

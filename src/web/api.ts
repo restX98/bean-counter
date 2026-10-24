@@ -13,14 +13,19 @@ import type {
 } from "../domain/accounts.ts";
 import type { BothBalances, SuspectReason } from "../domain/balances.ts";
 import type { Category, CategoryFields } from "../domain/categories.ts";
-import { writePeriod, type Filters } from "../domain/filters.ts";
+import { writePeriod, type Filters, type Period } from "../domain/filters.ts";
 import type {
   LeftOutRow,
   Mapping,
   RowError,
 } from "../domain/import/mapping.ts";
 import type { Decision, PlanGap, PlannedRow } from "../domain/import/plan.ts";
-import type { ReportSide } from "../domain/reports.ts";
+import type {
+  PeriodChoice,
+  ReportLine,
+  ReportSide,
+  SpendingLine,
+} from "../domain/reports.ts";
 import type { TableRow } from "../domain/import/table.ts";
 import type {
   ReviewGroups,
@@ -395,6 +400,46 @@ export const useMonthlyReport = (query: {
       return request<MonthlyReport>("GET", `/api/reports/monthly?${params}`);
     },
     // Another month keeps the last one on screen until it comes.
+    placeholderData: keepPreviousData,
+  });
+
+/** S13: spending by category over whole months, in one currency. */
+export interface SpendingReport {
+  /** EUR first. */
+  currencies: string[];
+  currency: string;
+  period: Period;
+  /** Today's month: the one that's still going. */
+  thisMonth: string;
+  /** The oldest and the newest month with transactions in this currency. */
+  first: string | null;
+  last: string | null;
+  /** The periods on offer, by name. */
+  choices: PeriodChoice[];
+  /** The largest first, Uncategorized last. */
+  lines: SpendingLine[];
+  total: number;
+  /** The categories that got more back than they spent, not counted. */
+  refunded: ReportLine[];
+  /** The possible transfers going out, left out until I decide. */
+  pending: NamedTransaction[];
+  /** How many of the period's transactions Review can still change. */
+  waiting: number;
+}
+
+export const useSpendingReport = (query: {
+  currency: string | null;
+  period: Period | null;
+}) =>
+  useQuery({
+    queryKey: [...ACCOUNTS, "report", "spending", query],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (query.currency) params.set("currency", query.currency);
+      if (query.period) params.set("period", writePeriod(query.period));
+      return request<SpendingReport>("GET", `/api/reports/spending?${params}`);
+    },
+    // Another period keeps the last one on screen until it comes.
     placeholderData: keepPreviousData,
   });
 

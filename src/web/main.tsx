@@ -20,6 +20,7 @@ import { Reports } from "./pages/Reports.tsx";
 import { Review } from "./pages/Review.tsx";
 import { Rules } from "./pages/Rules.tsx";
 import { Settings } from "./pages/Settings.tsx";
+import { Spending } from "./pages/Spending.tsx";
 import { Transactions } from "./pages/Transactions.tsx";
 
 const router = createBrowserRouter([
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
       { path: "review", element: <Review /> },
       { path: "transactions", element: <Transactions /> },
       { path: "reports", element: <Reports /> },
+      { path: "reports/spending", element: <Spending /> },
       { path: "budgets", element: <NotBuilt title="Budgets" /> },
       { path: "categories", element: <Categories /> },
       { path: "rules", element: <Rules /> },

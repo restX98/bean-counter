@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   filterer,
   formatPeriod,
+  formatRange,
   readPeriod,
   transactionType,
   writePeriod,
@@ -81,6 +82,18 @@ describe("periods", () => {
     );
     expect(formatPeriod({ from: "2025-11", to: "2026-01" })).toBe(
       "Nov 2025 – Jan 2026 (3 months)",
+    );
+  });
+
+  it("names their months alone", () => {
+    expect(formatRange({ from: "2026-10", to: "2026-10" })).toBe(
+      "October 2026",
+    );
+    expect(formatRange({ from: "2026-08", to: "2026-10" })).toBe(
+      "Aug – Oct 2026",
+    );
+    expect(formatRange({ from: "2025-11", to: "2026-01" })).toBe(
+      "Nov 2025 – Jan 2026",
     );
   });
 });

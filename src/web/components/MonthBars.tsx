@@ -86,7 +86,7 @@ export function MonthBars({
   const top = Math.max(Math.ceil(max / step), 1) * step;
   const ticks = Array.from({ length: top / step + 1 }, (_, i) => i * step);
   const y = (value: number) => HEIGHT - (Math.max(value, 0) / top) * HEIGHT;
-  const centre = (i: number) => AXIS + band * (i + 0.5);
+  const center = (i: number) => AXIS + band * (i + 0.5);
   // A narrow chart names every third month.
   const named = (i: number) => width >= 480 || i % 3 === 0;
   const shown = active === null ? null : months[active];
@@ -140,7 +140,7 @@ export function MonthBars({
                 <path
                   className="income"
                   d={column(
-                    centre(i) - bar - GAP / 2,
+                    center(i) - bar - GAP / 2,
                     y(m.income),
                     bar,
                     HEIGHT - y(m.income),
@@ -151,7 +151,7 @@ export function MonthBars({
                 <path
                   className="expenses"
                   d={column(
-                    centre(i) + GAP / 2,
+                    center(i) + GAP / 2,
                     y(-m.expenses),
                     bar,
                     HEIGHT - y(-m.expenses),
@@ -161,7 +161,7 @@ export function MonthBars({
               {named(i) && (
                 <text
                   className="tick"
-                  x={centre(i)}
+                  x={center(i)}
                   y={HEIGHT + BELOW - 6}
                   textAnchor="middle"
                 >
