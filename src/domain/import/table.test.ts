@@ -120,5 +120,8 @@ describe("cellText", () => {
     expect(cellText(-56.3)).toBe("-56.3");
     expect(cellText(0.1 + 0.2)).toBe("0.3");
     expect(cellText({ date: "2026-10-01" })).toBe("01/10/2026");
+    expect(cellText({ date: "2026-10-16", time: "21:02:16" })).toBe(
+      "16/10/2026 21:02",
+    );
   });
 });

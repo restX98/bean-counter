@@ -130,6 +130,14 @@ describe("ledger", () => {
       ]);
     });
 
+    it("lists the balances I entered oldest first", () => {
+      const { checks } = ledger(anchor, plain, [
+        { date: "2026-10-20", balance: 268420 },
+        { date: "2026-10-02", balance: 318420 },
+      ]);
+      expect(checks.map((c) => c.date)).toEqual(["2026-10-02", "2026-10-20"]);
+    });
+
     it("finds nothing when mine agrees", () => {
       const { gaps } = ledger(anchor, plain, [
         { date: "2026-10-02", balance: 318420 },

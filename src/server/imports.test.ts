@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildApp } from "./app.ts";
 import { openDatabase } from "./db/index.ts";
 
@@ -98,6 +98,18 @@ describe("uploading a file (S7)", () => {
     expect(res.body.error).toMatch(/^This isn't a CSV or Excel file\./);
   });
 
+  it("refuses a file that isn't sent as one", async () => {
+    const account = await addAccount();
+    expect(
+      await call("POST", `/api/imports?account=${account}&file=statement.csv`, {
+        text: statement(),
+      }),
+    ).toEqual({
+      status: 415,
+      body: { error: "Send the file as application/octet-stream." },
+    });
+  });
+
   it("refuses an unknown or archived account", async () => {
     expect((await upload(9, statement())).status).toBe(404);
     const id = await addAccount();
@@ -161,6 +173,36 @@ describe("previewing an import (S8, S9)", () => {
         },
       },
     });
+    const short = await call("POST", `/api/imports/${file.id}/preview`, {
+      mapping: { ...mapping, roles: ["date", "description", "amount"] },
+    });
+    expect(short.status).toBe(400);
+    expect(short.body.errors.mapping).toMatch(
+      /^The mapping doesn't fit this file's columns\./,
+    );
+  });
+
+  it("forgets files left open over an hour, and all but the last 10", async () => {
+    const account = await addAccount();
+    const preview = (id: string) =>
+      call("POST", `/api/imports/${id}/preview`, { mapping });
+    const start = Date.now();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(start);
+    try {
+      const { body: old } = await upload(account, statement());
+      clock.mockReturnValue(start + 61 * 60 * 1000);
+      await upload(account, statement());
+      expect((await preview(old.id)).status).toBe(404);
+
+      const ids: string[] = [];
+      for (let i = 0; i < 11; i++) {
+        ids.push((await upload(account, statement())).body.id);
+      }
+      expect((await preview(ids[0]!)).status).toBe(404);
+      expect((await preview(ids[10]!)).status).toBe(200);
+    } finally {
+      clock.mockRestore();
+    }
   });
 
   it("asks to choose the file again once it's gone", async () => {

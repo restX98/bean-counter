@@ -84,6 +84,9 @@ describe("validateRule", () => {
     expect(validateRule(fields({ categoryId: 99 }), context)).toMatchObject({
       errors: { categoryId: "Pick a category." },
     });
+    expect(
+      validateRule(fields({ text: "A".repeat(201) }), context),
+    ).toMatchObject({ errors: { text: "Keep it under 200 characters." } });
   });
 
   it("reads the amount bounds in the chosen currency", () => {
@@ -281,6 +284,17 @@ describe("findOverlaps", () => {
     ).toBe(2);
   });
 
+  it("finds rules on the same account, and amounts with no upper bound", () => {
+    const from15 = { currency: "EUR", min: 1500, max: null };
+    const digital = { categoryId: DIGITAL };
+    for (const [a, b] of [
+      [rule(1, { accountId: MAIN }), rule(2, { ...digital, accountId: MAIN })],
+      [rule(1, { amount: from15 }), rule(2, { ...digital, amount: from15 })],
+    ] as const) {
+      expect(findOverlaps([a, b], [], currency).size).toBe(2);
+    }
+  });
+
   it("finds regular expressions that meet through a transaction", () => {
     const a = rule(1, { match: "regex", text: "^AMAZON" });
     const b = rule(2, { match: "regex", text: "PRIME$", categoryId: DIGITAL });
@@ -340,6 +354,19 @@ describe("ruleEffect", () => {
     expect(effect.settled).toEqual([
       { id: 102, categoryId: DIGITAL, ruleId: 2 },
     ]);
+  });
+
+  it("leaves a conflict that two other rules still have", () => {
+    // AMAZON DIGITAL: Shopping, Digital and Groceries disagree. The third
+    // rule moves to ESSELUNGA; the first two still disagree on it.
+    const amazon = rule(1);
+    const third = rule(3, { text: "AMAZON DIGITAL", categoryId: GROCERIES });
+    const moved = rule(3, { text: "ESSELUNGA", categoryId: GROCERIES });
+    expect(ruleEffect([amazon, digital, third], moved, uncategorized)).toEqual({
+      matching: [{ id: 103, categoryId: GROCERIES, ruleId: 3 }],
+      conflicts: 0,
+      settled: [],
+    });
   });
 
   it("leaves alone what the old version matched without a conflict", () => {

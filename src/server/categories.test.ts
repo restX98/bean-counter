@@ -155,6 +155,39 @@ describe("categories (S16, D5)", () => {
     );
   });
 
+  it("says what still uses a category before it's deleted", async () => {
+    const [salary, groceries] = await imported();
+    const { body: used } = await add("Groceries");
+    // Rules that match nothing, so they categorize nothing.
+    const rule = (text: string) =>
+      call("POST", "/api/rules", {
+        match: "contains",
+        text,
+        accountId: null,
+        min: "",
+        max: "",
+        currency: "EUR",
+        categoryId: used.id,
+      });
+
+    await rule("LIDL");
+    expect(await call("DELETE", `/api/categories/${used.id}`)).toEqual({
+      status: 409,
+      body: { error: "1 rule gives it. Say where it goes first." },
+    });
+
+    await rule("CARREFOUR");
+    categorize(salary!, used.id);
+    categorize(groceries!, used.id);
+    expect(await call("DELETE", `/api/categories/${used.id}`)).toEqual({
+      status: 409,
+      body: {
+        error:
+          "2 transactions use this category and 2 rules give it. Say where they go first.",
+      },
+    });
+  });
+
   it("moves its transactions to another category", async () => {
     const [salary, groceries] = await imported();
     const { body: food } = await add("Food");

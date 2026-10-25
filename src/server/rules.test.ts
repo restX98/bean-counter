@@ -141,6 +141,15 @@ describe("rules (S17, D6)", () => {
     expect(
       (await call("PATCH", "/api/rules/99", fields(shopping))).status,
     ).toBe(404);
+    expect(
+      (
+        await call(
+          "PATCH",
+          `/api/rules/${rule.id}`,
+          fields(shopping, { text: " " }),
+        )
+      ).status,
+    ).toBe(400);
 
     expect((await call("DELETE", `/api/rules/${rule.id}`)).status).toBe(204);
     expect((await call("DELETE", `/api/rules/${rule.id}`)).status).toBe(404);
@@ -169,6 +178,26 @@ describe("rules (S17, D6)", () => {
       [milano.id]: [esselunga.id],
     });
     expect(conflicts).toBe(1);
+  });
+
+  it("flags a rule for one account against a rule for any account", async () => {
+    const { account } = await imported();
+    const shopping = await category("Shopping");
+    const groceries = await category("Groceries");
+    const { body: anywhere } = await add(shopping);
+    const { body: mine } = await add(groceries, { accountId: account });
+    const { rules } = await list();
+    expect(
+      rules.find((r: { id: number }) => r.id === mine.id).overlaps,
+    ).toEqual([anywhere.id]);
+    expect(
+      (
+        await call("POST", "/api/rules/preview", {
+          ...fields(groceries, { accountId: account }),
+          id: null,
+        })
+      ).body.overlaps,
+    ).toEqual([anywhere.id]);
   });
 
   it("counts the transactions each rule categorized, until I change them", async () => {

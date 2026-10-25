@@ -184,5 +184,7 @@ describe("editing an import preset (S8 from S18)", () => {
       payload: { name: "Bank Z", mapping },
     });
     expect(missing.statusCode).toBe(404);
+    const unknown = await app.inject({ method: "GET", url: "/api/presets/9" });
+    expect(unknown.statusCode).toBe(404);
   });
 });

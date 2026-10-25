@@ -89,6 +89,14 @@ describe("validateSplit", () => {
     });
   });
 
+  it("has nothing to link for a row of 0.00", () => {
+    const zero: PaybackTarget = { id: 9, currency: "EUR", amount: 0 };
+    expect(split(zero, [[dinner, "10"]])).toMatchObject({
+      ok: false,
+      errors: { split: "There's nothing to link: it's 0." },
+    });
+  });
+
   it("can leave part of the payment unlinked", () => {
     expect(split(marco, [[dinner, "100"]])).toEqual({
       ok: true,
@@ -284,6 +292,15 @@ describe("paybackOptions", () => {
     expect(ids(paybackOptions(dated.dinner, pool, []))).toEqual([
       marco.id,
       lucia.id,
+    ]);
+  });
+
+  it("shows an expense what each payment pays back of it already", () => {
+    expect(
+      paybackOptions(dated.dinner, pool, [link(marco, dinner, 15000)]),
+    ).toMatchObject([
+      { id: marco.id, linked: 15000 },
+      { id: lucia.id, linked: 0 },
     ]);
   });
 

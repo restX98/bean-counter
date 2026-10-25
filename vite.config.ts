@@ -21,16 +21,22 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/domain/**/*.ts", "src/server/**/*.ts"],
-      exclude: ["**/*.test.ts", "src/server/main.ts"],
+      // The schema is declarations: its foreign keys' functions only run
+      // when drizzle-kit writes a migration.
+      exclude: [
+        "**/*.test.ts",
+        "src/server/main.ts",
+        "src/server/db/schema.ts",
+      ],
       reporter: ["text-summary", "html"],
       // Domain logic must have unit tests (CLAUDE.md): it can't slip below
       // where it is now, give or take an edge case.
       thresholds: {
         "src/domain/**/*.ts": {
-          lines: 98,
-          functions: 98,
-          statements: 98,
-          branches: 95,
+          lines: 99,
+          functions: 99,
+          statements: 99,
+          branches: 97,
         },
       },
     },

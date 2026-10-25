@@ -250,6 +250,12 @@ describe("validateBudget", () => {
       ok: false,
       errors: { limit: "Enter a limit above zero." },
     });
+    expect(validateBudget({ ...fields, limit: "12,5,0" }, context)).toEqual({
+      ok: false,
+      errors: {
+        limit: "Write the amount like 3,240.50, with a point for decimals.",
+      },
+    });
     expect(validateBudget({ ...fields, currency: "GBP" }, context)).toEqual({
       ok: false,
       errors: { currency: "Pick the currency of one of your accounts." },

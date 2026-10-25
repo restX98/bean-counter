@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 async function call(
-  method: "GET" | "POST" | "PUT" | "PATCH",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   url: string,
   payload?: object,
 ) {
@@ -404,6 +404,78 @@ describe("a transfer to pick", () => {
     expect(
       (await call("GET", `/api/transactions/${deposit}/link-options`)).body,
     ).toEqual({ error: "It's excluded. Restore it to link it." });
+  });
+
+  it("undoes with the category it had, unless it was deleted since", async () => {
+    const { main, out, fromChecking } = await toPick();
+    const { body: category } = await call("POST", "/api/categories", {
+      name: "Rent",
+      type: "expense",
+    });
+    await call("PUT", `/api/transactions/${out}/category`, {
+      categoryId: category.id,
+    });
+    const link = () =>
+      call("POST", `/api/transactions/${out}/link`, { otherId: fromChecking });
+    await call("POST", "/api/transfers/undo", (await link()).body);
+    expect(await find(main, "TRANSFER TO SAVINGS")).toMatchObject({
+      transfer: null,
+      categoryId: category.id,
+    });
+
+    const { body: change } = await link();
+    expect(change.before).toContainEqual({
+      id: out,
+      categoryId: category.id,
+      ruleId: null,
+    });
+    expect(
+      (await call("DELETE", `/api/categories/${category.id}`)).status,
+    ).toBe(204);
+    await call("POST", "/api/transfers/undo", change);
+    // A second Undo finds the pair unlinked already, and changes nothing.
+    await call("POST", "/api/transfers/undo", change);
+    expect(await find(main, "TRANSFER TO SAVINGS")).toMatchObject({
+      transfer: null,
+      categoryId: null,
+    });
+  });
+
+  it("links from the money coming in too", async () => {
+    const { out, fromChecking, savings } = await toPick();
+    const { status, body: change } = await call(
+      "POST",
+      `/api/transactions/${fromChecking}/link`,
+      { otherId: out },
+    );
+    expect(status).toBe(200);
+    // The pair is written money out first, whichever side I started from.
+    expect(change.linked).toEqual([[out, fromChecking]]);
+    expect(
+      (await find(savings, "TRANSFER FROM CHECKING")).transfer,
+    ).toMatchObject({ id: out });
+  });
+
+  it("answers 404 for a transaction that doesn't exist", async () => {
+    expect(
+      (await call("POST", "/api/transactions/99/link", { otherId: 1 })).status,
+    ).toBe(404);
+    expect(
+      (await call("POST", "/api/transactions/99/not-a-transfer")).status,
+    ).toBe(404);
+  });
+
+  it("can't link a transaction in an archived account", async () => {
+    const { out, fromChecking, savings } = await toPick();
+    await call("POST", `/api/accounts/${savings}/archive`);
+    expect(
+      await call("POST", `/api/transactions/${fromChecking}/link`, {
+        otherId: out,
+      }),
+    ).toEqual({
+      status: 409,
+      body: { error: "This account is archived. Unarchive it to change it." },
+    });
   });
 });
 

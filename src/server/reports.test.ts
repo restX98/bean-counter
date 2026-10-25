@@ -240,6 +240,24 @@ describe("the monthly report (S12)", () => {
 const spendingIn = (query = "") => call("GET", `/api/reports/spending${query}`);
 
 describe("spending by category (S13)", () => {
+  it("opens on as many of the last 3 months as there are", async () => {
+    const checking = await account("Checking", "checking");
+    await importRows(checking, ["05/10/2026;ESSELUNGA;-40,00;1.000,00"]);
+    expect((await spendingIn()).body.period).toEqual({
+      from: "2026-10",
+      to: "2026-10",
+    });
+    await importRows(checking, [
+      "05/07/2026;ESSELUNGA;-30,00;1.110,00",
+      "05/08/2026;ESSELUNGA;-30,00;1.080,00",
+      "05/09/2026;ESSELUNGA;-40,00;1.040,00",
+    ]);
+    expect((await spendingIn()).body.period).toEqual({
+      from: "2026-08",
+      to: "2026-10",
+    });
+  });
+
   it("adds up the last 3 months by default, as many as there are", async () => {
     const { rent, groceries } = await october();
     const { status, body } = await spendingIn();

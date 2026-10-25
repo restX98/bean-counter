@@ -71,6 +71,12 @@ describe("backup and restore", () => {
       expect(res.statusCode).toBe(400);
       expect(res.json().error).toBe("This file isn't a Bean Counter backup.");
     }
+    const json = await app.inject({
+      method: "POST",
+      url: "/api/restore",
+      payload: { file: "backup.db" },
+    });
+    expect(json.statusCode).toBe(415);
     expect(await accountNames()).toEqual(["Main checking"]);
   });
 });

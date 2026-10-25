@@ -97,6 +97,30 @@ const add = (fields: object) =>
   });
 
 describe("budgets (S14)", () => {
+  it("works in a currency with no transactions yet", async () => {
+    const { groceries: g } = await groceries();
+    await account("US account", "USD");
+    expect((await call("GET", "/api/budgets?currency=USD")).body).toMatchObject(
+      {
+        currency: "USD",
+        month: "2026-10",
+        budgets: [],
+        firstMonths: { EUR: "2026-09", USD: null },
+      },
+    );
+    const { body } = await add({
+      categoryId: g,
+      currency: "USD",
+      limit: "100",
+      start: "2026-10",
+    });
+    expect(body).toMatchObject({
+      currency: "USD",
+      month: "2026-10",
+      history: [{ month: "2026-10", limit: 10000, spent: 0, left: 10000 }],
+    });
+  });
+
   it("has none at first, and offers the expense categories", async () => {
     const { groceries: g, eatingOut } = await groceries();
     const { status, body } = await call("GET", "/api/budgets");

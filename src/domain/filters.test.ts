@@ -3,6 +3,7 @@ import {
   filterer,
   formatPeriod,
   formatRange,
+  isTransactionType,
   readPeriod,
   transactionType,
   writePeriod,
@@ -47,6 +48,14 @@ describe("transactionType", () => {
         categoryType: "expense",
       }),
     ).toBe("excluded");
+  });
+});
+
+describe("isTransactionType", () => {
+  it("takes the types S5 filters by, and nothing else", () => {
+    expect(isTransactionType("payback")).toBe(true);
+    expect(isTransactionType("uncategorized")).toBe(true);
+    expect(isTransactionType("refund")).toBe(false);
   });
 });
 

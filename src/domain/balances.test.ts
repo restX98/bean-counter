@@ -451,6 +451,23 @@ describe("balanceSeries", () => {
     ]);
   });
 
+  it("runs to a balance set after the last transaction", () => {
+    // Set balance on the 8th, three days after October's last transaction.
+    const series = balanceSeries(
+      [{ anchor: anchor(268420, "2026-10-08"), transactions: october }],
+      "All",
+    );
+    expect(series.dates.at(-1)).toBe("2026-10-08");
+    expect(series.totals.slice(-4)).toEqual([268420, 268420, 268420, 268420]);
+    // Set on the 2nd instead: the transactions after it still count.
+    const earlier = balanceSeries(
+      [{ anchor: anchor(318420, "2026-10-02"), transactions: october }],
+      "All",
+    );
+    expect(earlier.dates.at(-1)).toBe("2026-10-05");
+    expect(earlier.totals.at(-1)).toBe(268420);
+  });
+
   it("starts the range 3 or 12 months before the newest day", () => {
     const account = {
       anchor: anchor(1500, "2026-09-01"),

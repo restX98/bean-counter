@@ -114,6 +114,16 @@ describe("matchTransfers", () => {
     expect(candidates.size).toBe(0);
   });
 
+  it("never matches a row of 0.00", () => {
+    // A card check or a fee waived: 0.00 in two accounts on the same day.
+    const { links, candidates } = matchTransfers([
+      tx(3, 1, "2026-10-10", 0),
+      tx(4, 2, "2026-10-10", 0),
+    ]);
+    expect(links).toEqual([]);
+    expect(candidates.size).toBe(0);
+  });
+
   it("links pairs between any of my accounts, but never across currencies", () => {
     const toCard = tx(3, 1, "2026-10-11", -20000);
     const fromMain = tx(4, 3, "2026-10-11", 20000);

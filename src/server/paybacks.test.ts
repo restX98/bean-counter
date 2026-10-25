@@ -262,6 +262,50 @@ describe("linking paybacks (D9)", () => {
     ]);
   });
 
+  it("answers 404 for a transaction that doesn't exist", async () => {
+    for (const [method, url, payload] of [
+      ["GET", "/api/transactions/99/paybacks", undefined],
+      ["GET", "/api/transactions/99/payback-options", undefined],
+      ["PUT", "/api/transactions/99/paybacks", { links: [] }],
+      ["POST", "/api/transactions/99/not-a-payback", { categoryId: 1 }],
+      ["DELETE", "/api/transactions/99/not-a-payback", undefined],
+      ["DELETE", "/api/transactions/99/paybacks", undefined],
+    ] as const) {
+      expect((await call(method, url, payload)).status).toBe(404);
+    }
+  });
+
+  it("keeps Use it away from a payment linked in full, or an archived one", async () => {
+    const { main, dinner, marco } = await splitBill();
+    await split(marco, [[dinner, "174"]]);
+    const useIt = () => call("POST", `/api/transactions/${marco}/apply-rules`);
+    expect(await useIt()).toEqual({
+      status: 409,
+      body: {
+        error:
+          "All of it pays back expenses, so it has no category. Link less of it, or unlink it, first.",
+      },
+    });
+    await call("POST", `/api/accounts/${main}/archive`);
+    expect(await useIt()).toEqual({
+      status: 409,
+      body: { error: "This account is archived. Unarchive it to change it." },
+    });
+  });
+
+  it("can't be unlinked while its account is archived", async () => {
+    const { main, dinner, marco } = await splitBill();
+    await split(marco, [[dinner, "150"]]);
+    await call("POST", `/api/accounts/${main}/archive`);
+    expect(await unlink(marco)).toEqual({
+      status: 409,
+      body: {
+        error: "One side is in an archived account. Unarchive it first.",
+      },
+    });
+    expect((await paybacksOf(marco)).total).toBe(15000);
+  });
+
   it("unlinks a payment or an expense that gets excluded, for good", async () => {
     const { pizzeria, dinner, marco } = await splitBill();
     await split(marco, [
@@ -566,6 +610,31 @@ describe("possible paybacks (S2)", () => {
     // Linking by hand stays possible.
     await notAPayback(marco, gifts);
     expect((await split(marco, [[dinner, "150"]])).status).toBe(204);
+  });
+
+  it("offers nothing to link for an excluded payment", async () => {
+    const { marco } = await splitBill();
+    await call("POST", `/api/transactions/${marco}/exclude`);
+    const refused = {
+      status: 409,
+      body: { error: "It's excluded. Restore it to link it." },
+    };
+    expect(
+      await call("GET", `/api/transactions/${marco}/payback-options`),
+    ).toEqual(refused);
+    expect(await notAPayback(marco, await income())).toEqual(refused);
+  });
+
+  it("can't undo It's income while the account is archived", async () => {
+    const { main, marco } = await splitBill();
+    await notAPayback(marco, await income());
+    await call("POST", `/api/accounts/${main}/archive`);
+    expect(
+      await call("DELETE", `/api/transactions/${marco}/not-a-payback`),
+    ).toEqual({
+      status: 409,
+      body: { error: "This account is archived. Unarchive it to change it." },
+    });
   });
 
   it("only takes money in that isn't linked, and a category that exists", async () => {

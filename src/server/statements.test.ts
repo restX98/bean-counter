@@ -49,6 +49,14 @@ describe("readStatementFile: CSV", () => {
     expect(tabs.columns).toEqual(["Date", "Amount"]);
   });
 
+  it("picks the separator that gives more columns when two split every line", async () => {
+    // Commas split each line in two too, at the decimal comma.
+    const table = await read(
+      utf8("Data;Descrizione;Importo,EUR\n01/10/2026;SALARY;2000,00\n"),
+    );
+    expect(table.columns).toEqual(["Data", "Descrizione", "Importo,EUR"]);
+  });
+
   it("puts back line breaks missing between records", async () => {
     // As in a real export: after the first record, each one starts right
     // after the last field of the one before.
@@ -110,6 +118,16 @@ describe("readStatementFile: CSV", () => {
       ]),
     ]);
     expect((await read(utf16)).columns).toEqual(["Date", "Caffè"]);
+    // Big-endian: each character's bytes the other way round.
+    const utf16be = new Uint8Array([
+      0xfe,
+      0xff,
+      ...Array.from("Date;Caffè\n01/10/2026;1\n").flatMap((c) => [
+        0,
+        c.charCodeAt(0),
+      ]),
+    ]);
+    expect((await read(utf16be)).columns).toEqual(["Date", "Caffè"]);
 
     // "Caffè" in Windows-1252: è is the single byte 0xE8.
     const windows = new Uint8Array([
@@ -204,6 +222,44 @@ describe("readStatementFile: Excel", () => {
       2000,
       "receipt",
     ]);
+  });
+
+  it("reads an error cell, such as #N/A, as empty", async () => {
+    const bytes = await excel((workbook) => {
+      const sheet = workbook.addWorksheet("Sheet1");
+      sheet.addRow(["Date", "Description", "Amount", "Balance"]);
+      sheet.addRow(["01/10/2026", "ACME SPA", 2000, { error: "#N/A" }]);
+    });
+    expect((await read(bytes)).rows[0]?.cells).toEqual([
+      "01/10/2026",
+      "ACME SPA",
+      2000,
+      "",
+    ]);
+  });
+
+  it("reads a true/false cell as text, and a formula never worked out as empty", async () => {
+    const bytes = await excel((workbook) => {
+      const sheet = workbook.addWorksheet("Sheet1");
+      sheet.addRow(["Date", "Description", "Amount", "Booked"]);
+      sheet.addRow(["01/10/2026", { formula: "B1" }, 2000, true]);
+    });
+    expect((await read(bytes)).rows[0]?.cells).toEqual([
+      "01/10/2026",
+      "",
+      2000,
+      "true",
+    ]);
+  });
+
+  it("refuses a workbook with nothing in it", async () => {
+    const bytes = await excel((workbook) => {
+      workbook.addWorksheet("Sheet1");
+    });
+    expect(await readStatementFile(bytes)).toMatchObject({
+      ok: false,
+      error: "The file is empty.",
+    });
   });
 
   it("refuses a damaged file", async () => {

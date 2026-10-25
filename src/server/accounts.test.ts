@@ -134,6 +134,13 @@ describe("reading accounts", () => {
     ]);
   });
 
+  it("has no transactions, and no balances to check, at first", async () => {
+    await create();
+    const res = await call("GET", "/api/accounts/1/transactions");
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ transactions: [], gaps: [] });
+  });
+
   it("finds one account, or answers 404", async () => {
     const account = await create();
     expect(await call("GET", "/api/accounts/1")).toEqual({
@@ -201,6 +208,25 @@ describe("editing an account (D1)", () => {
 
   it("answers 404 for an unknown account", async () => {
     expect((await call("PATCH", "/api/accounts/9", fields)).status).toBe(404);
+    const balance = { amount: "100", date: TODAY };
+    for (const [method, url, payload] of [
+      ["PUT", "/api/accounts/9/anchor", balance],
+      ["POST", "/api/accounts/9/balance-checks", balance],
+      ["POST", "/api/accounts/9/archive", undefined],
+      ["POST", "/api/accounts/9/unarchive", undefined],
+    ] as const) {
+      expect((await call(method, url, payload)).status).toBe(404);
+    }
+  });
+
+  it("explains a wrong edit", async () => {
+    await create();
+    const res = await call("PATCH", "/api/accounts/1", {
+      ...fields,
+      name: " ",
+    });
+    expect(res.status).toBe(400);
+    expect(Object.keys(res.body.errors)).toEqual(["name"]);
   });
 });
 

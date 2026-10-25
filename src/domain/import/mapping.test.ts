@@ -270,6 +270,15 @@ describe("readRow", () => {
       amount: 200000,
       problems: [`Data: "2026-10-01" isn't a DD/MM/YYYY date.`],
     });
+    // No date column picked yet: nothing to say about dates.
+    expect(
+      readRow(
+        columns,
+        ["01/10/2026", "SALARY", "2.000,00"],
+        mapping(["ignore", "description", "amount"]),
+        "EUR",
+      ),
+    ).toMatchObject({ date: null, amount: 200000, problems: [] });
   });
 });
 
