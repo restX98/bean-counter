@@ -33,3 +33,66 @@ export async function chooseFile(page: Page, name: string) {
   await page.getByRole("button", { name: "Browse files" }).click();
   await (await chooser).setFiles(fixture(name));
 }
+
+const MAPPINGS = {
+  checking: ["date", "ignore", "description", "amount", "reference"],
+  savings: ["date", "ignore", "description", "amount", "balance", "reference"],
+};
+
+/** A Bank A account in euros, through the API. */
+export async function addAccount(
+  request: APIRequestContext,
+  name: string,
+  type: "checking" | "savings",
+) {
+  const res = await request.post("/api/accounts", {
+    data: { name, bank: "Bank A", type, currency: "EUR" },
+  });
+  expect(res.ok()).toBe(true);
+  return (await res.json()).id as number;
+}
+
+/** An account's id, from its name. */
+export async function accountId(request: APIRequestContext, name: string) {
+  const res = await request.get("/api/accounts");
+  const { accounts } = (await res.json()) as {
+    accounts: { id: number; name: string }[];
+  };
+  return accounts.find((a) => a.name === name)!.id;
+}
+
+/**
+ * Imports a Bank A statement through the API, saving its format as the
+ * "Bank A · checking" or "Bank A · savings" preset.
+ */
+export async function importStatement(
+  request: APIRequestContext,
+  account: number,
+  file: string,
+  kind: keyof typeof MAPPINGS,
+  balance?: { amount: string; date: string },
+) {
+  const upload = await request.post(
+    `/api/imports?account=${account}&file=${file}`,
+    {
+      headers: { "content-type": "application/octet-stream" },
+      data: readFileSync(fixture(file)),
+    },
+  );
+  expect(upload.ok()).toBe(true);
+  const saved = await request.post(
+    `/api/imports/${(await upload.json()).id}/save`,
+    {
+      data: {
+        mapping: {
+          roles: MAPPINGS[kind],
+          dateFormat: "DD/MM/YYYY",
+          decimalMark: "comma",
+        },
+        presetName: `Bank A · ${kind}`,
+        ...(balance && { balance }),
+      },
+    },
+  );
+  expect(saved.ok()).toBe(true);
+}
