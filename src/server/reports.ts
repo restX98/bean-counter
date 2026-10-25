@@ -1,5 +1,10 @@
 import { inArray } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
+import {
+  BALANCE_RANGES,
+  balanceSeries,
+  type BalanceRange,
+} from "../domain/balances.ts";
 import { addMonths } from "../domain/dates.ts";
 import { readPeriod, type Period } from "../domain/filters.ts";
 import { linkedInFull, paybackTotals } from "../domain/paybacks.ts";
@@ -126,6 +131,77 @@ export function reportRoutes(
   app: FastifyInstance,
   { db, today }: { db: Db; today: () => string },
 ) {
+  // S11: each account's balance at the end of every day of the range, in one
+  // currency. Archived accounts too: they're history. An active account
+  // without a balance can't be drawn, so it's named instead, and there's no
+  // total until it has one, as everywhere else.
+  app.get<{ Querystring: { currency?: string; range?: BalanceRange } }>(
+    "/api/reports/balance",
+    {
+      schema: {
+        querystring: {
+          type: "object",
+          properties: {
+            currency: { type: "string" },
+            range: { enum: [...BALANCE_RANGES] },
+          },
+        },
+      },
+    },
+    (req, reply) => {
+      const all = db.select().from(accounts).orderBy(accounts.name).all();
+      const currencies = reportCurrencies(all);
+      const currency = req.query.currency ?? currencies[0] ?? "EUR";
+      if (req.query.currency && !currencies.includes(currency)) {
+        return reply
+          .code(400)
+          .send({ error: `None of your accounts is in ${currency}.` });
+      }
+      const range = req.query.range ?? "1Y";
+      const mine = all.filter((a) => a.currency === currency);
+      const drawn = mine.filter((a) => a.anchorAmount !== null);
+      const missing = mine.filter(
+        (a) => a.anchorAmount === null && a.archivedOn === null,
+      );
+      const posted = db
+        .select({
+          accountId: transactions.accountId,
+          date: transactions.date,
+          amount: transactions.amount,
+          excluded: transactions.excluded,
+        })
+        .from(transactions)
+        .where(
+          inArray(
+            transactions.accountId,
+            drawn.map((a) => a.id),
+          ),
+        )
+        .all();
+      const series = balanceSeries(
+        drawn.map((a) => ({
+          anchor: { amount: a.anchorAmount!, date: a.anchorDate! },
+          transactions: posted.filter((t) => t.accountId === a.id),
+        })),
+        range,
+      );
+      return {
+        currencies,
+        currency,
+        range,
+        dates: series.dates,
+        accounts: drawn.map((a, i) => ({
+          id: a.id,
+          name: a.name,
+          archived: a.archivedOn !== null,
+          balances: series.balances[i]!,
+        })),
+        totals: missing.length === 0 ? series.totals : null,
+        missing: missing.map((a) => ({ id: a.id, name: a.name })),
+      };
+    },
+  );
+
   // S12: one month in one currency, with the 12 months up to it. Without a
   // month, the newest that has transactions in that currency.
   app.get<{ Querystring: { currency?: string; month?: string } }>(

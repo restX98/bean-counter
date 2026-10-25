@@ -337,3 +337,79 @@ describe("spending by category (S13)", () => {
     expect((await spendingIn("?period=october")).status).toBe(400);
   });
 });
+
+describe("balance over time (S11)", () => {
+  const balance = (query = "") => call("GET", `/api/reports/balance${query}`);
+
+  async function checking() {
+    const id = await account("Checking", "checking");
+    await importRows(id, [
+      "01/10/2026;SALARY;2.000,00;3.000,00",
+      "05/10/2026;RENT;-500,00;2.500,00",
+    ]);
+    return id;
+  }
+
+  it("gives each account's balance every day, and their total", async () => {
+    const id = await checking();
+    const { body } = await call("POST", "/api/accounts", {
+      name: "Savings",
+      bank: "Bank B",
+      type: "savings",
+      currency: "EUR",
+      anchor: { amount: "1000.00", date: "2026-10-03" },
+    });
+    await account("US account", "checking", "USD");
+
+    expect(await balance("?range=All")).toEqual({
+      status: 200,
+      body: {
+        currencies: ["EUR", "USD"],
+        currency: "EUR",
+        range: "All",
+        dates: [
+          "2026-10-01",
+          "2026-10-02",
+          "2026-10-03",
+          "2026-10-04",
+          "2026-10-05",
+        ],
+        accounts: [
+          {
+            id,
+            name: "Checking",
+            archived: false,
+            balances: [300000, 300000, 300000, 300000, 250000],
+          },
+          {
+            id: body.id,
+            name: "Savings",
+            archived: false,
+            balances: [null, null, 100000, 100000, 100000],
+          },
+        ],
+        totals: [300000, 300000, 400000, 400000, 350000],
+        missing: [],
+      },
+    });
+  });
+
+  it("names an account without a balance, and gives no total", async () => {
+    await checking();
+    const savings = await account("Savings", "savings");
+
+    const { body } = await balance();
+    expect(body.range).toBe("1Y");
+    expect(body.accounts.map((a: { name: string }) => a.name)).toEqual([
+      "Checking",
+    ]);
+    expect(body.totals).toBeNull();
+    expect(body.missing).toEqual([{ id: savings, name: "Savings" }]);
+  });
+
+  it("refuses an unknown currency or range", async () => {
+    await checking();
+    expect((await balance("?currency=GBP")).status).toBe(400);
+    expect((await balance("?range=2Y")).status).toBe(400);
+  });
+});
