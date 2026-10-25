@@ -59,7 +59,7 @@ interface PlanBody {
   balance?: AnchorFields;
 }
 
-const mappingSchema = {
+export const mappingSchema = {
   type: "object",
   required: ["roles", "dateFormat", "decimalMark"],
   properties: {

@@ -106,3 +106,83 @@ describe("import presets (S18)", () => {
     expect(again.statusCode).toBe(404);
   });
 });
+
+describe("editing an import preset (S8 from S18)", () => {
+  const mapping = {
+    roles: ["date", "description", "amount"],
+    dateFormat: "DD/MM/YYYY",
+    decimalMark: "point",
+  };
+
+  it("opens it with its last import, whose rows are the samples", async () => {
+    const checking = await account("Main checking");
+    const savings = await account("Savings");
+    await importFile(checking, "Data;Descrizione;Importo", "Bank A · checking");
+    today = "2026-10-16";
+    await importFile(savings, "Data;Descrizione;Importo", "Bank A · checking");
+
+    const res = await app.inject({ method: "GET", url: "/api/presets/1" });
+    expect(res.json()).toEqual({
+      id: 1,
+      name: "Bank A · checking",
+      columns: ["Data", "Descrizione", "Importo"],
+      mapping: {
+        roles: ["date", "description", "amount"],
+        dateFormat: "DD/MM/YYYY",
+        decimalMark: "comma",
+      },
+      lastImport: {
+        fileName: "statement.csv",
+        importedOn: "2026-10-16",
+        account: "Savings",
+        currency: "EUR",
+      },
+      sample: [{ line: 2, cells: ["01/10/2026", "Rent", "-1,00"] }],
+    });
+  });
+
+  it("saves a new name and mapping for the next files", async () => {
+    const checking = await account("Main checking");
+    await importFile(checking, "Data;Descrizione;Importo", "Bank A · checking");
+
+    const res = await app.inject({
+      method: "PATCH",
+      url: "/api/presets/1",
+      payload: { name: " Bank A · main ", mapping },
+    });
+    expect(res.statusCode).toBe(204);
+    const next = await app.inject({
+      method: "POST",
+      url: `/api/imports?account=${checking}&file=next.csv`,
+      headers: { "content-type": "application/octet-stream" },
+      payload: Buffer.from("Data;Descrizione;Importo\n02/10/2026;Bus;-2,00"),
+    });
+    expect(next.json().preset).toEqual({
+      id: 1,
+      name: "Bank A · main",
+      mapping,
+    });
+  });
+
+  it("refuses an empty name or an incomplete mapping", async () => {
+    const checking = await account("Main checking");
+    await importFile(checking, "Data;Descrizione;Importo", "Bank A · checking");
+
+    const res = await app.inject({
+      method: "PATCH",
+      url: "/api/presets/1",
+      payload: {
+        name: " ",
+        mapping: { ...mapping, roles: ["date", "ignore"] },
+      },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(Object.keys(res.json().errors)).toEqual(["name", "mapping"]);
+    const missing = await app.inject({
+      method: "PATCH",
+      url: "/api/presets/9",
+      payload: { name: "Bank Z", mapping },
+    });
+    expect(missing.statusCode).toBe(404);
+  });
+});
