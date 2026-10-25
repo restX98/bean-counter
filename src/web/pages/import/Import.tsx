@@ -239,18 +239,47 @@ export function Import() {
               : "Check the date format and decimal separator to continue."
         }
       >
+        {uploaded.preset ? (
+          <p className="muted">
+            <strong>{uploaded.preset.name} · saved format.</strong> Change what
+            you need. Updating the preset applies the change to the next files
+            with these columns too.
+          </p>
+        ) : (
+          <p className="muted">
+            <strong>{account.bank} · new format.</strong> Tell the app what each
+            column holds. The mapping is saved as a preset, so the next file
+            with these columns skips this step.
+          </p>
+        )}
         <MapColumns
           file={uploaded}
-          account={account}
+          currency={account.currency}
           draft={draft.draft}
           onDraft={(changed) => setDraft({ ...draft, draft: changed })}
           problems={problems}
           readings={readings}
-          presetName={uploaded.preset?.name ?? presetName}
-          saved={uploaded.preset !== null}
-          savePreset={savePreset}
-          onSavePreset={setSavePreset}
         />
+        <label className="check">
+          <input
+            type="checkbox"
+            className="visually-hidden"
+            checked={savePreset}
+            onChange={(e) => setSavePreset(e.target.checked)}
+          />
+          <span className="box">{savePreset && <Icon name="check" />}</span>
+          <span>
+            {uploaded.preset ? "Update the preset" : "Save as preset"} “
+            {uploaded.preset?.name ?? presetName}”
+          </span>
+        </label>
+        <p className="caption">
+          {draft.draft.roles.includes("balance")
+            ? "This file has a balance column: the balance check runs after the import."
+            : account.anchor
+              ? "This file has no balance column, so the import can't check the balances."
+              : "This file has no balance column, so you'll enter the current balance in the next step."}
+        </p>
       </Flow>
     );
   }

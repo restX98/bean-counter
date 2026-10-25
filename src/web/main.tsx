@@ -21,6 +21,7 @@ import { NotFound } from "./pages/NotFound.tsx";
 import { Reports } from "./pages/Reports.tsx";
 import { Review } from "./pages/Review.tsx";
 import { Rules } from "./pages/Rules.tsx";
+import { EditPreset } from "./pages/EditPreset.tsx";
 import { Settings } from "./pages/Settings.tsx";
 import { Spending } from "./pages/Spending.tsx";
 import { Transactions } from "./pages/Transactions.tsx";
@@ -47,6 +48,11 @@ const router = createBrowserRouter([
       { path: "categories", element: <Categories /> },
       { path: "rules", element: <Rules /> },
       { path: "settings", element: <Settings /> },
+      {
+        path: "settings/presets/:id",
+        element: <EditPreset />,
+        handle: { fullScreen: true } satisfies RouteHandle,
+      },
       { path: "*", element: <NotFound /> },
     ],
   },

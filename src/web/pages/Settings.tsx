@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from "react";
+import { Link } from "react-router";
 import { formatDate } from "../../domain/dates.ts";
 import {
   type Preset,
@@ -102,8 +103,8 @@ const format = (preset: Preset) =>
   `${plural(preset.columns, "column")}, ${preset.balance ? "with" : "no"} balance`;
 
 /**
- * The saved export formats, each with Delete. On mobile a preset opens its
- * Delete confirmation, for now.
+ * The saved export formats, each with Edit and Delete. On mobile a preset
+ * opens its edit page, which has Delete.
  */
 function Presets() {
   const isMobile = useIsMobile();
@@ -123,11 +124,10 @@ function Presets() {
     list = (
       <div className="card m-list inner">
         {data.presets.map((preset) => (
-          <button
+          <Link
             key={preset.id}
-            type="button"
             className="m-tx"
-            onClick={() => setDeleting(preset)}
+            to={`/settings/presets/${preset.id}`}
           >
             <span className="desc">{preset.name}</span>
             <span className="amount muted">
@@ -138,7 +138,7 @@ function Presets() {
                 .filter(Boolean)
                 .join(" · ")}
             </span>
-          </button>
+          </Link>
         ))}
       </div>
     );
@@ -161,6 +161,13 @@ function Presets() {
               {preset.lastUsed ? formatDate(preset.lastUsed) : "—"}
             </span>
             <span className="acts">
+              <Link
+                className="btn btn-ghost btn-sm"
+                aria-label={`Edit preset ${preset.name}`}
+                to={`/settings/presets/${preset.id}`}
+              >
+                Edit
+              </Link>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"

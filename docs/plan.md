@@ -182,7 +182,7 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
 - **States**:
   - mapping incomplete (Continue is disabled and the missing fields are named);
   - valid.
-- Also opened from S7 to change a recognised format's mapping (updating its preset is optional), and from S18 to edit a saved preset.
+- Also opened from S7 to change a recognised format's mapping (updating its preset is optional), and from S18 to edit a saved preset: its name and mapping, with the samples and live preview from the last file imported with it.
 - **Mobile**: one card per column, top to bottom.
 
 #### S9 Import · Preview & resolve

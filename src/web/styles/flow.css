@@ -35,6 +35,13 @@
 .flow-foot .hint + * {
   margin-left: 0;
 }
+/* Buttons after a .push stay together on the right, such as Cancel and Save. */
+.flow-foot .push {
+  margin-left: auto;
+}
+.flow-foot .push ~ * {
+  margin-left: 0;
+}
 .narrow {
   width: 100%;
   max-width: 720px;

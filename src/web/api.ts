@@ -1044,3 +1044,41 @@ export function useDeletePreset() {
     onSuccess: () => client.invalidateQueries({ queryKey: PRESETS }),
   });
 }
+
+/** A preset as its edit page shows it. */
+export interface PresetDetail {
+  id: number;
+  name: string;
+  columns: string[];
+  mapping: Mapping;
+  /** The file imported with it last, whose first rows are the samples. */
+  lastImport: {
+    fileName: string;
+    importedOn: string;
+    account: string;
+    currency: string;
+  } | null;
+  sample: TableRow[];
+}
+
+const presetKey = (id: number) => ["preset", id];
+
+/** S8 opened from S18. */
+export const usePreset = (id: number) =>
+  useQuery({
+    queryKey: presetKey(id),
+    queryFn: () => request<PresetDetail>("GET", `/api/presets/${id}`),
+  });
+
+export function useUpdatePreset(id: number) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { name: string; mapping: Mapping }) =>
+      request<null>("PATCH", `/api/presets/${id}`, body),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: PRESETS }),
+        client.invalidateQueries({ queryKey: presetKey(id) }),
+      ]),
+  });
+}

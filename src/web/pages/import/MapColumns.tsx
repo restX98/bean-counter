@@ -1,5 +1,4 @@
 import { useId, useState } from "react";
-import type { Account } from "../../../domain/accounts.ts";
 import { formatWhen } from "../../../domain/dates.ts";
 import type { MappingDraft } from "../../../domain/import/guess.ts";
 import {
@@ -41,7 +40,7 @@ const DECIMAL_LABELS: Record<DecimalMark, string> = {
 
 /** The file's first rows as a mapping reads them. */
 export const readSample = (
-  file: UploadedFile,
+  file: Pick<UploadedFile, "columns" | "sample">,
   mapping: Mapping,
   currency: string,
 ) =>
@@ -54,33 +53,29 @@ export const isReadable = (row: RowReading) =>
   row.date !== null && row.amount !== null && row.problems.length === 0;
 
 interface Props {
-  file: UploadedFile;
-  account: Account;
+  /** The columns and first rows of a file, or of a preset's last file. */
+  file: Pick<UploadedFile, "columns" | "sample">;
+  /** The currency the preview's amounts are in. */
+  currency: string;
   draft: MappingDraft;
   onDraft: (draft: MappingDraft) => void;
   /** What's missing or doubled; empty when the mapping is complete. */
   problems: string[];
   /** The first rows, read with the draft (see readSample). */
   readings: (RowReading & { line: number })[];
-  presetName: string;
-  /** The format was recognised: S8 changes its saved preset. */
-  saved: boolean;
-  savePreset: boolean;
-  onSavePreset: (save: boolean) => void;
 }
 
-/** S8: what each column of a new format holds. */
+/**
+ * S8's mapping: what each column of a format holds, with a preview of the
+ * first rows. Used by the import and by a preset's edit page.
+ */
 export function MapColumns({
   file,
-  account,
+  currency,
   draft,
   onDraft,
   problems,
   readings,
-  presetName,
-  saved,
-  savePreset,
-  onSavePreset,
 }: Props) {
   const id = useId();
   const isMobile = useIsMobile();
@@ -167,24 +162,9 @@ export function MapColumns({
       : [],
   );
   const unpicked = columns.filter((_, i) => draft.roles[i] === null);
-  const hasBalance = draft.roles.includes("balance");
 
   return (
     <>
-      {saved ? (
-        <p className="muted">
-          <strong>{presetName} · saved format.</strong> Change what you need.
-          Updating the preset applies the change to the next files with these
-          columns too.
-        </p>
-      ) : (
-        <p className="muted">
-          <strong>{account.bank} · new format.</strong> Tell the app what each
-          column holds. The mapping is saved as a preset, so the next file with
-          these columns skips this step.
-        </p>
-      )}
-
       <div className="settings-row">
         <Field id={`${id}-dates`} label="Date format">
           <span className="select-wrap">
@@ -357,7 +337,7 @@ export function MapColumns({
                         : `${row.leftOut.value}: left out`
                       : row.amount === null
                         ? "—"
-                        : formatAmount(row.amount, account.currency, {
+                        : formatAmount(row.amount, currency, {
                             signed: true,
                           })}
                   </td>
@@ -387,26 +367,6 @@ export function MapColumns({
           </ul>
         )}
       </div>
-
-      <label className="check">
-        <input
-          type="checkbox"
-          className="visually-hidden"
-          checked={savePreset}
-          onChange={(e) => onSavePreset(e.target.checked)}
-        />
-        <span className="box">{savePreset && <Icon name="check" />}</span>
-        <span>
-          {saved ? "Update the preset" : "Save as preset"} “{presetName}”
-        </span>
-      </label>
-      <p className="caption">
-        {hasBalance
-          ? "This file has a balance column: the balance check runs after the import."
-          : account.anchor
-            ? "This file has no balance column, so the import can't check the balances."
-            : "This file has no balance column, so you'll enter the current balance in the next step."}
-      </p>
     </>
   );
 }

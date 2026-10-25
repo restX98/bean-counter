@@ -1,13 +1,15 @@
 import { type Preset, useDeletePreset } from "../api.ts";
 import { Dialog, FormError } from "../components/Dialog.tsx";
 
-/** S18: deletes an import preset once I confirm. */
+/** S18 and a preset's edit page: deletes it once I confirm. */
 export function DeletePreset({
   preset,
   onClose,
+  onDeleted = onClose,
 }: {
-  preset: Preset;
+  preset: Pick<Preset, "id" | "name">;
   onClose: () => void;
+  onDeleted?: () => void;
 }) {
   const remove = useDeletePreset();
   return (
@@ -15,7 +17,7 @@ export function DeletePreset({
       title="Delete preset?"
       size="sm"
       onClose={onClose}
-      onSubmit={() => remove.mutate(preset.id, { onSuccess: onClose })}
+      onSubmit={() => remove.mutate(preset.id, { onSuccess: onDeleted })}
       actions={
         <>
           <button type="button" className="btn btn-secondary" onClick={onClose}>
