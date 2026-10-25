@@ -1,6 +1,6 @@
 # Bean Counter — Project Brief
 
-_Status: draft · Last updated: 2026-10-20_
+_Status: v1 built · Last updated: 2026-10-25_
 
 ## 1. Summary
 
@@ -261,7 +261,18 @@ Left         -20 €  ⚠ over         Left         +30 €
 
 ## 7. Open questions
 
-None right now.
+### Where the app runs, and how changes reach it
+
+Today the app runs only on my own computer, at 127.0.0.1, and every check (tests, lint, end-to-end) runs only when I start it. To decide:
+
+- **Where it runs.** Only on this computer, as now, or also somewhere I can reach from my phone or another device: a machine at home on my network, or a server or cloud service.
+- **Login first.** The app has no login because nothing but this computer can reach it, and online deployment is a non-goal (§2). Reaching it from anywhere else needs a way to keep everyone else out, decided before it moves: a login, or access only through a private network such as a VPN.
+- **Environments.** One copy with my real data, or also a separate one to try changes on, with sample data only.
+- **Checks on every push (CI).** Run the tests, lint, typecheck and end-to-end tests automatically, for example with GitHub Actions.
+- **Delivery (CD).** How a new version reaches where the app runs (by hand, or automatically after the checks pass), and how the database is backed up before an update and its migrations run.
+- **Backups.** Where backups are kept once the data isn't only on this computer, and how often.
+
+This repository is public, so the answers recorded here stay general: never host names, addresses, domains, accounts, ports, keys or passwords. Those go in the deployment's own secret settings, outside the repository.
 
 ## 8. Feature log
 
