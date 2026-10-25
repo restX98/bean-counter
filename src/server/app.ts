@@ -9,6 +9,7 @@ import { categoryRoutes } from "./categories.ts";
 import type { Db } from "./db/index.ts";
 import { importRoutes } from "./imports.ts";
 import { paybackRoutes } from "./paybacks.ts";
+import { presetRoutes } from "./presets.ts";
 import { reportRoutes } from "./reports.ts";
 import { reviewRoutes } from "./review.ts";
 import { ruleRoutes } from "./rules.ts";
@@ -45,6 +46,7 @@ export function buildApp({
   reportRoutes(app, { db, today });
   budgetRoutes(app, { db, today });
   settingsRoutes(app, { db });
+  presetRoutes(app, { db });
   backupRoutes(app, { db, today });
 
   app.get("/api/health", () => {
