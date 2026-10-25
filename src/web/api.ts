@@ -1013,3 +1013,34 @@ export function useRestore() {
     onSuccess: () => client.invalidateQueries(),
   });
 }
+
+const PRESETS = ["presets"];
+
+/** A saved export format, as S18 lists it. */
+export interface Preset {
+  id: number;
+  name: string;
+  /** How many columns the format has. */
+  columns: number;
+  /** It has a balance column. */
+  balance: boolean;
+  /** The accounts it has been used for. */
+  accounts: string[];
+  /** The day of its last import, YYYY-MM-DD. */
+  lastUsed: string | null;
+}
+
+/** S18: the saved export formats. */
+export const usePresets = () =>
+  useQuery({
+    queryKey: PRESETS,
+    queryFn: () => request<{ presets: Preset[] }>("GET", "/api/presets"),
+  });
+
+export function useDeletePreset() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => request<null>("DELETE", `/api/presets/${id}`),
+    onSuccess: () => client.invalidateQueries({ queryKey: PRESETS }),
+  });
+}

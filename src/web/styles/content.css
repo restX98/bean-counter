@@ -1751,3 +1751,40 @@ a.br:hover {
     transform: none;
   }
 }
+
+/* ---------- Settings (S18) ---------- */
+
+/* A list inside a card, such as the import presets. */
+.card .inner {
+  box-shadow: none;
+}
+.preset-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px 160px 120px 140px;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--row-height);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  border-top: var(--border-width) solid var(--color-border);
+  font: var(--type-table);
+}
+.preset-row.head {
+  min-height: 0;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-top: 0;
+  background: var(--color-surface-muted);
+  font: var(--type-label);
+  color: var(--color-text-muted);
+}
+.preset-row .name {
+  font-weight: var(--weight-semibold);
+}
+.preset-row .muted-cell {
+  color: var(--color-text-muted);
+}
+.preset-row .acts {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}

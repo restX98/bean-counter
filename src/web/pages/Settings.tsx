@@ -1,19 +1,26 @@
 import { useId, useRef, useState } from "react";
 import { formatDate } from "../../domain/dates.ts";
-import { useDownloadBackup, useSettings, useUpdateSettings } from "../api.ts";
+import {
+  type Preset,
+  useDownloadBackup,
+  usePresets,
+  useSettings,
+  useUpdateSettings,
+} from "../api.ts";
 import { fieldErrors, FormError } from "../components/Dialog.tsx";
 import { describedBy, Field } from "../components/Field.tsx";
 import { Icon } from "../components/Icon.tsx";
 import { Loading, Page } from "../components/Page.tsx";
+import { DeletePreset } from "../dialogs/DeletePreset.tsx";
 import { RestoreBackup } from "../dialogs/RestoreBackup.tsx";
 import { plural } from "../labels.ts";
+import { useIsMobile } from "../useIsMobile.ts";
 
 const HINT =
   "How many days apart the two sides of a transfer can be. Default 3, which covers a weekend.";
 
 /**
- * S18, its Transfers and Backup & restore sections for now. The window
- * saves when I leave the field or press Enter.
+ * S18. The transfer window saves when I leave the field or press Enter.
  */
 export function Settings() {
   const page = {
@@ -31,6 +38,7 @@ export function Settings() {
   return (
     <Page {...page}>
       <TransferWindow saved={settings.data.transferWindow} />
+      <Presets />
       <Backup last={settings.data.lastBackup} />
     </Page>
   );
@@ -85,6 +93,99 @@ function TransferWindow({ saved }: { saved: number }) {
           {update.data.linked > 0 &&
             ` ${plural(update.data.linked, "more transfer")} linked.`}
         </p>
+      )}
+    </section>
+  );
+}
+
+const format = (preset: Preset) =>
+  `${plural(preset.columns, "column")}, ${preset.balance ? "with" : "no"} balance`;
+
+/**
+ * The saved export formats, each with Delete. On mobile a preset opens its
+ * Delete confirmation, for now.
+ */
+function Presets() {
+  const isMobile = useIsMobile();
+  const { data, error } = usePresets();
+  const [deleting, setDeleting] = useState<Preset | null>(null);
+
+  let list;
+  if (!data) {
+    list = <Loading error={error} />;
+  } else if (data.presets.length === 0) {
+    list = (
+      <p className="caption">
+        No presets yet. Importing a file saves its format here.
+      </p>
+    );
+  } else if (isMobile) {
+    list = (
+      <div className="card m-list inner">
+        {data.presets.map((preset) => (
+          <button
+            key={preset.id}
+            type="button"
+            className="m-tx"
+            onClick={() => setDeleting(preset)}
+          >
+            <span className="desc">{preset.name}</span>
+            <span className="amount muted">
+              {preset.lastUsed ? formatDate(preset.lastUsed).slice(0, 5) : "—"}
+            </span>
+            <span className="meta">
+              {[format(preset), preset.accounts.join(", ")]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          </button>
+        ))}
+      </div>
+    );
+  } else {
+    list = (
+      <div className="card table inner">
+        <div className="preset-row head" aria-hidden="true">
+          <span>Preset</span>
+          <span>Format</span>
+          <span>Used for</span>
+          <span>Last used</span>
+          <span />
+        </div>
+        {data.presets.map((preset) => (
+          <div key={preset.id} className="preset-row">
+            <span className="name">{preset.name}</span>
+            <span className="muted-cell">{format(preset)}</span>
+            <span>{preset.accounts.join(", ") || "—"}</span>
+            <span className="muted-cell">
+              {preset.lastUsed ? formatDate(preset.lastUsed) : "—"}
+            </span>
+            <span className="acts">
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                aria-label={`Delete preset ${preset.name}`}
+                onClick={() => setDeleting(preset)}
+              >
+                Delete
+              </button>
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <section className="card">
+      <h2 className="card-title">Import presets</h2>
+      <p className="muted">
+        One preset per export format. When you import a file, the app uses the
+        preset whose columns match it.
+      </p>
+      {list}
+      {deleting && (
+        <DeletePreset preset={deleting} onClose={() => setDeleting(null)} />
       )}
     </section>
   );
