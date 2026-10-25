@@ -193,7 +193,7 @@ The import is a four-step wizard. S8 is skipped when the bank already has a save
   - rule conflict (more than one rule matches; pick a category);
   - duplicate (will be skipped);
   - near-match (keep or skip; must be decided);
-  - transfer linked, or transfer to pick (choose the counterpart, including cross-currency suggestions);
+  - transfer linked, or transfer to pick (choose the counterpart; cross-currency pairs are suggested in S2 after the import);
   - left out (in another currency than the account's, or not completed), with the reason;
   - can't read, with what's wrong with it.
 - If the account has no balance anchor and the file has no balance column, a field asks for the current balance and its date.
@@ -337,8 +337,8 @@ On mobile, every dialog opens as a full-screen sheet.
    3. To undo: S6 → Unlink.
 5. **Currency exchange**
    1. Import the EUR account's file (flow 2).
-   2. Import the USD account's file. S9 suggests the cross-currency pair.
-   3. Confirm it there, or later in S2.
+   2. Import the USD account's file. The app never links across currencies on its own, so S9 imports the pair as normal transactions.
+   3. S2 suggests the pair under Transfers to confirm: link it, or mark it as not a transfer.
 6. **Balance mismatch**
    1. Reach it from S10, S2 or the S4 banner.
    2. S4 opens where the balances split.
