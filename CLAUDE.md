@@ -17,6 +17,7 @@ TypeScript everywhere: one Node process, with the data in one SQLite file. Appro
 - **Import**: Papa Parse for CSV, ExcelJS for .xlsx. The old .xls format isn't supported.
 - **Money**: integer minor units (cents) plus a currency code. Parse text straight to cents, never through `parseFloat`.
 - **Tests**: Vitest, with `*.test.ts` files next to the code they test. Coverage comes from `@vitest/coverage-v8` and measures `src/domain` and `src/server` only.
+- **End-to-end tests**: Playwright, in `e2e/`, against the built app in a desktop and a mobile size. One spec per user flow in docs/plan.md §6.
 - **TypeScript 6.0, not 7**: typescript-eslint doesn't support 7 yet.
 - **React Router 7, not 8**: 8 needs Node 22.22 or later.
 - Add a dependency only when a feature needs it.
@@ -28,6 +29,7 @@ TypeScript everywhere: one Node process, with the data in one SQLite file. Appro
 - Use: `pnpm start` builds the UI and serves the whole app at http://127.0.0.1:4280.
 - Test: `pnpm test` (or `pnpm test:watch`). One file: `pnpm test src/server/app.test.ts`. One test by name: `pnpm test -t "SQLite version"`.
 - Coverage: `pnpm test:coverage` prints a summary and writes the full report to `coverage/index.html`. It fails if `src/domain` drops below its minimum, set in `vite.config.ts`.
+- End-to-end: `pnpm e2e` builds the app and runs it on port 4290 with a throwaway database, never the one in `data/`. Each test starts from a state saved by `e2e/states.setup.ts` (see `e2e/states.ts`). One file: `pnpm e2e e2e/first-run.spec.ts`. After a failure, `pnpm exec playwright show-trace` opens the trace it names.
 - Check: `pnpm lint`, `pnpm typecheck`, `pnpm format:check` (`pnpm format` fixes formatting).
 - The database is `data/bean-counter.db`. `BEAN_COUNTER_DB` points the server at another file; tests use `:memory:`. `PORT` changes the server's port; the Vite proxy in `vite.config.ts` must match it.
 - After changing `src/server/db/schema.ts`, `pnpm db:generate` writes a migration to `src/server/db/migrations/`. Migrations run on their own when the server opens the database.

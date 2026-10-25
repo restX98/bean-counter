@@ -3,3 +3,6 @@ node_modules/
 dist/
 data/
 coverage/
+e2e/.states/
+test-results/
+playwright-report/

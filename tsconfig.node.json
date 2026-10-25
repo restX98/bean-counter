@@ -19,5 +19,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["src/server", "src/domain", "vite.config.ts", "drizzle.config.ts"]
+  "include": [
+    "src/server",
+    "src/domain",
+    "e2e",
+    "vite.config.ts",
+    "drizzle.config.ts",
+    "playwright.config.ts"
+  ]
 }
