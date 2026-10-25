@@ -29,7 +29,7 @@ TypeScript everywhere: one Node process, with the data in one SQLite file. Appro
 - Use: `pnpm start` builds the UI and serves the whole app at http://127.0.0.1:4280.
 - Test: `pnpm test` (or `pnpm test:watch`). One file: `pnpm test src/server/app.test.ts`. One test by name: `pnpm test -t "SQLite version"`.
 - Coverage: `pnpm test:coverage` prints a summary and writes the full report to `coverage/index.html`. It fails if `src/domain` drops below its minimum, set in `vite.config.ts`.
-- End-to-end: `pnpm e2e` builds the app and runs it on port 4290 with a throwaway database, never the one in `data/`. Each test starts from a state saved by `e2e/states.setup.ts` (see `e2e/states.ts`). One file: `pnpm e2e e2e/first-run.spec.ts`. After a failure, `pnpm exec playwright show-trace` opens the trace it names.
+- End-to-end: `pnpm e2e` builds the app and runs it on port 4290 (`E2E_PORT` picks another, to run beside UI mode) with a throwaway database, never the one in `data/`. Each test starts from a state saved by `e2e/states.setup.ts` (see `e2e/states.ts`). One file: `pnpm e2e e2e/first-run.spec.ts`. After a failure, `pnpm exec playwright show-trace` opens the trace it names.
 - Check: `pnpm lint`, `pnpm typecheck`, `pnpm format:check` (`pnpm format` fixes formatting).
 - The database is `data/bean-counter.db`. `BEAN_COUNTER_DB` points the server at another file; tests use `:memory:`. `PORT` changes the server's port; the Vite proxy in `vite.config.ts` must match it.
 - After changing `src/server/db/schema.ts`, `pnpm db:generate` writes a migration to `src/server/db/migrations/`. Migrations run on their own when the server opens the database.

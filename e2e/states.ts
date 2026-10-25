@@ -5,8 +5,10 @@ import { expect, type APIRequestContext, type Page } from "@playwright/test";
 /**
  * The data a test starts from, saved as backups by states.setup.ts:
  * - empty: nothing at all;
- * - september: Main checking (Bank A), with September imported and its
- *   balance entered, and the "Bank A · checking" preset;
+ * - september: the categories Salary and Interest (income), Rent and
+ *   Groceries (expense); Main checking (Bank A), with September imported and
+ *   its balance entered, and the "Bank A · checking" preset; nothing
+ *   categorized, no rules;
  * - october: also October in Main checking, and Savings (Bank A) with its
  *   October statement; the transfer between them is linked.
  */

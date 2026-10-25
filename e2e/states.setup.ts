@@ -61,6 +61,15 @@ test("save the states the tests start from", async ({ request }) => {
   mkdirSync(STATES, { recursive: true });
   await save(request, "empty");
 
+  for (const [name, type] of [
+    ["Salary", "income"],
+    ["Interest", "income"],
+    ["Rent", "expense"],
+    ["Groceries", "expense"],
+  ]) {
+    const res = await request.post("/api/categories", { data: { name, type } });
+    expect(res.ok()).toBe(true);
+  }
   const checking = await account(request, "Main checking", "checking");
   await importFile(
     request,

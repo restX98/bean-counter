@@ -3,9 +3,10 @@ import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 // pnpm e2e. The built app runs on its own port, with a throwaway database
-// that each run starts empty: never the one in data/.
-const PORT = 4290;
-const DB = join(tmpdir(), "bean-counter-e2e.db");
+// that each run starts empty: never the one in data/. E2E_PORT runs another
+// copy alongside, such as next to UI mode, each with its own database.
+const PORT = Number(process.env.E2E_PORT ?? 4290);
+const DB = join(tmpdir(), `bean-counter-e2e-${PORT}.db`);
 
 export default defineConfig({
   testDir: "e2e",
