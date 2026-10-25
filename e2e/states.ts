@@ -96,3 +96,24 @@ export async function importStatement(
   );
   expect(saved.ok()).toBe(true);
 }
+
+/** Gives every transaction with this description the category. */
+export async function categorize(
+  request: APIRequestContext,
+  description: string,
+  category: string,
+) {
+  const { categories } = await (await request.get("/api/categories")).json();
+  const { id } = categories.find((c: { name: string }) => c.name === category);
+  const { transactions } = await (
+    await request.get(
+      `/api/transactions?q=${encodeURIComponent(description)}&limit=100`,
+    )
+  ).json();
+  for (const t of transactions) {
+    const res = await request.put(`/api/transactions/${t.id}/category`, {
+      data: { categoryId: id },
+    });
+    expect(res.ok()).toBe(true);
+  }
+}

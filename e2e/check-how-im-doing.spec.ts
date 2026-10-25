@@ -1,29 +1,8 @@
-import { expect, test, type APIRequestContext } from "@playwright/test";
-import { startFrom } from "./states.ts";
+import { expect, test } from "@playwright/test";
+import { categorize, startFrom } from "./states.ts";
 
 // Plan §6, flow 7: from the dashboard to the reports and back down to one
 // transaction.
-
-/** Gives every transaction with this description the category. */
-async function categorize(
-  request: APIRequestContext,
-  description: string,
-  category: string,
-) {
-  const { categories } = await (await request.get("/api/categories")).json();
-  const { id } = categories.find((c: { name: string }) => c.name === category);
-  const { transactions } = await (
-    await request.get(
-      `/api/transactions?q=${encodeURIComponent(description)}&limit=100`,
-    )
-  ).json();
-  for (const t of transactions) {
-    const res = await request.put(`/api/transactions/${t.id}/category`, {
-      data: { categoryId: id },
-    });
-    expect(res.ok()).toBe(true);
-  }
-}
 
 test("from the dashboard to this month's report, a category's transactions, and the other reports", async ({
   page,
