@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatDate, formatMonth } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
 import { useIsMobile } from "../useIsMobile.ts";
@@ -22,7 +22,8 @@ const LONG = 731;
 /**
  * S11's chart: the bands stacked from the bottom, an unknown balance counting
  * for nothing, with the total as a line on top and its last value at the end.
- * Pointing at a day shows its balances.
+ * Pointing at a day shows its balances; on a touch screen, touching it or
+ * sliding a finger along the chart does.
  */
 export function BalanceChart({
   dates,
@@ -43,6 +44,18 @@ export function BalanceChart({
   const height = useIsMobile() ? 180 : 240;
   const [active, setActive] = useState<number | null>(null);
   const money = (minor: number) => formatAmount(minor, currency);
+
+  // A finger leaves the chart as soon as it lifts, so a touched day stays
+  // shown until a touch somewhere else.
+  const showing = active !== null;
+  useEffect(() => {
+    if (!showing) return;
+    const away = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setActive(null);
+    };
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [showing, ref]);
 
   const count = dates.length;
   // The tops of the bands, bottom first.
@@ -106,8 +119,13 @@ export function BalanceChart({
       ref={ref}
       role="img"
       aria-label={label}
+      onPointerDown={(e) => pick(e.clientX, e.currentTarget)}
       onPointerMove={(e) => pick(e.clientX, e.currentTarget)}
-      onPointerLeave={() => setActive(null)}
+      onPointerLeave={(e) => {
+        if (e.pointerType !== "touch") setActive(null);
+      }}
+      // The finger started scrolling the page instead.
+      onPointerCancel={() => setActive(null)}
     >
       {width > 0 && count > 0 && (
         <svg width={width} height={height + BELOW} aria-hidden="true">
