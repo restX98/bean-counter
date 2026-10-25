@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   balanceHistory,
+  balanceSeries,
   bankBalances,
   checkBalances,
   compareBalance,
@@ -394,5 +395,81 @@ describe("checkBalances", () => {
         },
       },
     ]);
+  });
+});
+
+describe("balanceSeries", () => {
+  const anchor = (amount: number, date: string) => ({ amount, date });
+  // The bank's balance on the 5th.
+  const checking = {
+    anchor: anchor(268420, "2026-10-05"),
+    transactions: october,
+  };
+
+  it("gives every day's balance up to the newest day", () => {
+    const series = balanceSeries(
+      [
+        {
+          ...checking,
+          // Excluded: it doesn't count.
+          transactions: [...october, tx("2026-10-03", -999, true)],
+        },
+      ],
+      "3M",
+    );
+    expect(series).toEqual({
+      dates: [
+        "2026-10-01",
+        "2026-10-02",
+        "2026-10-03",
+        "2026-10-04",
+        "2026-10-05",
+      ],
+      balances: [[324050, 318420, 318420, 318420, 268420]],
+      totals: [324050, 318420, 318420, 318420, 268420],
+    });
+  });
+
+  it("counts an account only from the first day it's known", () => {
+    // Savings: a balance set on the 3rd, nothing imported yet.
+    const savings = { anchor: anchor(1000000, "2026-10-03"), transactions: [] };
+    const series = balanceSeries([checking, savings], "All");
+    expect(series.balances[1]).toEqual([null, null, 1000000, 1000000, 1000000]);
+    expect(series.totals).toEqual([324050, 318420, 1318420, 1318420, 1268420]);
+  });
+
+  it("keeps an account's last balance after its last day", () => {
+    // Checking's last day is the 5th, savings' the 9th.
+    const savings = {
+      anchor: anchor(1000000, "2026-10-09"),
+      transactions: [tx("2026-10-09", 50000)],
+    };
+    const series = balanceSeries([checking, savings], "All");
+    expect(series.dates.at(-1)).toBe("2026-10-09");
+    expect(series.balances[0]!.slice(-5)).toEqual([
+      268420, 268420, 268420, 268420, 268420,
+    ]);
+  });
+
+  it("starts the range 3 or 12 months before the newest day", () => {
+    const account = {
+      anchor: anchor(1500, "2026-09-01"),
+      transactions: [tx("2025-06-01", 1000), tx("2026-09-01", 500)],
+    };
+    const year = balanceSeries([account], "1Y");
+    expect(year.dates[0]).toBe("2025-09-01");
+    expect(year.dates).toHaveLength(366);
+    expect(year.totals[0]).toBe(1000);
+    expect(year.totals.at(-1)).toBe(1500);
+    expect(balanceSeries([account], "3M").dates[0]).toBe("2026-06-01");
+    expect(balanceSeries([account], "All").dates[0]).toBe("2025-06-01");
+  });
+
+  it("is empty without accounts", () => {
+    expect(balanceSeries([], "1Y")).toEqual({
+      dates: [],
+      balances: [],
+      totals: [],
+    });
   });
 });

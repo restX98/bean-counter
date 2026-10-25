@@ -100,6 +100,23 @@ export function formatWhen(
   return `${day} ${seconds ? time : time.slice(0, 5)}`;
 }
 
+/** "2026-10-16" moved by days: +1 gives "2026-10-17", −16 "2026-09-30". */
+export function addDays(iso: string, count: number): string {
+  return new Date(utcDay(iso) + count * 86_400_000).toISOString().slice(0, 10);
+}
+
+/**
+ * The same day whole months away, or that month's last day when it's
+ * shorter: "2026-10-24" − 12 gives "2025-10-24", "2026-05-31" − 3 "2026-02-28".
+ */
+export function addMonthsToDay(iso: string, count: number): string {
+  const month = addMonths(iso.slice(0, 7), count);
+  const [year, number] = month.split("-").map(Number) as [number, number];
+  const last = new Date(Date.UTC(year, number, 0)).getUTCDate();
+  const day = Math.min(Number(iso.slice(8)), last);
+  return `${month}-${String(day).padStart(2, "0")}`;
+}
+
 /** How many days apart two dates are, whichever comes first. */
 export function daysBetween(a: string, b: string): number {
   return Math.abs(utcDay(a) - utcDay(b)) / 86_400_000;

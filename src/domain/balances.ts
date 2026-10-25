@@ -1,4 +1,5 @@
 import type { Anchor } from "./accounts.ts";
+import { addDays, addMonthsToDay } from "./dates.ts";
 
 // An account's balances all come from its anchor, one known end-of-day
 // balance: the transactions before it are subtracted, the ones after added.
@@ -73,6 +74,75 @@ export function currentBalance(
   const last = history.days.at(-1)?.date;
   const date = last !== undefined && last > anchor.date ? last : anchor.date;
   return { date, balance: history.on(date) };
+}
+
+/** The ranges Balance over time offers (S11). */
+export const BALANCE_RANGES = ["3M", "1Y", "All"] as const;
+export type BalanceRange = (typeof BALANCE_RANGES)[number];
+
+const RANGE_MONTHS: Record<Exclude<BalanceRange, "All">, number> = {
+  "3M": 3,
+  "1Y": 12,
+};
+
+/** An account with a balance, as Balance over time reads it. */
+export interface AccountMovements {
+  anchor: Pick<Anchor, "amount" | "date">;
+  transactions: Posted[];
+}
+
+export interface BalanceSeries {
+  /** Every day of the range, oldest first. */
+  dates: string[];
+  /**
+   * Each account's balance at the end of each day, in the order given: null
+   * before the first day the app knows it.
+   */
+  balances: (number | null)[][];
+  /** The total of the balances known on each day. */
+  totals: number[];
+}
+
+/**
+ * S11: the end-of-day balances of accounts in one currency, every day of the
+ * range up to the newest day any of them has. An account's balances start on
+ * its first day with a transaction, or its anchor's day if that's earlier:
+ * before then the app doesn't know them, so they count for nothing. After its
+ * last day its balance stays as it was, as it does everywhere else.
+ */
+export function balanceSeries(
+  accounts: AccountMovements[],
+  range: BalanceRange,
+): BalanceSeries {
+  if (accounts.length === 0) return { dates: [], balances: [], totals: [] };
+  const known = accounts.map(({ anchor, transactions }) => {
+    const history = balanceHistory(anchor, transactions);
+    const first = history.days[0]?.date;
+    const last = history.days.at(-1)?.date;
+    return {
+      history,
+      from: first !== undefined && first < anchor.date ? first : anchor.date,
+      to: last !== undefined && last > anchor.date ? last : anchor.date,
+    };
+  });
+  const end = known
+    .map((k) => k.to)
+    .sort()
+    .at(-1)!;
+  const earliest = known.map((k) => k.from).sort()[0]!;
+  const back =
+    range === "All" ? earliest : addMonthsToDay(end, -RANGE_MONTHS[range]);
+  const start = back > earliest ? back : earliest;
+
+  const dates: string[] = [];
+  for (let day = start; day <= end; day = addDays(day, 1)) dates.push(day);
+  const balances = known.map(({ history, from }) =>
+    dates.map((day) => (day < from ? null : history.on(day))),
+  );
+  const totals = dates.map((_, i) =>
+    balances.reduce((sum, account) => sum + (account[i] ?? 0), 0),
+  );
+  return { dates, balances, totals };
 }
 
 /** A balance I entered (Set balance), next to the app's on the same day. */

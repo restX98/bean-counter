@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  addDays,
   addMonths,
+  addMonthsToDay,
   daysBetween,
   formatDate,
   formatDay,
@@ -116,5 +118,21 @@ describe("daysBetween", () => {
     expect(daysBetween("2026-09-29", "2026-10-02")).toBe(3);
     expect(daysBetween("2028-02-28", "2028-03-01")).toBe(2);
     expect(daysBetween("2026-10-10", "2026-10-10")).toBe(0);
+  });
+});
+
+describe("addDays", () => {
+  it("crosses months and years", () => {
+    expect(addDays("2026-10-16", 1)).toBe("2026-10-17");
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+});
+
+describe("addMonthsToDay", () => {
+  it("keeps the day, or takes the month's last when it's shorter", () => {
+    expect(addMonthsToDay("2026-10-24", -12)).toBe("2025-10-24");
+    expect(addMonthsToDay("2026-05-31", -3)).toBe("2026-02-28");
+    expect(addMonthsToDay("2028-05-31", -3)).toBe("2028-02-29");
   });
 });
