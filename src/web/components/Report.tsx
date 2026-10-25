@@ -18,8 +18,9 @@ export function ReportTabs({ currency }: { currency: string | null }) {
   return (
     <nav className="tabs" aria-label="Reports">
       <NavLink to={`/reports${query}`} end>
-        Monthly in vs out
+        Balance over time
       </NavLink>
+      <NavLink to={`/reports/monthly${query}`}>Monthly in vs out</NavLink>
       <NavLink to={`/reports/spending${query}`}>Spending by category</NavLink>
     </nav>
   );

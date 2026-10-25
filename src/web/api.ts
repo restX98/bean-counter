@@ -11,7 +11,11 @@ import type {
   AnchorFields,
   FieldErrors,
 } from "../domain/accounts.ts";
-import type { BothBalances, SuspectReason } from "../domain/balances.ts";
+import type {
+  BalanceRange,
+  BothBalances,
+  SuspectReason,
+} from "../domain/balances.ts";
 import type {
   BudgetFields,
   BudgetMonth,
@@ -415,6 +419,43 @@ export const useMonthlyReport = (query: {
       return request<MonthlyReport>("GET", `/api/reports/monthly?${params}`);
     },
     // Another month keeps the last one on screen until it comes.
+    placeholderData: keepPreviousData,
+  });
+
+/** S11: what /api/reports/balance answers. */
+export interface BalanceReport {
+  currencies: string[];
+  currency: string;
+  range: BalanceRange;
+  /** Every day of the range, oldest first. */
+  dates: string[];
+  /** By name: each one's balance on each date, null before it's known. */
+  accounts: {
+    id: number;
+    name: string;
+    archived: boolean;
+    balances: (number | null)[];
+  }[];
+  /** Left out while an active account has no balance. */
+  totals: number[] | null;
+  /** The active accounts without a balance. */
+  missing: { id: number; name: string }[];
+}
+
+/** S11: the accounts of one currency, day by day over a range. */
+export const useBalanceReport = (query: {
+  currency: string | null;
+  range: BalanceRange | null;
+}) =>
+  useQuery({
+    queryKey: [...ACCOUNTS, "report", "balance", query],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (query.currency) params.set("currency", query.currency);
+      if (query.range) params.set("range", query.range);
+      return request<BalanceReport>("GET", `/api/reports/balance?${params}`);
+    },
+    // Another range keeps the last one on screen until it comes.
     placeholderData: keepPreviousData,
   });
 

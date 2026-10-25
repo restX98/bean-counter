@@ -139,6 +139,9 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 Amounts in different currencies are never added together. Every report is shown per currency, with EUR first.
 
 - **Total balance over time**: a chart of the total across all accounts in a currency, with a per-account breakdown.
+  - Each account's balance at the end of every day, stacked, with the total on top, over the last 3 months, the last year (where it opens) or all time, up to the newest day with data. Under the chart, each account's balance at the start and end of the range, and the change.
+  - An account counts from its first day with a transaction, or its balance's date if that's earlier. Before then its balance isn't known, so it adds nothing and the report says from when it counts. Archived accounts are included: they're history.
+  - While an active account has no balance, there's no total, and the report names the account.
 - **Monthly in vs. out**: for each month, it shows:
   - income, expenses and net cashflow (income − expenses);
     - each category adds up under its type, so a refund reduces its expense category;
@@ -319,3 +322,4 @@ New features and decisions are added here as we go.
 | 2026-10-24 | Backup and restore (S18, D8): a backup is a copy of the whole database, downloaded as one file, and Settings shows the day of the last one; a restore checks the file is a Bean Counter backup, brings an older one up to date, and replaces all data in one step, so a failed restore changes nothing; D8 downloads a backup of the current data first unless I untick it, then lands on the dashboard |
 | 2026-10-25 | Import presets in Settings (S18): each saved format with its column count, whether it has a balance column, the accounts it was used for and its last import (only imports that used the preset count); deleting one, after a confirmation, keeps what was imported with it, and the next file in that format goes through the column mapping again |
 | 2026-10-25 | Editing an import preset (S8 from S18): its name and column mapping, with the samples and the live preview from the last file imported with it, saved only once the mapping is complete and the samples read; the change applies to future imports only; Delete is on the edit page too, and on mobile a preset opens it |
+| 2026-10-25 | Balance over time (S11), the first report: each account's end-of-day balance stacked, with the total, over 3 months, a year or all time, in one currency; an account counts from the first day its balance is known, archived accounts included, and there's no total while an active account has no balance; under the chart, each account's balance then and now |

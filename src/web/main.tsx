@@ -11,6 +11,7 @@ import "./styles/flow.css";
 import { Shell, type RouteHandle } from "./components/Shell.tsx";
 import { AccountDetail } from "./pages/AccountDetail.tsx";
 import { Accounts } from "./pages/Accounts.tsx";
+import { BalanceReport } from "./pages/BalanceReport.tsx";
 import { BudgetDetail } from "./pages/BudgetDetail.tsx";
 import { Budgets } from "./pages/Budgets.tsx";
 import { Categories } from "./pages/Categories.tsx";
@@ -41,7 +42,8 @@ const router = createBrowserRouter([
       },
       { path: "review", element: <Review /> },
       { path: "transactions", element: <Transactions /> },
-      { path: "reports", element: <Reports /> },
+      { path: "reports", element: <BalanceReport /> },
+      { path: "reports/monthly", element: <Reports /> },
       { path: "reports/spending", element: <Spending /> },
       { path: "budgets", element: <Budgets /> },
       { path: "budgets/:id", element: <BudgetDetail /> },

@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { formatMonth } from "../../domain/dates.ts";
 import { formatAmount } from "../../domain/money.ts";
+import { compact, niceStep, useWidth } from "./chart.ts";
 
 export interface MonthBar {
   /** "2026-10". */
@@ -17,38 +18,6 @@ const BELOW = 24;
 /** A column's widest, and the gap between a month's two. */
 const BAR = 16;
 const GAP = 2;
-
-/** The width of an element, kept up to date. */
-function useWidth() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) =>
-      setWidth(entry?.contentRect.width ?? 0),
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  return [ref, width] as const;
-}
-
-/** A round step for the axis, so that about four of them reach `max`. */
-function niceStep(max: number): number {
-  const raw = Math.max(max, 1) / 4;
-  const power = 10 ** Math.floor(Math.log10(raw));
-  return (
-    [1, 2, 2.5, 5, 10].map((m) => m * power).find((step) => step >= raw) ??
-    10 * power
-  );
-}
-
-/** 250000 minor units → "2.5k", 50000 → "500". */
-function compact(minor: number): string {
-  const units = minor / 100;
-  return units >= 1000 ? `${units / 1000}k` : String(units);
-}
 
 /** A column with a rounded top, standing on the baseline. */
 function column(x: number, y: number, width: number, height: number) {

@@ -1312,20 +1312,25 @@ button.linked:hover {
 }
 
 /* The last 12 months: an SVG, with a button over each month. */
-.barchart {
+.barchart,
+.areachart {
   position: relative;
 }
-.barchart svg {
+.barchart svg,
+.areachart svg {
   display: block;
   overflow: visible;
 }
-.barchart .grid {
+.barchart .grid,
+.areachart .grid {
   stroke: var(--color-border);
 }
-.barchart .baseline {
+.barchart .baseline,
+.areachart .baseline {
   stroke: var(--color-border-strong);
 }
-.barchart .tick {
+.barchart .tick,
+.areachart .tick {
   fill: var(--color-text-muted);
   font: var(--type-caption);
   font-variant-numeric: var(--numbers);
@@ -1787,4 +1792,39 @@ a.br:hover {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-1);
+}
+
+/* Balance over time (S11): the accounts stacked, with the total on top. */
+.areachart .total {
+  fill: none;
+  stroke: var(--color-text);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.areachart .cursor {
+  stroke: var(--color-text-muted);
+}
+.areachart .end-label {
+  position: absolute;
+  right: 0;
+  transform: translate(0, -130%);
+  padding: 2px var(--space-2);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: var(--type-label);
+  font-variant-numeric: var(--numbers);
+  pointer-events: none;
+}
+.swatch.line,
+.tip-key.total {
+  height: 3px;
+  border-radius: var(--radius-full);
+  background: var(--color-text);
+}
+.br.run-4 {
+  grid-template-columns: minmax(0, 1fr) 160px 160px 160px;
+}
+.br.total-row {
+  font-weight: var(--weight-semibold);
 }

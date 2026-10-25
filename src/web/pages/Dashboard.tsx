@@ -261,7 +261,7 @@ function MonthCard({
       )}
       {r.first && (
         <div className="card-foot">
-          <Link className="link" to={`/reports?${query}`}>
+          <Link className="link" to={`/reports/monthly?${query}`}>
             Open monthly report
             <Icon name="arrow" />
           </Link>
