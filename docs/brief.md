@@ -1,6 +1,6 @@
 # Bean Counter — Project Brief
 
-_Status: v1 built · Last updated: 2026-10-25_
+_Status: v1 built · Last updated: 2026-10-26_
 
 ## 1. Summary
 
@@ -57,6 +57,11 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
 - Create, edit and archive accounts (name, bank, type, currency).
   - Two accounts can't share a name, ignoring case and including archived accounts.
   - The currency can change until the account has transactions. The balance anchor keeps its written amount (1,120.00 € becomes 1,120.00 $). The change is refused if the new currency can't write it, for example 1,120.50 € to JPY, which has no decimals.
+- Delete an account, active or archived, with everything imported into it, to start it over: for example, to import its files again with another column mapping. Archiving keeps an account's history in reports; deleting takes it out of balances, reports and budgets.
+  - What goes: its transactions, excluded ones included, its imports, the balances I entered for it, and the rules narrowed to it, which couldn't match anything else.
+  - What it was linked to in my other accounts stays, unlinked. The other side of a transfer or currency exchange goes back to Review. An expense that one of its transactions paid back counts in full again, and a payment that paid back one of its expenses needs a category for that part. These unlinks aren't remembered the way Unlink is, so importing the files again can link the transfers as before.
+  - Import presets stay, and the account's name is free again.
+  - It can't be undone. The confirmation lists what goes and what changes in my other accounts, with counts, and offers to download a backup first, as a restore does.
 - Each account needs one known balance (the anchor):
   - if the export has a balance column, the app takes it from there. After later imports whose balances all agree with the app's, it moves to the file's latest balance, so it stays recent; if they disagree, it stays where it is;
   - otherwise I enter the current balance and its date, which can't be in the future.
@@ -99,7 +104,7 @@ Bean Counter is a personal web app for tracking my cashflow across all my bank a
   - near-matches (same date and amount, another description, unless both have bank references) are flagged in the preview for me to decide;
   - counts are respected, so two identical transactions on the same day (two €1.20 coffees) are both kept;
   - fingerprints use the values as originally imported, so editing a transaction later doesn't break duplicate detection.
-- Transactions can't be added or deleted by hand: all data comes from files. Instead, I can **exclude** a transaction (e.g. a duplicate that slipped through). An excluded transaction is ignored by balances, reports and budgets, stays visible greyed out, and can be restored. A re-import still recognizes it, so it doesn't come back.
+- Transactions can't be added by hand: all data comes from files. Nor can they be deleted one by one, only all together with their account (5.1). Instead, I can **exclude** a transaction (e.g. a duplicate that slipped through). An excluded transaction is ignored by balances, reports and budgets, stays visible greyed out, and can be restored. A re-import still recognizes it, so it doesn't come back.
 
 ### 5.3 Categorization
 
@@ -334,3 +339,4 @@ New features and decisions are added here as we go.
 | 2026-10-25 | Import presets in Settings (S18): each saved format with its column count, whether it has a balance column, the accounts it was used for and its last import (only imports that used the preset count); deleting one, after a confirmation, keeps what was imported with it, and the next file in that format goes through the column mapping again |
 | 2026-10-25 | Editing an import preset (S8 from S18): its name and column mapping, with the samples and the live preview from the last file imported with it, saved only once the mapping is complete and the samples read; the change applies to future imports only; Delete is on the edit page too, and on mobile a preset opens it |
 | 2026-10-25 | Balance over time (S11), the first report: each account's end-of-day balance stacked, with the total, over 3 months, a year or all time, in one currency; an account counts from the first day its balance is known, archived accounts included, and there's no total while an active account has no balance; under the chart, each account's balance then and now |
+| 2026-10-26 | Deleting an account (D10), active or archived, to start it over: its transactions, imports, entered balances and the rules narrowed to it go; transfers and paybacks with my other accounts are unlinked on their side without being remembered, so a re-import can link them again; presets stay and the name is free again; the confirmation counts what goes and what changes, and offers a backup first |

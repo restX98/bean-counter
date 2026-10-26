@@ -1,6 +1,6 @@
 # Bean Counter — Screens & Flows
 
-_Status: draft · Last updated: 2026-10-19 · Source: [brief.md](brief.md)_
+_Status: draft · Last updated: 2026-10-26 · Source: [brief.md](brief.md)_
 
 These are the screens to design and the flows that connect them. Each entry covers what a screen shows and lets me do, not how it's built. The design work happens in HTML, in [wireframes/](wireframes/) (see §8).
 
@@ -17,7 +17,7 @@ These are the screens to design and the flows that connect them. Each entry cove
 
 | Brief feature | Screens & dialogs |
 |---|---|
-| 5.1 Accounts | S3, S4, D1, D2, D3 |
+| 5.1 Accounts | S3, S4, D1, D2, D3, D10 |
 | 5.2 Import | S7, S8, S9, S10, S18 (presets) |
 | 5.3 Categorization | S2, S6, S9, S16, S17, D5, D6 |
 | 5.4 Transfer detection | S2, S6, S9, D4, S18 (window) |
@@ -106,13 +106,13 @@ These are the screens to design and the flows that connect them. Each entry cove
   - the account's transactions: date, description, category or transfer badge, amount, running balance. Excluded transactions stay in the list, greyed out.
 - **Actions**:
   - Import into this account (S7, account preselected);
-  - edit (D1), set balance (D2) or archive (D3);
+  - edit (D1), set balance (D2), archive (D3) or delete (D10);
   - exclude a transaction, or restore an excluded one;
   - open a transaction (S6).
 - **States**:
   - no transactions;
   - mismatch warning, which jumps to where the balances split;
-  - archived (read-only, with Unarchive).
+  - archived (read-only, with Unarchive and Delete).
 
 #### S5 Transactions
 
@@ -312,6 +312,7 @@ On mobile, every dialog opens as a full-screen sheet.
   - Ticking one prefills what's left of the payment, up to what's left on the expense, newest expense first; an amount I type stays, and the untouched ones share the rest.
   - From an expense it's the same dialog turned around: the payments of the 30 days after it that aren't linked in full, with a search for later ones; the check shows my share.
   - It opens on the split the transaction has, so it also edits it.
+- **D10 Delete account**: says it can't be undone and lists, with counts, what goes (the account's transactions, its imports, the balances I entered and the rules narrowed to it, by name) and what changes in my other accounts (the transfers that go back to Review and the paybacks that get unlinked, by account). Offers to download a backup first, ticked by default as in D8; the Delete button is red. Afterwards S3, with a message naming the deleted account.
 
 ## 6. User flows
 
@@ -354,7 +355,7 @@ On mobile, every dialog opens as a full-screen sheet.
    4. S15 → change the limit from next month (D7).
 9. **Manage accounts**
    1. S3 → S4.
-   2. D1 to edit, D2 to set the balance, D3 to archive.
+   2. D1 to edit, D2 to set the balance, D3 to archive, D10 to delete.
 10. **Backup and restore**
     1. S18 → download a backup.
     2. Restore: S18 → choose a file → D8 → S1.
