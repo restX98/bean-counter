@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
+  accountId,
   addAccount,
   chooseFile,
   importStatement,
@@ -48,6 +49,41 @@ test("a duplicate that slipped through: exclude it", async ({
   await expect(banner(page)).toHaveCount(0);
   await page.goto("/review");
   await expect(page.getByText(/^Off by/)).toHaveCount(0);
+});
+
+test("Show the gap scrolls the list, not the page", async ({
+  page,
+  request,
+}) => {
+  await startFrom(request, "september");
+  // With October in Main checking, the transfer from it is linked, and sits
+  // under the gap. Its tag has a visually hidden label, which once stretched
+  // the page, so scrolling to the gap scrolled the whole app out of view.
+  await importStatement(
+    request,
+    await accountId(request, "Main checking"),
+    "bank-a-checking-2026-10.csv",
+    "checking",
+  );
+  const savings = await addAccount(request, "Savings", "savings");
+  await importStatement(
+    request,
+    savings,
+    "bank-a-savings-2026-10-duplicate.csv",
+    "savings",
+  );
+  // A short window, so the transfer is out of sight.
+  const { width } = page.viewportSize()!;
+  await page.setViewportSize({ width, height: 400 });
+
+  await page.goto(`/accounts/${savings}`);
+  await banner(page).getByRole("button", { name: "Show the gap" }).click();
+  await expect(page.getByText(/the balances split here/i)).toBeInViewport();
+  // Only the content scrolls: the page is no taller than the window.
+  const height = await page
+    .locator("html")
+    .evaluate((html) => html.scrollHeight);
+  expect(height).toBe(400);
 });
 
 test("a missing transaction: import the statement that has it", async ({
